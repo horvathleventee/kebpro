@@ -1,7 +1,9 @@
 ﻿const path = require("path");
+const fs = require("fs");
 const sqlite3 = require("sqlite3").verbose();
 
 const dbPath = process.env.DB_PATH || path.join(__dirname, "..", "data", "kebpro.sqlite");
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new sqlite3.Database(dbPath);
 
 function run(sql, params = []) {
