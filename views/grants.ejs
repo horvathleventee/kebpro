@@ -1,0 +1,23 @@
+﻿<%- include('partials/header') %>
+
+<section class="page-hero section-animate">
+  <div class="container">
+    <p class="eyebrow">Pályázatok</p>
+    <h1>Válassza ki, melyik pályázat részleteit szeretné megnyitni.</h1>
+  </div>
+</section>
+
+<section class="section section-animate">
+  <div class="container grant-grid">
+    <% grants.forEach((item) => { %>
+    <article class="panel">
+      <h2><%= item.title %></h2>
+      <img src="<%= item.image %>" alt="<%= item.title %> pályázat" class="grant-image" />
+      <p><strong>Projekt címe:</strong> <%= item.project %></p>
+      <a class="btn btn-primary" href="/palyazatok/<%= item.slug %>">Részletek megnyitása</a>
+    </article>
+    <% }) %>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

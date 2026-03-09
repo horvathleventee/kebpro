@@ -1,0 +1,87 @@
+﻿<%- include('partials/header') %>
+
+<section class="page-hero section-animate">
+  <div class="container">
+    <p class="eyebrow">Admin</p>
+    <h1>Beérkezett ajánlatkérések és megrendelések</h1>
+  </div>
+</section>
+
+<section class="section section-animate">
+  <div class="container">
+    <div class="panel wide">
+      <h2>E-mail értesítés beállítás</h2>
+      <form method="POST" action="/admin/email-settings/update" class="contact-form compact-form">
+        <label for="notificationEmail">Értesítési e-mail cím</label>
+        <input
+          id="notificationEmail"
+          name="notificationEmail"
+          type="email"
+          value="<%= settings.notificationEmail %>"
+          required
+        />
+        <button type="submit" class="btn btn-secondary">E-mail cím mentése</button>
+      </form>
+
+      <form method="POST" action="/admin/email-settings/toggle" class="inline-form">
+        <span>Állapot: <strong><%= settings.emailEnabled ? 'Bekapcsolva' : 'Kikapcsolva' %></strong></span>
+        <button type="submit" class="btn btn-primary">
+          <%= settings.emailEnabled ? 'Értesítés kikapcsolása' : 'Értesítés bekapcsolása' %>
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="section section-animate">
+  <div class="container">
+    <div class="panel wide">
+      <div class="admin-filters">
+        <a href="/admin/igenyek?type=all" class="btn btn-secondary">Összes</a>
+        <a href="/admin/igenyek?type=quote" class="btn btn-secondary">Ajánlatkérés</a>
+        <a href="/admin/igenyek?type=order" class="btn btn-secondary">Megrendelés</a>
+      </div>
+
+      <% if (!rows || rows.length === 0) { %>
+      <p>Jelenleg nincs beérkezett adat.</p>
+      <% } else { %>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Típus</th>
+              <th>Dátum</th>
+              <th>Név/Cég</th>
+              <th>Termék</th>
+              <th>Mennyiség</th>
+              <th>Elérhetőség</th>
+              <th>Részletek</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% rows.forEach((item) => { %>
+            <tr>
+              <td><%= item.id %></td>
+              <td><%= item.type === 'order' ? 'Megrendelés' : 'Ajánlatkérés' %></td>
+              <td><%= item.created_at %></td>
+              <td><strong><%= item.name %></strong><br /><%= item.company %></td>
+              <td><%= item.product %></td>
+              <td><%= item.quantity || '-' %></td>
+              <td><%= item.email %><br /><%= item.phone %></td>
+              <td>
+                <% if (item.address) { %><div>Cím: <%= item.address %></div><% } %>
+                <% if (item.requested_date) { %><div>Dátum: <%= item.requested_date %></div><% } %>
+                <% if (item.message) { %><div>Megjegyzés: <%= item.message %></div><% } %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

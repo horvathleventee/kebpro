@@ -1,0 +1,49 @@
+﻿    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <h3><%= company.name %></h3>
+          <p>
+            Magyar tulajdonú, családi vállalkozásként gyorsfagyasztott gyros- és
+            kebab termékek gyártásával, illetve országos kiszállítással állunk
+            partnereink rendelkezésére.
+          </p>
+        </div>
+        <div>
+          <h4>Jogi oldalak</h4>
+          <a href="/adatkezelesi-tajekoztato">Adatkezelési tájékoztató</a>
+          <a href="/panaszkezelesi-szabalyzat">Panaszkezelési szabályzat</a>
+          <a href="/impresszum">Impresszum</a>
+          <a href="/belso-visszaeles-bejelentes">Belső Visszaélés-Bejelentés</a>
+        </div>
+        <div>
+          <h4>Kapcsolat</h4>
+          <p><%= company?.address || '' %></p>
+          <% if (company?.phone) { %>
+          <a href="tel:<%= company.phone.replace(/\s+/g, '') %>"><%= company.phone %></a>
+          <% } %>
+          <% if (company?.phone2) { %>
+          <a href="tel:<%= company.phone2.replace(/\s+/g, '') %>"><%= company.phone2 %></a>
+          <% } %>
+          <% if (company?.fax) { %>
+          <p>Fax: <%= company.fax %></p>
+          <% } %>
+          <% if (company?.email) { %>
+          <a href="mailto:<%= company.email %>"><%= company.email %></a>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="container footer-bottom">
+        <span>© Copyright 2026 Kiskunhalasi Kebpro Kft.</span>
+      </div>
+    </footer>
+
+    <a href="/palyazatok" class="szechenyi-floating" aria-label="Széchenyi pályázatok">
+      <img src="/szechenyi.png" alt="Széchenyi 2020 támogatás" class="szechenyi-floating-logo" />
+    </a>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>

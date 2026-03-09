@@ -1,0 +1,51 @@
+﻿<%- include('partials/header') %>
+
+<section class="page-hero section-animate">
+  <div class="container">
+    <p class="eyebrow">Ajánlatkérés</p>
+    <h1>Kérjen személyre szabott ajánlatot termékeinkre.</h1>
+  </div>
+</section>
+
+<section class="section section-animate">
+  <div class="container">
+    <div class="panel wide">
+      <% if (successMessage) { %>
+      <div class="alert success"><%= successMessage %></div>
+      <% } %>
+
+      <form method="POST" action="/ajanlatkeres" class="contact-form" novalidate>
+        <label for="name">Név</label>
+        <input id="name" name="name" type="text" value="<%= formData.name || '' %>" />
+        <% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %>
+
+        <label for="company">Cégnév</label>
+        <input id="company" name="company" type="text" value="<%= formData.company || '' %>" />
+        <% if (errors.company) { %><small class="error"><%= errors.company %></small><% } %>
+
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email" value="<%= formData.email || '' %>" />
+        <% if (errors.email) { %><small class="error"><%= errors.email %></small><% } %>
+
+        <label for="phone">Telefonszám</label>
+        <input id="phone" name="phone" type="tel" value="<%= formData.phone || '' %>" />
+        <% if (errors.phone) { %><small class="error"><%= errors.phone %></small><% } %>
+
+        <label for="product">Érdeklődött termék</label>
+        <input id="product" name="product" type="text" value="<%= formData.product || '' %>" />
+        <% if (errors.product) { %><small class="error"><%= errors.product %></small><% } %>
+
+        <label for="quantity">Becsült mennyiség</label>
+        <input id="quantity" name="quantity" type="text" value="<%= formData.quantity || '' %>" />
+
+        <label for="message">Igény leírása</label>
+        <textarea id="message" name="message" rows="5"><%= formData.message || '' %></textarea>
+        <% if (errors.message) { %><small class="error"><%= errors.message %></small><% } %>
+
+        <button type="submit" class="btn btn-primary">Ajánlatkérés elküldése</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

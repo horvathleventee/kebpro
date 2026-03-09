@@ -1,0 +1,46 @@
+﻿<%- include('partials/header') %>
+
+<section class="page-hero section-animate">
+  <div class="container">
+    <p class="eyebrow">Kapcsolat</p>
+    <h1>Vegye fel velünk a kapcsolatot.</h1>
+    <p class="lead">
+      Általános információ, partneri együttműködés vagy logisztikai kérdés
+      esetén kollégáink készséggel állnak rendelkezésre.
+    </p>
+  </div>
+</section>
+
+<section class="section section-animate">
+  <div class="container contact-grid">
+    <aside class="panel">
+      <h2>Elérhetőségeink</h2>
+      <p><strong>Cégnév:</strong> <%= company?.name || 'Kiskunhalasi Kebpro Kft.' %></p>
+      <p><strong>Cím:</strong> <%= company?.address || '' %></p>
+      <% if (company?.phone) { %>
+      <p><strong>Telefon 1:</strong> <a href="tel:<%= company.phone.replace(/\s+/g, '') %>"><%= company.phone %></a></p>
+      <% } %>
+      <% if (company?.phone2) { %>
+      <p><strong>Telefon 2:</strong> <a href="tel:<%= company.phone2.replace(/\s+/g, '') %>"><%= company.phone2 %></a></p>
+      <% } %>
+      <% if (company?.fax) { %>
+      <p><strong>Fax:</strong> <%= company.fax %></p>
+      <% } %>
+      <% if (company?.email) { %>
+      <p><strong>E-mail:</strong> <a href="mailto:<%= company.email %>"><%= company.email %></a></p>
+      <% } %>
+      <p><strong>Nyitvatartás:</strong> H-P 08:00-16:00</p>
+    </aside>
+
+    <div class="panel">
+      <h2>Gyors elérés</h2>
+      <p>
+        Konkrét árkéréshez használja az <a href="/ajanlatkeres"><strong>Ajánlatkérés</strong></a>
+        oldalt, megrendelés leadásához pedig a
+        <a href="/megrendeles"><strong>Megrendelés</strong></a> oldalt.
+      </p>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

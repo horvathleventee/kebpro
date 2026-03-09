@@ -1,0 +1,29 @@
+﻿{
+  "name": "kebpro-webapp",
+  "version": "1.1.0",
+  "description": "Modern, reszponzív webapp a Kiskunhalasi Kebpro Kft. számára",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "express",
+    "ejs",
+    "kebpro",
+    "kebab",
+    "gyros"
+  ],
+  "author": "Kiskunhalasi Kebpro Kft.",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "ejs": "^3.1.10",
+    "express": "^5.2.1",
+    "nodemailer": "^6.10.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
