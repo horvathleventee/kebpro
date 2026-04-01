@@ -54,36 +54,28 @@
     </div>
 
     <div class="logistics-stats reveal-grid">
+      <% t.home.logisticsStats.forEach((stat) => { %>
       <article class="stat-card panel" data-stagger>
-        <span class="stat-label">Coverage</span>
-        <strong>Hungary</strong>
-        <p>Országos partnerkiszolgálás saját hűtős flottával.</p>
+        <span class="stat-label"><%= stat.label %></span>
+        <strong><%= stat.value %></strong>
+        <p><%= stat.text %></p>
       </article>
-      <article class="stat-card panel" data-stagger>
-        <span class="stat-label">Routing</span>
-        <strong>Weekly</strong>
-        <p>Heti ütemezett útvonalak, kiemelt pontokon többszöri fordulóval.</p>
-      </article>
-      <article class="stat-card panel" data-stagger>
-        <span class="stat-label">Cold Chain</span>
-        <strong>Controlled</strong>
-        <p>Átadásig követett hűtőlánc és egyeztetett kiszállítási ritmus.</p>
-      </article>
+      <% }) %>
     </div>
 
     <div class="logistics-dashboard panel">
       <div class="dashboard-map">
         <div class="dashboard-glow dashboard-glow-a"></div>
         <div class="dashboard-glow dashboard-glow-b"></div>
-        <svg viewBox="0 0 520 360" class="hungary-map strong-map" aria-hidden="true">
-          <path d="M88 165 L133 117 L204 101 L260 69 L324 91 L393 86 L441 133 L430 196 L461 230 L422 282 L332 299 L266 320 L188 298 L141 251 L86 228 L66 192 Z" class="hungary-shape"></path>
-          <path d="M126 188 L185 146 L250 144 L336 122 L395 155" class="hungary-route strong-route"></path>
-          <path d="M165 244 L233 204 L302 212 L382 225" class="hungary-route strong-route"></path>
-          <circle cx="150" cy="163" r="10" class="hungary-dot map-node map-node-west"></circle>
-          <circle cx="263" cy="145" r="10" class="hungary-dot map-node map-node-central is-active"></circle>
-          <circle cx="232" cy="96" r="10" class="hungary-dot map-node map-node-north"></circle>
-          <circle cx="377" cy="172" r="10" class="hungary-dot map-node map-node-east"></circle>
-          <circle cx="250" cy="247" r="10" class="hungary-dot map-node map-node-south"></circle>
+        <svg viewBox="0 0 640 440" class="hungary-map strong-map" aria-hidden="true">
+          <path d="M104 241 L150 180 L210 129 L273 117 L341 83 L414 105 L495 100 L559 156 L548 246 L585 287 L546 326 L474 338 L401 352 L328 389 L252 367 L200 316 L145 288 L115 243 Z" class="hungary-shape"></path>
+          <path d="M175 237 C225 198, 266 169, 329 173 C382 176, 432 152, 482 181" class="hungary-route strong-route"></path>
+          <path d="M219 304 C263 276, 301 243, 356 251 C407 258, 451 259, 496 278" class="hungary-route strong-route"></path>
+          <circle cx="188" cy="205" r="11" class="hungary-dot map-node map-node-west"></circle>
+          <circle cx="324" cy="177" r="12" class="hungary-dot map-node map-node-central is-active"></circle>
+          <circle cx="282" cy="124" r="11" class="hungary-dot map-node map-node-north"></circle>
+          <circle cx="472" cy="216" r="11" class="hungary-dot map-node map-node-east"></circle>
+          <circle cx="305" cy="296" r="11" class="hungary-dot map-node map-node-south"></circle>
         </svg>
 
         <div class="dashboard-panel" id="logisticsPanel">
