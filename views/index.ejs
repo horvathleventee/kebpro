@@ -99,25 +99,9 @@
       <div class="dashboard-map">
         <div class="dashboard-glow dashboard-glow-a"></div>
         <div class="dashboard-glow dashboard-glow-b"></div>
-        <svg viewBox="0 0 760 500" class="hungary-map strong-map" aria-hidden="true">
-          <path d="M94 263 L132 205 L186 158 L248 147 L326 101 L412 129 L498 123 L575 174 L566 247 L612 302 L564 350 L485 364 L410 388 L328 431 L245 407 L188 352 L133 320 L98 268 Z" class="hungary-shape"></path>
+        <%- include('partials/hungary-map') %>
 
-          <path d="M118 257 L184 183 L268 163 L320 149 L305 206 L240 221 L188 263 L155 318 L118 286 Z" class="region-overlay region-overlay-west" data-region-key="west"></path>
-          <path d="M287 171 L355 154 L418 162 L406 221 L343 238 L286 222 L266 188 Z" class="region-overlay region-overlay-central is-active" data-region-key="central"></path>
-          <path d="M242 148 L326 101 L414 129 L496 123 L455 166 L356 155 L289 171 Z" class="region-overlay region-overlay-north" data-region-key="north"></path>
-          <path d="M419 162 L500 126 L576 175 L565 247 L611 302 L563 350 L495 344 L454 293 L424 233 Z" class="region-overlay region-overlay-east" data-region-key="east"></path>
-          <path d="M187 320 L242 278 L336 259 L425 272 L496 344 L408 388 L328 431 L246 407 L188 352 Z" class="region-overlay region-overlay-south" data-region-key="south"></path>
-
-          <path d="M167 258 C220 213, 270 191, 329 188 C391 185, 442 170, 503 190" class="hungary-route strong-route"></path>
-          <path d="M185 331 C244 286, 301 265, 365 274 C418 281, 468 295, 520 323" class="hungary-route strong-route"></path>
-          <circle cx="194" cy="236" r="11" class="hungary-dot map-node map-node-west pulse-node"></circle>
-          <circle cx="345" cy="205" r="12" class="hungary-dot map-node map-node-central is-active pulse-node"></circle>
-          <circle cx="300" cy="142" r="11" class="hungary-dot map-node map-node-north pulse-node"></circle>
-          <circle cx="484" cy="250" r="11" class="hungary-dot map-node map-node-east pulse-node"></circle>
-          <circle cx="289" cy="333" r="11" class="hungary-dot map-node map-node-south pulse-node"></circle>
-        </svg>
-
-        <div class="dashboard-panel" id="logisticsPanel">
+<div class="dashboard-panel" id="logisticsPanel">
           <p class="logistics-panel-label"><%= t.home.logisticsPanelTitle %></p>
           <h3 id="logisticsPanelTitle"><%= activeRegion.title %></h3>
           <p id="logisticsPanelText"><%= activeRegion.text %></p>
