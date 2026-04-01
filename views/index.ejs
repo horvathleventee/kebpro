@@ -1,5 +1,31 @@
 <%- include('partials/header') %>
 
+<%
+  const logisticsBadges = t.home.logisticsBadges || (lang === 'de'
+    ? ['Landesweite K?hlzustellung', 'W?chentliche Routenplanung', 'Flexible Partnerbelieferung']
+    : lang === 'en'
+      ? ['Nationwide refrigerated delivery', 'Weekly route planning', 'Flexible partner service']
+      : ['Orsz?gos h?t?s kisz?ll?t?s', 'Heti ?tvonaltervez?s', 'Rugalmas partnerkiszolg?l?s']);
+
+  const logisticsStats = t.home.logisticsStats || (lang === 'de'
+    ? [
+        { label: 'Abdeckung', value: 'Ungarn', text: 'Landesweite Partnerbelieferung mit eigener K?hlflotte.' },
+        { label: 'Taktung', value: 'W?chentlich', text: 'W?chentlich geplante Routen mit mehreren Fahrten an priorisierten Punkten.' },
+        { label: 'K?hlkette', value: 'Kontrolliert', text: 'Durchgehend ?berwachte K?hlkette und abgestimmter Lieferrhythmus bis zur ?bergabe.' },
+      ]
+    : lang === 'en'
+      ? [
+          { label: 'Coverage', value: 'Hungary', text: 'Nationwide partner service with our own refrigerated fleet.' },
+          { label: 'Routing', value: 'Weekly', text: 'Weekly scheduled routes with multiple rounds at priority points.' },
+          { label: 'Cold chain', value: 'Controlled', text: 'Tracked cold-chain handling and coordinated delivery rhythm until handover.' },
+        ]
+      : [
+          { label: 'Lefedetts?g', value: 'Magyarorsz?g', text: 'Orsz?gos partnerkiszolg?l?s saj?t h?t?s flott?val.' },
+          { label: '?temez?s', value: 'Heti', text: 'Heti ?temezett ?tvonalak, kiemelt pontokon t?bbsz?ri fordul?val.' },
+          { label: 'H?t?l?nc', value: 'Ellen?rz?tt', text: '?tad?sig k?vetett h?t?l?nc ?s egyeztetett kisz?ll?t?si ritmus.' },
+        ]);
+%>
+
 <section class="hero section-animate">
   <div class="container hero-grid">
     <div>
@@ -12,9 +38,9 @@
       </div>
     </div>
     <div class="hero-visual-wrap section-animate floating-visual">
-      <img src="/images/gyrosnyars.png" alt="Gyros nyárs termékbemutató" class="hero-image" />
+      <img src="/images/gyrosnyars.png" alt="Gyros nyï¿½rs termï¿½kbemutatï¿½" class="hero-image" />
       <div class="hero-card hero-logo-card">
-        <img src="/images/logo.png" alt="Kiskunhalasi Kebpro Kft. logó" class="hero-mini-logo" />
+        <img src="/images/logo.png" alt="Kiskunhalasi Kebpro Kft. logï¿½" class="hero-mini-logo" />
         <div>
           <h3><%= t.home.advantages %></h3>
           <ul>
@@ -54,13 +80,13 @@
     </div>
 
     <div class="logistics-badges reveal-grid">
-      <span class="logistics-badge" data-stagger>Országos hûtõs kiszállítás</span>
-      <span class="logistics-badge" data-stagger>Heti útvonaltervezés</span>
-      <span class="logistics-badge" data-stagger>Rugalmas partnerkiszolgálás</span>
+      <% logisticsBadges.forEach((badge) => { %>
+      <span class="logistics-badge" data-stagger><%= badge %></span>
+      <% }) %>
     </div>
 
     <div class="logistics-stats reveal-grid">
-      <% t.home.logisticsStats.forEach((stat) => { %>
+      <% logisticsStats.forEach((stat) => { %>
       <article class="stat-card panel" data-stagger>
         <span class="stat-label"><%= stat.label %></span>
         <strong><%= stat.value %></strong>
