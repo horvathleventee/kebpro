@@ -2,16 +2,16 @@
 
 <%
   const logisticsBadges = t.home.logisticsBadges || (lang === 'de'
-    ? ['Landesweite K?hlzustellung', 'W?chentliche Routenplanung', 'Flexible Partnerbelieferung']
+    ? ['Landesweite K\u00fchlzustellung', 'W\u00f6chentliche Routenplanung', 'Flexible Partnerbelieferung']
     : lang === 'en'
       ? ['Nationwide refrigerated delivery', 'Weekly route planning', 'Flexible partner service']
-      : ['Orsz?gos h?t?s kisz?ll?t?s', 'Heti ?tvonaltervez?s', 'Rugalmas partnerkiszolg?l?s']);
+      : ['Orsz\u00e1gos h\u0171t\u0151s kisz\u00e1ll\u00edt\u00e1s', 'Heti \u00fatvonaltervez\u00e9s', 'Rugalmas partnerkiszolg\u00e1l\u00e1s']);
 
   const logisticsStats = t.home.logisticsStats || (lang === 'de'
     ? [
-        { label: 'Abdeckung', value: 'Ungarn', text: 'Landesweite Partnerbelieferung mit eigener K?hlflotte.' },
-        { label: 'Taktung', value: 'W?chentlich', text: 'W?chentlich geplante Routen mit mehreren Fahrten an priorisierten Punkten.' },
-        { label: 'K?hlkette', value: 'Kontrolliert', text: 'Durchgehend ?berwachte K?hlkette und abgestimmter Lieferrhythmus bis zur ?bergabe.' },
+        { label: 'Abdeckung', value: 'Ungarn', text: 'Landesweite Partnerbelieferung mit eigener K\u00fchlflotte.' },
+        { label: 'Taktung', value: 'W\u00f6chentlich', text: 'W\u00f6chentlich geplante Routen mit mehreren Fahrten an priorisierten Punkten.' },
+        { label: 'K\u00fchlkette', value: 'Kontrolliert', text: 'Durchgehend \u00fcberwachte K\u00fchlkette und abgestimmter Lieferrhythmus bis zur \u00dcbergabe.' },
       ]
     : lang === 'en'
       ? [
@@ -20,9 +20,9 @@
           { label: 'Cold chain', value: 'Controlled', text: 'Tracked cold-chain handling and coordinated delivery rhythm until handover.' },
         ]
       : [
-          { label: 'Lefedetts?g', value: 'Magyarorsz?g', text: 'Orsz?gos partnerkiszolg?l?s saj?t h?t?s flott?val.' },
-          { label: '?temez?s', value: 'Heti', text: 'Heti ?temezett ?tvonalak, kiemelt pontokon t?bbsz?ri fordul?val.' },
-          { label: 'H?t?l?nc', value: 'Ellen?rz?tt', text: '?tad?sig k?vetett h?t?l?nc ?s egyeztetett kisz?ll?t?si ritmus.' },
+          { label: 'Lefedetts\u00e9g', value: 'Magyarorsz\u00e1g', text: 'Orsz\u00e1gos partnerkiszolg\u00e1l\u00e1s saj\u00e1t h\u0171t\u0151s flott\u00e1val.' },
+          { label: '\u00dctemez\u00e9s', value: 'Heti', text: 'Heti \u00fctemezett \u00fatvonalak, kiemelt pontokon t\u00f6bbsz\u00f6ri fordul\u00f3val.' },
+          { label: 'H\u0171t\u0151l\u00e1nc', value: 'Ellen\u0151rz\u00f6tt', text: '\u00c1tad\u00e1sig k\u00f6vetett h\u0171t\u0151l\u00e1nc \u00e9s egyeztetett kisz\u00e1ll\u00edt\u00e1si ritmus.' },
         ]);
 %>
 
@@ -38,9 +38,9 @@
       </div>
     </div>
     <div class="hero-visual-wrap section-animate floating-visual">
-      <img src="/images/gyrosnyars.png" alt="Gyros ny�rs term�kbemutat�" class="hero-image" />
+      <img src="/images/gyrosnyars.png" alt="Gyros ny&aacute;rs term&eacute;kbemutat&oacute;" class="hero-image" />
       <div class="hero-card hero-logo-card">
-        <img src="/images/logo.png" alt="Kiskunhalasi Kebpro Kft. log�" class="hero-mini-logo" />
+        <img src="/images/logo.png" alt="Kiskunhalasi Kebpro Kft. log&oacute;" class="hero-mini-logo" />
         <div>
           <h3><%= t.home.advantages %></h3>
           <ul>
@@ -99,22 +99,22 @@
       <div class="dashboard-map">
         <div class="dashboard-glow dashboard-glow-a"></div>
         <div class="dashboard-glow dashboard-glow-b"></div>
-        <svg viewBox="0 0 640 440" class="hungary-map strong-map" aria-hidden="true">
-          <path d="M104 241 L150 180 L210 129 L273 117 L341 83 L414 105 L495 100 L559 156 L548 246 L585 287 L546 326 L474 338 L401 352 L328 389 L252 367 L200 316 L145 288 L115 243 Z" class="hungary-shape"></path>
+        <svg viewBox="0 0 760 500" class="hungary-map strong-map" aria-hidden="true">
+          <path d="M94 263 L132 205 L186 158 L248 147 L326 101 L412 129 L498 123 L575 174 L566 247 L612 302 L564 350 L485 364 L410 388 L328 431 L245 407 L188 352 L133 320 L98 268 Z" class="hungary-shape"></path>
 
-          <path d="M138 218 L203 169 L252 148 L324 142 L375 132 L424 129 L487 151 L520 200 L516 243 L553 282 L521 314 L459 323 L390 336 L332 368 L265 350 L221 309 L167 277 L135 226 Z" class="region-overlay region-overlay-west" data-region-key="west"></path>
-          <path d="M270 158 L322 145 L371 138 L409 146 L395 189 L332 205 L286 194 L259 175 Z" class="region-overlay region-overlay-central is-active" data-region-key="central"></path>
-          <path d="M256 118 L315 91 L372 103 L421 112 L411 147 L364 139 L319 145 L280 154 L251 139 Z" class="region-overlay region-overlay-north" data-region-key="north"></path>
-          <path d="M410 146 L489 149 L531 196 L526 239 L557 281 L523 314 L458 323 L398 297 L397 234 L403 187 Z" class="region-overlay region-overlay-east" data-region-key="east"></path>
-          <path d="M221 309 L281 282 L345 287 L404 296 L458 323 L396 337 L331 368 L265 350 Z" class="region-overlay region-overlay-south" data-region-key="south"></path>
+          <path d="M118 257 L184 183 L268 163 L320 149 L305 206 L240 221 L188 263 L155 318 L118 286 Z" class="region-overlay region-overlay-west" data-region-key="west"></path>
+          <path d="M287 171 L355 154 L418 162 L406 221 L343 238 L286 222 L266 188 Z" class="region-overlay region-overlay-central is-active" data-region-key="central"></path>
+          <path d="M242 148 L326 101 L414 129 L496 123 L455 166 L356 155 L289 171 Z" class="region-overlay region-overlay-north" data-region-key="north"></path>
+          <path d="M419 162 L500 126 L576 175 L565 247 L611 302 L563 350 L495 344 L454 293 L424 233 Z" class="region-overlay region-overlay-east" data-region-key="east"></path>
+          <path d="M187 320 L242 278 L336 259 L425 272 L496 344 L408 388 L328 431 L246 407 L188 352 Z" class="region-overlay region-overlay-south" data-region-key="south"></path>
 
-          <path d="M175 237 C225 198, 266 169, 329 173 C382 176, 432 152, 482 181" class="hungary-route strong-route"></path>
-          <path d="M219 304 C263 276, 301 243, 356 251 C407 258, 451 259, 496 278" class="hungary-route strong-route"></path>
-          <circle cx="188" cy="205" r="11" class="hungary-dot map-node map-node-west pulse-node"></circle>
-          <circle cx="324" cy="177" r="12" class="hungary-dot map-node map-node-central is-active pulse-node"></circle>
-          <circle cx="282" cy="124" r="11" class="hungary-dot map-node map-node-north pulse-node"></circle>
-          <circle cx="472" cy="216" r="11" class="hungary-dot map-node map-node-east pulse-node"></circle>
-          <circle cx="305" cy="296" r="11" class="hungary-dot map-node map-node-south pulse-node"></circle>
+          <path d="M167 258 C220 213, 270 191, 329 188 C391 185, 442 170, 503 190" class="hungary-route strong-route"></path>
+          <path d="M185 331 C244 286, 301 265, 365 274 C418 281, 468 295, 520 323" class="hungary-route strong-route"></path>
+          <circle cx="194" cy="236" r="11" class="hungary-dot map-node map-node-west pulse-node"></circle>
+          <circle cx="345" cy="205" r="12" class="hungary-dot map-node map-node-central is-active pulse-node"></circle>
+          <circle cx="300" cy="142" r="11" class="hungary-dot map-node map-node-north pulse-node"></circle>
+          <circle cx="484" cy="250" r="11" class="hungary-dot map-node map-node-east pulse-node"></circle>
+          <circle cx="289" cy="333" r="11" class="hungary-dot map-node map-node-south pulse-node"></circle>
         </svg>
 
         <div class="dashboard-panel" id="logisticsPanel">
@@ -164,4 +164,3 @@
 </section>
 
 <%- include('partials/footer') %>
-
