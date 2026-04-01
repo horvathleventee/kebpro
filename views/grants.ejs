@@ -1,20 +1,20 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="page-hero section-animate">
   <div class="container">
-    <p class="eyebrow">Pályázatok</p>
-    <h1>Válassza ki, melyik pályázat részleteit szeretné megnyitni.</h1>
+    <p class="eyebrow"><%= t.grants.eyebrow %></p>
+    <h1><%= t.grants.title %></h1>
   </div>
 </section>
 
 <section class="section section-animate">
-  <div class="container grant-grid">
+  <div class="container grant-grid reveal-grid">
     <% grants.forEach((item) => { %>
-    <article class="panel">
+    <article class="panel" data-stagger>
       <h2><%= item.title %></h2>
-      <img src="<%= item.image %>" alt="<%= item.title %> pályázat" class="grant-image" />
-      <p><strong>Projekt címe:</strong> <%= item.project %></p>
-      <a class="btn btn-primary" href="/palyazatok/<%= item.slug %>">Részletek megnyitása</a>
+      <img src="<%= item.image %>" alt="<%= item.title %>" class="grant-image" />
+      <p><strong><%= t.grants.projectTitle %>:</strong> <%= item.project %></p>
+      <a class="btn btn-primary" href="<%= withLang(`/palyazatok/${item.slug}`) %>"><%= t.buttons.openDetails %></a>
     </article>
     <% }) %>
   </div>

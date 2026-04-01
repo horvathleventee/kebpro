@@ -1,24 +1,20 @@
-﻿    </main>
+    </main>
 
     <footer class="site-footer">
       <div class="container footer-grid">
         <div>
           <h3><%= company.name %></h3>
-          <p>
-            Magyar tulajdonú, családi vállalkozásként gyorsfagyasztott gyros- és
-            kebab termékek gyártásával, illetve országos kiszállítással állunk
-            partnereink rendelkezésére.
-          </p>
+          <p><%= t.footer.description %></p>
         </div>
         <div>
-          <h4>Jogi oldalak</h4>
-          <a href="/adatkezelesi-tajekoztato">Adatkezelési tájékoztató</a>
-          <a href="/panaszkezelesi-szabalyzat">Panaszkezelési szabályzat</a>
-          <a href="/impresszum">Impresszum</a>
-          <a href="/belso-visszaeles-bejelentes">Belső Visszaélés-Bejelentés</a>
+          <h4><%= t.footer.legal %></h4>
+          <a href="<%= withLang('/adatkezelesi-tajekoztato') %>"><%= t.footer.privacy %></a>
+          <a href="<%= withLang('/panaszkezelesi-szabalyzat') %>"><%= t.footer.complaints %></a>
+          <a href="<%= withLang('/impresszum') %>"><%= t.footer.imprint %></a>
+          <a href="<%= withLang('/belso-visszaeles-bejelentes') %>"><%= t.footer.whistleblowing %></a>
         </div>
         <div>
-          <h4>Kapcsolat</h4>
+          <h4><%= t.footer.contact %></h4>
           <p><%= company?.address || '' %></p>
           <% if (company?.phone) { %>
           <a href="tel:<%= company.phone.replace(/\s+/g, '') %>"><%= company.phone %></a>
@@ -36,12 +32,12 @@
       </div>
 
       <div class="container footer-bottom">
-        <span>© Copyright 2026 Kiskunhalasi Kebpro Kft.</span>
+        <span><%= t.footer.copyright %></span>
       </div>
     </footer>
 
-    <a href="/palyazatok" class="szechenyi-floating" aria-label="Széchenyi pályázatok">
-      <img src="/szechenyi.png" alt="Széchenyi 2020 támogatás" class="szechenyi-floating-logo" />
+    <a href="<%= withLang('/palyazatok') %>" class="szechenyi-floating" aria-label="Sz�chenyi p�ly�zatok">
+      <img src="/szechenyi.png" alt="Sz�chenyi 2020 t�mogat�s" class="szechenyi-floating-logo" />
     </a>
 
     <script src="/js/main.js"></script>

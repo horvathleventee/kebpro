@@ -592,3 +592,306 @@ a {
     width: 130px;
   }
 }
+
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.5rem;
+}
+
+.lang-pill {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.lang-pill.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.reveal-grid [data-stagger],
+.timeline-item,
+.region-chip {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  transition-delay: var(--stagger-delay, 0ms);
+}
+
+.reveal-grid [data-stagger].is-visible,
+.timeline-item.is-visible,
+.region-chip.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.floating-visual {
+  animation: heroFloat 5.5s ease-in-out infinite;
+}
+
+@keyframes heroFloat {
+  0%,
+  100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.logistics-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.logistics-map-wrap {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.logistics-map {
+  padding: 1rem;
+  overflow: hidden;
+  position: relative;
+  background: radial-gradient(circle at top left, #edf4ff 0%, #ffffff 50%, #eef6f2 100%);
+}
+
+.hungary-map {
+  width: 100%;
+  height: 100%;
+  min-height: 330px;
+}
+
+.hungary-shape {
+  fill: rgba(15, 39, 71, 0.08);
+  stroke: rgba(15, 39, 71, 0.28);
+  stroke-width: 5;
+}
+
+.hungary-route {
+  fill: none;
+  stroke: rgba(29, 155, 125, 0.5);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 14 14;
+}
+
+.hungary-dot {
+  fill: var(--primary);
+  stroke: #fff;
+  stroke-width: 5;
+}
+
+.hungary-dot.is-active {
+  fill: var(--accent);
+}
+
+.logistics-panel {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  width: min(280px, calc(100% - 2rem));
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.logistics-panel-label {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.logistics-panel h3 {
+  margin: 0 0 0.45rem;
+}
+
+.logistics-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.logistics-region-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.region-chip {
+  text-align: left;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  align-items: center;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  padding: 0.95rem 1rem;
+  cursor: pointer;
+}
+
+.region-chip:hover,
+.region-chip:focus,
+.region-chip.active {
+  border-color: #a9c2e2;
+  transform: translateY(-2px);
+}
+
+.region-chip-index {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #eef4fb;
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.product-category-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.2rem 0 1.6rem;
+}
+
+.product-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.product-card {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.product-placeholder {
+  min-height: 164px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #17396a 0%, #0f2747 100%);
+  color: #fff;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-placeholder::before,
+.product-placeholder::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.product-placeholder::before {
+  width: 140px;
+  height: 140px;
+  top: -35px;
+  right: -20px;
+}
+
+.product-placeholder::after {
+  width: 90px;
+  height: 90px;
+  bottom: -20px;
+  left: -15px;
+}
+
+.product-placeholder span {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.product-placeholder strong {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 1.35rem;
+}
+
+.product-category-block {
+  margin-top: 1.8rem;
+  scroll-margin-top: 90px;
+}
+
+.text-link {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.timeline {
+  display: grid;
+  gap: 1rem;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(29, 155, 125, 0.7), rgba(15, 39, 71, 0.25));
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 1rem;
+  position: relative;
+}
+
+.timeline-marker {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--primary);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-content h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 980px) {
+  .lang-switcher {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .logistics-map-wrap,
+  .product-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .logistics-panel {
+    position: static;
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+}

@@ -1,4 +1,4 @@
-﻿const menuToggle = document.getElementById("menuToggle");
+const menuToggle = document.getElementById("menuToggle");
 const mainNav = document.getElementById("mainNav");
 
 if (menuToggle && mainNav) {
@@ -37,14 +37,37 @@ if (sections.length > 0) {
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+
+        entry.target.classList.add("is-visible");
+        entry.target.querySelectorAll("[data-stagger]").forEach((child, index) => {
+          child.style.setProperty("--stagger-delay", `${index * 70}ms`);
+          child.classList.add("is-visible");
+        });
+        observer.unobserve(entry.target);
       });
     },
     { threshold: 0.15 }
   );
 
   sections.forEach((section) => observer.observe(section));
+}
+
+const regionChips = document.querySelectorAll(".region-chip");
+const logisticsPanelTitle = document.getElementById("logisticsPanelTitle");
+const logisticsPanelText = document.getElementById("logisticsPanelText");
+
+if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
+  const updateRegionPanel = (chip) => {
+    regionChips.forEach((item) => item.classList.remove("active"));
+    chip.classList.add("active");
+    logisticsPanelTitle.textContent = chip.dataset.regionTitle || "";
+    logisticsPanelText.textContent = chip.dataset.regionText || "";
+  };
+
+  regionChips.forEach((chip) => {
+    ["mouseenter", "focus"].forEach((eventName) => {
+      chip.addEventListener(eventName, () => updateRegionPanel(chip));
+    });
+  });
 }

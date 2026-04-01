@@ -1,10 +1,10 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="section">
   <div class="container center">
     <h1>500</h1>
-    <p>Váratlan szerverhiba történt. Kérjük, próbálja újra később.</p>
-    <a href="/" class="btn btn-primary">Vissza a főoldalra</a>
+    <p><%= t.errors.serverText %></p>
+    <a href="<%= withLang('/') %>" class="btn btn-primary"><%= t.buttons.goHome %></a>
   </div>
 </section>
 

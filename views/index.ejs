@@ -1,34 +1,26 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="hero section-animate">
   <div class="container hero-grid">
     <div>
-      <p class="eyebrow">Gyros- és kebab hús gyártás</p>
-      <h1>Minőségbiztosított húsipari gyártás Kiskunhalasról, országos lefedettséggel.</h1>
-      <p class="lead">
-        A Kiskunhalasi Kebpro Kft. gyorsfagyasztott gyros- és kebab termékeket,
-        fűszeres húskészítményeket, valamint kiegészítő termékeket gyárt és
-        forgalmaz partnerei számára.
-      </p>
+      <p class="eyebrow"><%= t.home.eyebrow %></p>
+      <h1><%= t.home.title %></h1>
+      <p class="lead"><%= t.home.lead %></p>
       <div class="hero-actions">
-        <a href="/ajanlatkeres" class="btn btn-primary">Ajánlatot kérek</a>
-        <a href="/megrendeles" class="btn btn-secondary">Megrendelést adok le</a>
+        <a href="<%= withLang('/ajanlatkeres') %>" class="btn btn-primary"><%= t.buttons.quote %></a>
+        <a href="<%= withLang('/megrendeles') %>" class="btn btn-secondary"><%= t.buttons.order %></a>
       </div>
     </div>
-    <div class="hero-visual-wrap">
-      <img
-        src="/images/gyrosnyars.png"
-        alt="Gyros nyárs termékbemutató"
-        class="hero-image"
-      />
+    <div class="hero-visual-wrap section-animate floating-visual">
+      <img src="/images/gyrosnyars.png" alt="Gyros ny�rs term�kbemutat�" class="hero-image" />
       <div class="hero-card hero-logo-card">
-        <img src="/images/logo.png" alt="Kiskunhalasi Kebpro Kft. logó" class="hero-mini-logo" />
+        <img src="/images/logo.png" alt="Kiskunhalasi Kebpro Kft. log�" class="hero-mini-logo" />
         <div>
-          <h3>Kiemelt előnyeink</h3>
+          <h3><%= t.home.advantages %></h3>
           <ul>
-            <li>Hazai alapanyagokra épülő, ellenőrzött gyártás</li>
-            <li>Saját hűtött gépjárműves kiszállítás</li>
-            <li>Nyomonkövethető, stabil minőségű termékek</li>
+            <% t.home.advantageItems.forEach((item) => { %>
+            <li><%= item %></li>
+            <% }) %>
           </ul>
         </div>
       </div>
@@ -39,35 +31,61 @@
 <section class="section section-animate">
   <div class="container">
     <div class="section-head">
-      <h2>Minőség és gyártás</h2>
-      <p>
-        Sikerünk titka termékeink folyamatosan garantált minősége, modern
-        technológia és a szigorú élelmiszerhigiéniai szabályok következetes
-        betartása.
-      </p>
+      <h2><%= t.home.qualityHeading %></h2>
+      <p><%= t.home.qualityLead %></p>
     </div>
-    <div class="cards">
-      <article class="card">
-        <h3>Nyersanyagok</h3>
-        <p>
-          A felhasznált hús kizárólag ellenőrzött forrásból érkezik, amelyet
-          átvételkor és feldolgozás előtt többlépcsős kontrollnak vetünk alá.
-        </p>
+    <div class="cards reveal-grid">
+      <% t.home.qualityCards.forEach((card) => { %>
+      <article class="card" data-stagger>
+        <h3><%= card.title %></h3>
+        <p><%= card.text %></p>
       </article>
-      <article class="card">
-        <h3>Fagyasztás</h3>
-        <p>
-          A kész termékeket elektronikus, -42°C-ra beállított hűtőkamrában
-          sokkolásos eljárással fagyasztjuk le.
-        </p>
-      </article>
-      <article class="card">
-        <h3>Nyomonkövetés</h3>
-        <p>
-          Minden gyártási tétel teljes körűen visszakereshető, így partnereink
-          számára átlátható és biztonságos ellátást biztosítunk.
-        </p>
-      </article>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<section class="section alt section-animate">
+  <div class="container logistics-layout">
+    <div class="section-head logistics-copy">
+      <p class="eyebrow"><%= t.home.logisticsEyebrow %></p>
+      <h2><%= t.home.logisticsTitle %></h2>
+      <p><%= t.home.logisticsLead %></p>
+    </div>
+
+    <div class="logistics-map-wrap">
+      <div class="logistics-map panel">
+        <svg viewBox="0 0 520 360" class="hungary-map" aria-hidden="true">
+          <path d="M88 165 L133 117 L204 101 L260 69 L324 91 L393 86 L441 133 L430 196 L461 230 L422 282 L332 299 L266 320 L188 298 L141 251 L86 228 L66 192 Z" class="hungary-shape"></path>
+          <path d="M130 190 L210 146 L282 150 L360 126 L413 154" class="hungary-route"></path>
+          <path d="M167 246 L238 205 L311 212 L388 225" class="hungary-route"></path>
+          <circle cx="150" cy="163" r="9" class="hungary-dot"></circle>
+          <circle cx="263" cy="145" r="9" class="hungary-dot is-active"></circle>
+          <circle cx="232" cy="96" r="9" class="hungary-dot"></circle>
+          <circle cx="377" cy="172" r="9" class="hungary-dot"></circle>
+          <circle cx="250" cy="247" r="9" class="hungary-dot"></circle>
+        </svg>
+        <div class="logistics-panel" id="logisticsPanel">
+          <p class="logistics-panel-label"><%= t.home.logisticsPanelTitle %></p>
+          <h3 id="logisticsPanelTitle"><%= activeRegion.title %></h3>
+          <p id="logisticsPanelText"><%= activeRegion.text %></p>
+        </div>
+      </div>
+
+      <div class="logistics-region-list">
+        <% logisticsRegions.forEach((region, index) => { %>
+        <button
+          type="button"
+          class="region-chip <%= index === 0 ? 'active' : '' %>"
+          data-region-title="<%= region.title %>"
+          data-region-text="<%= region.text %>"
+          data-stagger
+        >
+          <span class="region-chip-index">0<%= index + 1 %></span>
+          <span><%= region.title %></span>
+        </button>
+        <% }) %>
+      </div>
     </div>
   </div>
 </section>
@@ -75,21 +93,17 @@
 <section class="section alt section-animate">
   <div class="container">
     <article class="panel wide">
-      <h2>Minőségbiztosítás 5 pillére</h2>
-      <p>
-        A Kiskunhalasi Kebpro Kft.-nél a minőség nem külön folyamat, hanem a
-        teljes működés alapja: ellenőrzött alapanyagok, szabályozott gyártás,
-        sokkolásos fagyasztás, folyamatos kontroll és teljes nyomonkövethetőség.
-      </p>
-      <a href="/minoseg" class="btn btn-secondary">Részletes minőségi leírás</a>
+      <h2><%= t.home.qualityPillarsTitle %></h2>
+      <p><%= t.home.qualityPillarsText %></p>
+      <a href="<%= withLang('/minoseg') %>" class="btn btn-secondary"><%= t.buttons.qualityDetails %></a>
     </article>
   </div>
 </section>
 
 <section class="section cta-strip section-animate">
   <div class="container cta-strip-inner">
-    <h2>Legyen Ön is partnerünk nagykereskedelmi vagy HORECA kiszolgálásban.</h2>
-    <a href="/kapcsolat" class="btn btn-primary">Kapcsolatfelvétel</a>
+    <h2><%= t.home.ctaTitle %></h2>
+    <a href="<%= withLang('/kapcsolat') %>" class="btn btn-primary"><%= t.buttons.contact %></a>
   </div>
 </section>
 

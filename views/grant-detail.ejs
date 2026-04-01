@@ -1,8 +1,8 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="page-hero section-animate">
   <div class="container">
-    <p class="eyebrow">Pályázat részletei</p>
+    <p class="eyebrow"><%= t.grants.detailsEyebrow %></p>
     <h1><%= grant.title %></h1>
   </div>
 </section>
@@ -10,20 +10,19 @@
 <section class="section section-animate">
   <div class="container">
     <article class="panel wide">
-      <img src="<%= grant.image %>" alt="<%= grant.title %> pályázat" class="grant-image" />
+      <img src="<%= grant.image %>" alt="<%= grant.title %>" class="grant-image" />
+      <p><strong><%= t.grants.beneficiary %>:</strong> <%= grant.beneficiary %></p>
+      <p><strong><%= t.grants.call %>:</strong> <%= grant.call %></p>
+      <p><strong><%= t.grants.project %>:</strong> <%= grant.project %></p>
+      <p><strong><%= t.grants.amount %>:</strong> <%= grant.amount %></p>
+      <p><strong><%= t.grants.supportRate %>:</strong> <%= grant.supportRate %></p>
 
-      <p><strong>Kedvezményezett neve:</strong> <%= grant.beneficiary %></p>
-      <p><strong>Pályázati felhívás neve, kódszáma:</strong> <%= grant.call %></p>
-      <p><strong>Projekt címe, azonosító száma:</strong> <%= grant.project %></p>
-      <p><strong>Szerződött támogatás összege:</strong> <%= grant.amount %></p>
-      <p><strong>Támogatás mértéke (%-ban):</strong> <%= grant.supportRate %></p>
-
-      <h3>Projekt tartalmának rövid bemutatása</h3>
+      <h3><%= t.grants.summary %></h3>
       <% grant.summary.forEach((line) => { %>
       <p><%= line %></p>
       <% }) %>
 
-      <p><strong>Projekt tervezett befejezési dátuma:</strong> <%= grant.endDate %></p>
+      <p><strong><%= t.grants.endDate %>:</strong> <%= grant.endDate %></p>
     </article>
   </div>
 </section>

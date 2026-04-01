@@ -1,9 +1,9 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="page-hero section-animate">
   <div class="container">
-    <p class="eyebrow">Ajánlatkérés</p>
-    <h1>Kérjen személyre szabott ajánlatot termékeinkre.</h1>
+    <p class="eyebrow"><%= t.quote.eyebrow %></p>
+    <h1><%= t.quote.title %></h1>
   </div>
 </section>
 
@@ -14,35 +14,35 @@
       <div class="alert success"><%= successMessage %></div>
       <% } %>
 
-      <form method="POST" action="/ajanlatkeres" class="contact-form" novalidate>
-        <label for="name">Név</label>
+      <form method="POST" action="<%= withLang('/ajanlatkeres') %>" class="contact-form" novalidate>
+        <label for="name"><%= t.forms.name %></label>
         <input id="name" name="name" type="text" value="<%= formData.name || '' %>" />
         <% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %>
 
-        <label for="company">Cégnév</label>
+        <label for="company"><%= t.forms.company %></label>
         <input id="company" name="company" type="text" value="<%= formData.company || '' %>" />
         <% if (errors.company) { %><small class="error"><%= errors.company %></small><% } %>
 
-        <label for="email">E-mail</label>
+        <label for="email"><%= t.forms.email %></label>
         <input id="email" name="email" type="email" value="<%= formData.email || '' %>" />
         <% if (errors.email) { %><small class="error"><%= errors.email %></small><% } %>
 
-        <label for="phone">Telefonszám</label>
+        <label for="phone"><%= t.forms.phone %></label>
         <input id="phone" name="phone" type="tel" value="<%= formData.phone || '' %>" />
         <% if (errors.phone) { %><small class="error"><%= errors.phone %></small><% } %>
 
-        <label for="product">Érdeklődött termék</label>
+        <label for="product"><%= t.forms.productInterest %></label>
         <input id="product" name="product" type="text" value="<%= formData.product || '' %>" />
         <% if (errors.product) { %><small class="error"><%= errors.product %></small><% } %>
 
-        <label for="quantity">Becsült mennyiség</label>
+        <label for="quantity"><%= t.forms.estimatedQuantity %></label>
         <input id="quantity" name="quantity" type="text" value="<%= formData.quantity || '' %>" />
 
-        <label for="message">Igény leírása</label>
+        <label for="message"><%= t.forms.message %></label>
         <textarea id="message" name="message" rows="5"><%= formData.message || '' %></textarea>
         <% if (errors.message) { %><small class="error"><%= errors.message %></small><% } %>
 
-        <button type="submit" class="btn btn-primary">Ajánlatkérés elküldése</button>
+        <button type="submit" class="btn btn-primary"><%= t.buttons.submitQuote %></button>
       </form>
     </div>
   </div>

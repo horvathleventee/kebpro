@@ -1,18 +1,18 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="page-hero section-animate">
   <div class="container">
-    <p class="eyebrow">Termékek / Kiskereskedelem</p>
-    <h1>Kiskereskedelmi kínálat</h1>
+    <p class="eyebrow"><%= t.retail.eyebrow %></p>
+    <h1><%= t.retail.title %></h1>
   </div>
 </section>
 
 <section class="section section-animate">
   <div class="container">
     <article class="panel center">
-      <h2>Hamarosan</h2>
-      <p>A kiskereskedelmi terméklista feltöltés alatt áll.</p>
-      <a href="/termekek/nagykereskedelem" class="btn btn-secondary">Nagykereskedelem megtekintése</a>
+      <h2><%= t.retail.soon %></h2>
+      <p><%= t.retail.text %></p>
+      <a href="<%= withLang('/termekek/nagykereskedelem') %>" class="btn btn-secondary"><%= t.buttons.viewWholesale %></a>
     </article>
   </div>
 </section>

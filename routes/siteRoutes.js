@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const {
   insertSubmission,
   listSubmissions,
@@ -7,47 +7,55 @@ const {
   setEmailEnabled,
 } = require("../utils/db");
 const { sendNotificationEmail } = require("../utils/mailer");
+const {
+  getGrantItems,
+  getWholesaleCatalog,
+  getLogisticsRegions,
+} = require("../utils/i18n");
 
 const router = express.Router();
 
-const grantItems = [
-  {
-    slug: "vp3-4.2.1-4.2.2-2-21",
-    title: "VP3-4.2.1-4.2.2-2-21",
-    image: "/images/141mil.jpg",
-    beneficiary: "KISKUNHALASI KEBPRO Élelmiszerfeldolgozó és Kereskedelmi Kft.",
-    call: "Élelmiszeripari üzemek komplex fejlesztése; VP3-4.2.1-4.2.2-2-21",
-    project: "A Kiskunhalasi Kebpro Kft. komplex fejlesztése; 3301640506",
-    amount: "141.447.690 Ft",
-    supportRate: "50%",
-    summary: [
-      "A projekt célja volt, hogy a termékek értéknövelését és a piacra jutást elősegítő, a technológiai fejlesztést, továbbá a környezeti erőforrás-hatékonyságot célzó komplex beruházásokat támogassa az élelmiszerfeldolgozás vállalati hatékonyságának növelése érdekében.",
-      "A projekt végrehajtása elősegítette a KISKUNHALASI KEBPRO Kft. versenyképességének javítását a legkorszerűbb, innovatív technológiák megvalósításával.",
-      "A projekt műszaki-szakmai előrehaladása a tervezettek szerint alakult.",
-      "Beszerzésre és beüzemelésre került: 2 db Fiat Ducato teherjármű, 1 db sütőtéri temperált levegős légcsere rendszer, 5 db ALKADUR DCR-2 szeletelő robot, 1 db BAOLI KBD25+ diesel targonca, 1 db HASTAMAT R 270 CP 10 csomagológép.",
-    ],
-    endDate: "2023.08.30.",
-  },
-  {
-    slug: "vp-3-4.2.1-15",
-    title: "VP-3-4.2.1-15",
-    image: "/images/159mil.jpg",
-    beneficiary: "KISKUNHALASI KEBPRO Élelmiszer feldolgozó és Kereskedelmi Kft.",
-    call: "Mezőgazdasági termékek értéknövelése és erőforrás-hatékonyságának elősegítése a feldolgozásban című, VP-3-4.2.1-15",
-    project: "Mezőgazdasági termékek értéknövelése; Hússütő üzem építése a KISKUNHALASI KEBPRO KFT-nél; 1773089087",
-    amount: "159.777.828 Ft",
-    supportRate: "50%",
-    summary: [
-      "A projektben magasabb hozzáadott értékű termékek előállítása és piacbővítés érdekében új hússütő üzem létesült fagyasztott sült csirke kebab gyártására napi 2,5 t termelési kapacitással.",
-      "A beruházás része volt a teljes technológia és infrastruktúra kialakítása, környezetkímélő technológiák bevezetése, megújuló energia felhasználása és új munkahelyek létrehozása.",
-      "Kialakításra került a kapcsolódó üzemi út és járda, továbbá az alapanyag hűtéséhez és sütött termék fagyasztásához szükséges berendezések beüzemelése.",
-      "Újdonságként bevezetésre került hővisszanyerő rendszer, megújuló energiatermelés és biológiai szennyvízkezelés.",
-    ],
-    endDate: "2018.10.31.",
-  },
-];
+function getValidationMessages(lang) {
+  if (lang === "en") {
+    return {
+      name: "Name is required.",
+      company: "Company name is required.",
+      email: "A valid email address is required.",
+      phone: "A valid phone number is required.",
+      product: "Product is required.",
+      message: "Please provide at least 10 characters.",
+      quantity: "Quantity is required.",
+      address: "Delivery address is required.",
+    };
+  }
 
-function validateCommon(body) {
+  if (lang === "de") {
+    return {
+      name: "Name ist erforderlich.",
+      company: "Firmenname ist erforderlich.",
+      email: "Eine g�ltige E-Mail-Adresse ist erforderlich.",
+      phone: "Eine g�ltige Telefonnummer ist erforderlich.",
+      product: "Produkt ist erforderlich.",
+      message: "Bitte geben Sie mindestens 10 Zeichen an.",
+      quantity: "Menge ist erforderlich.",
+      address: "Lieferadresse ist erforderlich.",
+    };
+  }
+
+  return {
+    name: "A n�v megad�sa k�telez�.",
+    company: "A c�gn�v megad�sa k�telez�.",
+    email: "�rv�nyes e-mail c�m sz�ks�ges.",
+    phone: "�rv�nyes telefonsz�m sz�ks�ges.",
+    product: "A term�k megad�sa k�telez�.",
+    message: "Az ig�ny r�vid le�r�sa legal�bb 10 karakter legyen.",
+    quantity: "A mennyis�g megad�sa k�telez�.",
+    address: "A sz�ll�t�si c�m megad�sa k�telez�.",
+  };
+}
+
+function validateCommon(body, lang) {
+  const messages = getValidationMessages(lang);
   const errors = {};
   const data = {
     name: (body.name || "").trim(),
@@ -61,18 +69,18 @@ function validateCommon(body) {
     message: (body.message || "").trim(),
   };
 
-  if (data.name.length < 2) errors.name = "A név megadása kötelező.";
-  if (data.company.length < 2) errors.company = "A cégnév megadása kötelező.";
+  if (data.name.length < 2) errors.name = messages.name;
+  if (data.company.length < 2) errors.company = messages.company;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(data.email)) errors.email = "Érvényes e-mail cím szükséges.";
+  if (!emailRegex.test(data.email)) errors.email = messages.email;
 
   const phoneRegex = /^[+()\d\s-]{7,20}$/;
-  if (!phoneRegex.test(data.phone)) errors.phone = "Érvényes telefonszám szükséges.";
+  if (!phoneRegex.test(data.phone)) errors.phone = messages.phone;
 
-  if (data.product.length < 2) errors.product = "A termék megadása kötelező.";
+  if (data.product.length < 2) errors.product = messages.product;
 
-  return { errors, data };
+  return { errors, data, messages };
 }
 
 function basicAuth(req, res, next) {
@@ -81,7 +89,7 @@ function basicAuth(req, res, next) {
 
   if (scheme !== "Basic" || !encoded) {
     res.set("WWW-Authenticate", 'Basic realm="Kebpro Admin"');
-    return res.status(401).send("Hitelesítés szükséges.");
+    return res.status(401).send("Hiteles�t�s sz�ks�ges.");
   }
 
   const [username, password] = Buffer.from(encoded, "base64").toString("utf8").split(":");
@@ -89,70 +97,76 @@ function basicAuth(req, res, next) {
   const expectedPass = process.env.ADMIN_PASS || "admin123";
 
   if (username !== expectedUser || password !== expectedPass) {
-    return res.status(403).send("Hibás admin hitelesítés.");
+    return res.status(403).send("Hib�s admin hiteles�t�s.");
   }
 
   return next();
 }
 
 router.get("/", (req, res) => {
-  res.render("index", { title: "Kezdőlap" });
+  const logisticsRegions = getLogisticsRegions(res.locals.lang);
+  res.render("index", {
+    title: res.locals.t.nav.home,
+    logisticsRegions,
+    activeRegion: logisticsRegions[0],
+  });
 });
 
 router.get("/rolunk", (req, res) => {
-  res.render("about", { title: "Rólunk" });
+  res.render("about", { title: res.locals.t.nav.about });
 });
 
 router.get("/minoseg", (req, res) => {
-  res.render("quality", { title: "Minőség" });
+  res.render("quality", { title: res.locals.t.nav.quality });
 });
 
 router.get("/termekek", (req, res) => {
-  res.redirect("/termekek/nagykereskedelem");
+  res.redirect(res.locals.withLang("/termekek/nagykereskedelem"));
 });
 
 router.get("/termekek/nagykereskedelem", (req, res) => {
-  res.render("services", { title: "Termékek - Nagykereskedelem" });
+  res.render("services", {
+    title: `${res.locals.t.nav.products} - ${res.locals.t.nav.wholesale}`,
+    categories: getWholesaleCatalog(res.locals.lang),
+  });
 });
 
 router.get("/termekek/kiskereskedelem", (req, res) => {
-  res.render("retail", { title: "Termékek - Kiskereskedelem" });
+  res.render("retail", { title: `${res.locals.t.nav.products} - ${res.locals.t.nav.retail}` });
 });
 
 router.get("/szolgaltatasok", (req, res) => {
-  res.redirect("/termekek/nagykereskedelem");
+  res.redirect(res.locals.withLang("/termekek/nagykereskedelem"));
 });
 
 router.get("/palyazatok", (req, res) => {
   res.render("grants", {
-    title: "Pályázatok",
-    grants: grantItems,
+    title: res.locals.t.nav.grants,
+    grants: getGrantItems(res.locals.lang),
   });
 });
 
 router.get("/palyazatok/:slug", (req, res) => {
-  const grant = grantItems.find((item) => item.slug === req.params.slug);
+  const grants = getGrantItems(res.locals.lang);
+  const grant = grants.find((item) => item.slug === req.params.slug);
 
   if (!grant) {
-    return res.status(404).render("404", { title: "Pályázat nem található" });
+    return res.status(404).render("404", { title: res.locals.t.errors.notFoundTitle });
   }
 
   return res.render("grant-detail", {
-    title: `Pályázat - ${grant.title}`,
+    title: `${res.locals.t.nav.grants} - ${grant.title}`,
     grant,
-    grants: grantItems,
   });
 });
 
 router.get("/kapcsolat", (req, res) => {
-  res.render("contact", {
-    title: "Kapcsolat",
-  });
+  res.render("contact", { title: res.locals.t.nav.contact });
 });
 
 router.get("/ajanlatkeres", (req, res) => {
   res.render("quote", {
-    title: "Ajánlatkérés",
+    title: res.locals.t.nav.quote,
     errors: {},
     formData: {},
     successMessage: null,
@@ -160,37 +174,37 @@ router.get("/ajanlatkeres", (req, res) => {
 });
 
 router.get("/ajanlat-keres", (req, res) => {
-  res.redirect("/ajanlatkeres");
+  res.redirect(res.locals.withLang("/ajanlatkeres"));
 });
 
 router.post("/ajanlatkeres", async (req, res, next) => {
   try {
-    const { errors, data } = validateCommon(req.body);
+    const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
 
     if (data.message.length < 10) {
-      errors.message = "Az igény rövid leírása legalább 10 karakter legyen.";
+      errors.message = messages.message;
     }
 
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("quote", {
-        title: "Ajánlatkérés",
+        title: res.locals.t.nav.quote,
         errors,
         formData: data,
         successMessage: null,
       });
     }
 
-    const payload = { ...data, type: "quote" };
+    const payload = { ...data, type: "quote", lang: res.locals.lang };
 
     await insertSubmission(payload);
     const settings = await getNotificationSettings();
     await sendNotificationEmail(payload, settings);
 
     return res.render("quote", {
-      title: "Ajánlatkérés",
+      title: res.locals.t.nav.quote,
       errors: {},
       formData: {},
-      successMessage: "Köszönjük ajánlatkérését! Hamarosan jelentkezünk.",
+      successMessage: res.locals.t.quote.success,
     });
   } catch (error) {
     return next(error);
@@ -198,13 +212,13 @@ router.post("/ajanlatkeres", async (req, res, next) => {
 });
 
 router.post("/ajanlat-keres", async (req, res, next) => {
-  req.url = "/ajanlatkeres";
+  req.url = `/ajanlatkeres${req.query.lang ? `?lang=${req.query.lang}` : ""}`;
   return router.handle(req, res, next);
 });
 
 router.get("/megrendeles", (req, res) => {
   res.render("order", {
-    title: "Megrendelés",
+    title: res.locals.t.nav.order,
     errors: {},
     formData: {},
     successMessage: null,
@@ -212,41 +226,41 @@ router.get("/megrendeles", (req, res) => {
 });
 
 router.get("/megrendelesek", (req, res) => {
-  res.redirect("/megrendeles");
+  res.redirect(res.locals.withLang("/megrendeles"));
 });
 
 router.post("/megrendeles", async (req, res, next) => {
   try {
-    const { errors, data } = validateCommon(req.body);
+    const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
 
     if (data.quantity.length < 1) {
-      errors.quantity = "A mennyiség megadása kötelező.";
+      errors.quantity = messages.quantity;
     }
 
     if (data.address.length < 5) {
-      errors.address = "A szállítási cím megadása kötelező.";
+      errors.address = messages.address;
     }
 
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("order", {
-        title: "Megrendelés",
+        title: res.locals.t.nav.order,
         errors,
         formData: data,
         successMessage: null,
       });
     }
 
-    const payload = { ...data, type: "order" };
+    const payload = { ...data, type: "order", lang: res.locals.lang };
 
     await insertSubmission(payload);
     const settings = await getNotificationSettings();
     await sendNotificationEmail(payload, settings);
 
     return res.render("order", {
-      title: "Megrendelés",
+      title: res.locals.t.nav.order,
       errors: {},
       formData: {},
-      successMessage: "Köszönjük megrendelését! A részletekkel hamarosan keressük.",
+      successMessage: res.locals.t.order.success,
     });
   } catch (error) {
     return next(error);
@@ -254,7 +268,7 @@ router.post("/megrendeles", async (req, res, next) => {
 });
 
 router.post("/megrendelesek", async (req, res, next) => {
-  req.url = "/megrendeles";
+  req.url = `/megrendeles${req.query.lang ? `?lang=${req.query.lang}` : ""}`;
   return router.handle(req, res, next);
 });
 
@@ -265,7 +279,7 @@ router.get("/admin/igenyek", basicAuth, async (req, res, next) => {
     const settings = await getNotificationSettings();
 
     return res.render("admin", {
-      title: "Admin - Beérkezett igények",
+      title: "Admin - Be�rkezett ig�nyek",
       rows,
       selectedType: type,
       settings,
@@ -301,20 +315,21 @@ router.post("/admin/email-settings/toggle", basicAuth, async (req, res, next) =>
 });
 
 router.get("/adatkezelesi-tajekoztato", (req, res) => {
-  res.render("legal-privacy", { title: "Adatkezelési tájékoztató" });
+  res.render("legal-privacy", { title: "Adatkezel�si t�j�koztat�" });
 });
 
 router.get("/panaszkezelesi-szabalyzat", (req, res) => {
-  res.render("legal-complaints", { title: "Panaszkezelési szabályzat" });
+  res.render("legal-complaints", { title: "Panaszkezel�si szab�lyzat" });
 });
 
 router.get("/impresszum", (req, res) => {
-  res.render("legal-impressum", { title: "Impresszum" });
+  res.render("legal-impresszum", { title: "Impresszum" });
 });
 
 router.get("/belso-visszaeles-bejelentes", (req, res) => {
-  res.render("legal-whistleblowing", { title: "Belső Visszaélés-Bejelentés" });
+  res.render("legal-whistleblowing", { title: "Bels� Vissza�l�s-Bejelent�s" });
 });
 
 module.exports = router;
+
 

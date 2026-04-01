@@ -1,76 +1,50 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="page-hero section-animate">
   <div class="container">
-    <p class="eyebrow">Minőség</p>
-    <h1>Kiemelt minőségbiztosítás a teljes gyártási és logisztikai folyamatban.</h1>
+    <p class="eyebrow"><%= t.quality.eyebrow %></p>
+    <h1><%= t.quality.title %></h1>
   </div>
 </section>
 
 <section class="section section-animate">
   <div class="container">
     <article class="panel wide legal-content">
-      <h2>Kebpro minőség</h2>
-      <p>
-        Vállalatunk jelenleg mintegy 80 alkalmazottat foglalkoztat. Termékeinkkel
-        jelen vagyunk az ország egész területén. Sikerünk titka termékeink
-        folyamatosan garantált kiváló minősége és egyedi ízvilága.
-      </p>
-      <p>
-        Az élelmiszerhigiéniai szabályok maximális betartása mellett (melyet az
-        állami intézmények folyamatosan figyelemmel is kísérnek) korszerű
-        technológiai eljárások és motivált munkatársaink segítségével naponta
-        látjuk el friss áruval ügyfeleinket. Termékeinket saját hűtött
-        gépjárműveinkkel szállítjuk az ügyfelek által kívánt helyre.
-      </p>
-
-      <h2>Nyersanyagok</h2>
-      <p>
-        A termékeinkhez felhasznált húst kizárólag ellenőrzött forrásból,
-        magyarországi partnereinktől szerezzük be. Beszállító partnereinkkel
-        ápolt kiváló viszony és az évek óta fennálló üzleti kapcsolat alapja a
-        kiváló minőségű, megbízható magyar termék folyamatos biztosítása.
-      </p>
-      <p>
-        A nyersanyagok tekintetében napi szintű ellenőrzéseket végzünk, így az
-        általunk felhasznált alapanyagok a legszigorúbb élelmiszerhigiéniai
-        szabályoknak megfelelően kerülnek felhasználásra.
-      </p>
-
-      <h2>Gyártási folyamat</h2>
+      <% Object.values(t.quality.sections).forEach((section) => { %>
+      <h2><%= section.title %></h2>
+      <% if (section.paragraphs) { %>
+      <% section.paragraphs.forEach((paragraph) => { %>
+      <p><%= paragraph %></p>
+      <% }) %>
+      <% } %>
+      <% if (section.steps) { %>
       <ol>
-        <li>A baromfihús szükség szerint megrendelésre kerül a beszállítótól.</li>
-        <li>A leszállított áru hőmérsékletét és minőségét szakképzett kollégáink vizsgálják.</li>
-        <li>A megfelelő kontrollértékek megállapítását követően a hús a beérkező áruk számára kialakított speciális hűtőházba kerül.</li>
-        <li>A hús igény szerint ebből a hűtőházból kerül a gyártócsarnokba.</li>
-        <li>A gyártás során a hús csonttól való elválasztását a speciális fűszerezés követi.</li>
-        <li>Várakozási idő után a hús készen áll a döner kebab készítéséhez.</li>
-        <li>A következő lépésben az ízesített csirke kebabot döner nyársra fűzzük.</li>
-        <li>Az ügyfél által kért súly elérése után következik a nyárs formára vágása és védőfóliás csomagolása.</li>
+        <% section.steps.forEach((step) => { %>
+        <li><%= step %></li>
+        <% }) %>
       </ol>
-
-      <h2>Fagyasztás</h2>
-      <p>
-        Az elkészült kebab nyársakat előzetesen -42 °C-ra beállított speciális
-        hűtőkamrában sokkolással lefagyasztjuk, majd az erre a célra kialakított
-        -18 °C és -20 °C hőmérsékletű hűtőkamrákban tároljuk a kiszállításig.
-      </p>
-      <p>
-        Ennek köszönhetően termékeink hosszú ideig megőrzik frissességüket.
-      </p>
-
-      <h2>Nyomonkövetés</h2>
-      <p>
-        A nyomonkövethetőség kiemelt fontossággal bír cégünknél. Az „egy lépés
-        előre, egy lépés hátra” elv alapján garantáljuk az általunk előállított
-        élelmiszerek biztonságát és visszakereshetőségét.
-      </p>
-      <p>
-        Nyomonkövetési rendszerünk teljes biztonsággal azonosíthatóvá teszi
-        minden termék alapanyag-beszállítóját, és folyamatosan regisztráljuk a
-        beszállító-termék, illetve termék-vásárló kapcsolatot is.
-      </p>
+      <% } %>
+      <% }) %>
     </article>
+  </div>
+</section>
+
+<section class="section alt section-animate">
+  <div class="container">
+    <div class="section-head">
+      <h2><%= t.quality.timelineTitle %></h2>
+      <p><%= t.quality.timelineLead %></p>
+    </div>
+    <div class="timeline">
+      <% t.quality.sections.process.steps.forEach((step, index) => { %>
+      <article class="timeline-item" data-stagger>
+        <div class="timeline-marker">0<%= index + 1 %></div>
+        <div class="timeline-content panel">
+          <h3><%= step %></h3>
+        </div>
+      </article>
+      <% }) %>
+    </div>
   </div>
 </section>
 

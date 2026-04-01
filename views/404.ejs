@@ -1,10 +1,10 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="section">
   <div class="container center">
     <h1>404</h1>
-    <p>A keresett oldal nem található.</p>
-    <a href="/" class="btn btn-primary">Vissza a főoldalra</a>
+    <p><%= t.errors.notFoundText %></p>
+    <a href="<%= withLang('/') %>" class="btn btn-primary"><%= t.buttons.goHome %></a>
   </div>
 </section>
 
