@@ -1,4 +1,4 @@
-const express = require("express");
+ï»¿const express = require("express");
 const {
   insertSubmission,
   listSubmissions,
@@ -33,8 +33,8 @@ function getValidationMessages(lang) {
     return {
       name: "Name ist erforderlich.",
       company: "Firmenname ist erforderlich.",
-      email: "Eine gültige E-Mail-Adresse ist erforderlich.",
-      phone: "Eine gültige Telefonnummer ist erforderlich.",
+      email: "Eine gÃ¼ltige E-Mail-Adresse ist erforderlich.",
+      phone: "Eine gÃ¼ltige Telefonnummer ist erforderlich.",
       product: "Produkt ist erforderlich.",
       message: "Bitte geben Sie mindestens 10 Zeichen an.",
       quantity: "Menge ist erforderlich.",
@@ -43,14 +43,14 @@ function getValidationMessages(lang) {
   }
 
   return {
-    name: "A név megadása kötelezõ.",
-    company: "A cégnév megadása kötelezõ.",
-    email: "Érvényes e-mail cím szükséges.",
-    phone: "Érvényes telefonszám szükséges.",
-    product: "A termék megadása kötelezõ.",
-    message: "Az igény rövid leírása legalább 10 karakter legyen.",
-    quantity: "A mennyiség megadása kötelezõ.",
-    address: "A szállítási cím megadása kötelezõ.",
+    name: "A nÃ©v megadÃ¡sa kÃ¶telezÅ‘.",
+    company: "A cÃ©gnÃ©v megadÃ¡sa kÃ¶telezÅ‘.",
+    email: "Ã‰rvÃ©nyes e-mail cÃ­m szÃ¼ksÃ©ges.",
+    phone: "Ã‰rvÃ©nyes telefonszÃ¡m szÃ¼ksÃ©ges.",
+    product: "A termÃ©k megadÃ¡sa kÃ¶telezÅ‘.",
+    message: "Az igÃ©ny rÃ¶vid leÃ­rÃ¡sa legalÃ¡bb 10 karakter legyen.",
+    quantity: "A mennyisÃ©g megadÃ¡sa kÃ¶telezÅ‘.",
+    address: "A szÃ¡llÃ­tÃ¡si cÃ­m megadÃ¡sa kÃ¶telezÅ‘.",
   };
 }
 
@@ -89,7 +89,7 @@ function basicAuth(req, res, next) {
 
   if (scheme !== "Basic" || !encoded) {
     res.set("WWW-Authenticate", 'Basic realm="Kebpro Admin"');
-    return res.status(401).send("Hitelesítés szükséges.");
+    return res.status(401).send("HitelesÃ­tÃ©s szÃ¼ksÃ©ges.");
   }
 
   const [username, password] = Buffer.from(encoded, "base64").toString("utf8").split(":");
@@ -97,7 +97,7 @@ function basicAuth(req, res, next) {
   const expectedPass = process.env.ADMIN_PASS || "admin123";
 
   if (username !== expectedUser || password !== expectedPass) {
-    return res.status(403).send("Hibás admin hitelesítés.");
+    return res.status(403).send("HibÃ¡s admin hitelesÃ­tÃ©s.");
   }
 
   return next();
@@ -279,7 +279,7 @@ router.get("/admin/igenyek", basicAuth, async (req, res, next) => {
     const settings = await getNotificationSettings();
 
     return res.render("admin", {
-      title: "Admin - Beérkezett igények",
+      title: "Admin - BeÃ©rkezett igÃ©nyek",
       rows,
       selectedType: type,
       settings,
@@ -315,11 +315,11 @@ router.post("/admin/email-settings/toggle", basicAuth, async (req, res, next) =>
 });
 
 router.get("/adatkezelesi-tajekoztato", (req, res) => {
-  res.render("legal-privacy", { title: "Adatkezelési tájékoztató" });
+  res.render("legal-privacy", { title: "AdatkezelÃ©si tÃ¡jÃ©koztatÃ³" });
 });
 
 router.get("/panaszkezelesi-szabalyzat", (req, res) => {
-  res.render("legal-complaints", { title: "Panaszkezelési szabályzat" });
+  res.render("legal-complaints", { title: "PanaszkezelÃ©si szabÃ¡lyzat" });
 });
 
 router.get("/impresszum", (req, res) => {
@@ -327,9 +327,10 @@ router.get("/impresszum", (req, res) => {
 });
 
 router.get("/belso-visszaeles-bejelentes", (req, res) => {
-  res.render("legal-whistleblowing", { title: "Belsõ Visszaélés-Bejelentés" });
+  res.render("legal-whistleblowing", { title: "BelsÅ‘ VisszaÃ©lÃ©s-BejelentÃ©s" });
 });
 
 module.exports = router;
+
 
 

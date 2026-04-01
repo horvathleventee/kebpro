@@ -1,4 +1,4 @@
-require("dotenv").config();
+Ôªørequire("dotenv").config();
 
 const { app, dbReady } = require("./server");
 
@@ -11,6 +11,7 @@ dbReady
     });
   })
   .catch((error) => {
-    console.error("IndÌt·si hiba:", error);
+    console.error("Ind√≠t√°si hiba:", error);
     process.exit(1);
   });
+

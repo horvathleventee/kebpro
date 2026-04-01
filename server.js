@@ -1,4 +1,4 @@
-require("dotenv").config();
+﻿require("dotenv").config();
 
 const express = require("express");
 const path = require("path");
@@ -33,7 +33,7 @@ app.use(async (req, res, next) => {
       phone2: process.env.COMPANY_PHONE2 || "+36 70 451 5002",
       fax: process.env.COMPANY_FAX || "+36 77 426 014",
       email: process.env.COMPANY_EMAIL || "info@kebpro.hu",
-      address: process.env.COMPANY_ADDRESS || "Szegedi �t 8., 6400 Kiskunhalas, HUNGARY",
+      address: process.env.COMPANY_ADDRESS || "Szegedi út 8., 6400 Kiskunhalas, HUNGARY",
     };
 
     next();
@@ -64,3 +64,4 @@ app.use((req, res) => {
 });
 
 module.exports = { app, dbReady };
+
