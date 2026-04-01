@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "kebpro-webapp",
   "version": "1.1.0",
   "description": "Modern, reszponzív webapp a Kiskunhalasi Kebpro Kft. számára",
@@ -21,6 +21,7 @@
     "ejs": "^3.1.10",
     "express": "^5.2.1",
     "nodemailer": "^6.10.1",
+    "pg": "^8.20.0",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {

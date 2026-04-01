@@ -13,49 +13,54 @@
   </head>
   <body>
     <header class="site-header">
-      <div class="container nav-wrap">
-        <a href="<%= withLang('/') %>" class="brand">
-          <img src="/images/logo.png" alt="Kebpro logó" class="brand-logo" />
-          <span>Kiskunhalasi Kebpro Kft.</span>
-        </a>
+      <div class="container header-shell">
+        <div class="header-main">
+          <a href="<%= withLang('/') %>" class="brand">
+            <img src="/images/logo.png" alt="Kebpro logó" class="brand-logo" />
+            <span>Kiskunhalasi Kebpro Kft.</span>
+          </a>
 
-        <button class="menu-toggle" id="menuToggle" aria-label="Menü megnyitása">
-          <span></span><span></span><span></span>
-        </button>
+          <button class="menu-toggle" id="menuToggle" aria-label="Menü megnyitása">
+            <span></span><span></span><span></span>
+          </button>
 
-        <nav class="main-nav" id="mainNav">
-          <a href="<%= withLang('/') %>" class="<%= currentPath === '/' ? 'active' : '' %>"><%= t.nav.home %></a>
-          <a href="<%= withLang('/rolunk') %>" class="<%= currentPath === '/rolunk' ? 'active' : '' %>"><%= t.nav.about %></a>
-          <a href="<%= withLang('/minoseg') %>" class="<%= currentPath === '/minoseg' ? 'active' : '' %>"><%= t.nav.quality %></a>
+          <nav class="main-nav" id="mainNav">
+            <div class="nav-cluster">
+              <a href="<%= withLang('/') %>" class="<%= currentPath === '/' ? 'active' : '' %>"><%= t.nav.home %></a>
+              <a href="<%= withLang('/rolunk') %>" class="<%= currentPath === '/rolunk' ? 'active' : '' %>"><%= t.nav.about %></a>
+              <a href="<%= withLang('/minoseg') %>" class="<%= currentPath === '/minoseg' ? 'active' : '' %>"><%= t.nav.quality %></a>
 
-          <div class="nav-dropdown <%= currentPath.startsWith('/termekek') ? 'active' : '' %>">
-            <a href="<%= withLang('/termekek/nagykereskedelem') %>" class="dropdown-toggle"><%= t.nav.products %></a>
-            <div class="dropdown-menu">
-              <a href="<%= withLang('/termekek/nagykereskedelem') %>"><%= t.nav.wholesale %></a>
-              <a href="<%= withLang('/termekek/kiskereskedelem') %>"><%= t.nav.retail %></a>
+              <div class="nav-dropdown <%= currentPath.startsWith('/termekek') ? 'active' : '' %>">
+                <a href="<%= withLang('/termekek/nagykereskedelem') %>" class="dropdown-toggle"><%= t.nav.products %></a>
+                <div class="dropdown-menu">
+                  <a href="<%= withLang('/termekek/nagykereskedelem') %>"><%= t.nav.wholesale %></a>
+                  <a href="<%= withLang('/termekek/kiskereskedelem') %>"><%= t.nav.retail %></a>
+                </div>
+              </div>
+
+              <div class="nav-dropdown <%= currentPath.startsWith('/palyazatok') ? 'active' : '' %>">
+                <a href="<%= withLang('/palyazatok') %>" class="dropdown-toggle"><%= t.nav.grants %></a>
+                <div class="dropdown-menu">
+                  <a href="<%= withLang('/palyazatok/vp3-4.2.1-4.2.2-2-21') %>">VP3-4.2.1-4.2.2-2-21</a>
+                  <a href="<%= withLang('/palyazatok/vp-3-4.2.1-15') %>">VP-3-4.2.1-15</a>
+                </div>
+              </div>
+
+              <a href="<%= withLang('/ajanlatkeres') %>" class="<%= currentPath === '/ajanlatkeres' ? 'active' : '' %>"><%= t.nav.quote %></a>
+              <a href="<%= withLang('/megrendeles') %>" class="<%= currentPath === '/megrendeles' ? 'active' : '' %>"><%= t.nav.order %></a>
             </div>
-          </div>
 
-          <div class="nav-dropdown <%= currentPath.startsWith('/palyazatok') ? 'active' : '' %>">
-            <a href="<%= withLang('/palyazatok') %>" class="dropdown-toggle"><%= t.nav.grants %></a>
-            <div class="dropdown-menu">
-              <a href="<%= withLang('/palyazatok/vp3-4.2.1-4.2.2-2-21') %>">VP3-4.2.1-4.2.2-2-21</a>
-              <a href="<%= withLang('/palyazatok/vp-3-4.2.1-15') %>">VP-3-4.2.1-15</a>
+            <div class="header-utilities">
+              <div class="lang-switcher" aria-label="Nyelvválasztó">
+                <% supportedLanguages.forEach((item) => { %>
+                <a href="<%= buildLangUrl(currentPath, item) %>" class="lang-pill <%= lang === item ? 'active' : '' %>"><%= item.toUpperCase() %></a>
+                <% }) %>
+              </div>
+              <a href="<%= withLang('/kapcsolat') %>" class="cta-link <%= currentPath === '/kapcsolat' ? 'active' : '' %>"><%= t.nav.contact %></a>
             </div>
-          </div>
-
-          <a href="<%= withLang('/ajanlatkeres') %>" class="<%= currentPath === '/ajanlatkeres' ? 'active' : '' %>"><%= t.nav.quote %></a>
-          <a href="<%= withLang('/megrendeles') %>" class="<%= currentPath === '/megrendeles' ? 'active' : '' %>"><%= t.nav.order %></a>
-          <a href="<%= withLang('/kapcsolat') %>" class="cta-link <%= currentPath === '/kapcsolat' ? 'active' : '' %>"><%= t.nav.contact %></a>
-
-          <div class="lang-switcher" aria-label="Nyelvválasztó">
-            <% supportedLanguages.forEach((item) => { %>
-            <a href="<%= buildLangUrl ? buildLangUrl(currentPath, item) : (item === 'hu' ? currentPath : `${currentPath}?lang=${item}`) %>" class="lang-pill <%= lang === item ? 'active' : '' %>"><%= item.toUpperCase() %></a>
-            <% }) %>
-          </div>
-        </nav>
+          </nav>
+        </div>
       </div>
     </header>
 
     <main>
-

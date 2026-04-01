@@ -53,36 +53,61 @@
       <p><%= t.home.logisticsLead %></p>
     </div>
 
-    <div class="logistics-map-wrap">
-      <div class="logistics-map panel">
-        <svg viewBox="0 0 520 360" class="hungary-map" aria-hidden="true">
+    <div class="logistics-stats reveal-grid">
+      <article class="stat-card panel" data-stagger>
+        <span class="stat-label">Coverage</span>
+        <strong>Hungary</strong>
+        <p>Országos partnerkiszolgálás saját hűtős flottával.</p>
+      </article>
+      <article class="stat-card panel" data-stagger>
+        <span class="stat-label">Routing</span>
+        <strong>Weekly</strong>
+        <p>Heti ütemezett útvonalak, kiemelt pontokon többszöri fordulóval.</p>
+      </article>
+      <article class="stat-card panel" data-stagger>
+        <span class="stat-label">Cold Chain</span>
+        <strong>Controlled</strong>
+        <p>Átadásig követett hűtőlánc és egyeztetett kiszállítási ritmus.</p>
+      </article>
+    </div>
+
+    <div class="logistics-dashboard panel">
+      <div class="dashboard-map">
+        <div class="dashboard-glow dashboard-glow-a"></div>
+        <div class="dashboard-glow dashboard-glow-b"></div>
+        <svg viewBox="0 0 520 360" class="hungary-map strong-map" aria-hidden="true">
           <path d="M88 165 L133 117 L204 101 L260 69 L324 91 L393 86 L441 133 L430 196 L461 230 L422 282 L332 299 L266 320 L188 298 L141 251 L86 228 L66 192 Z" class="hungary-shape"></path>
-          <path d="M130 190 L210 146 L282 150 L360 126 L413 154" class="hungary-route"></path>
-          <path d="M167 246 L238 205 L311 212 L388 225" class="hungary-route"></path>
-          <circle cx="150" cy="163" r="9" class="hungary-dot"></circle>
-          <circle cx="263" cy="145" r="9" class="hungary-dot is-active"></circle>
-          <circle cx="232" cy="96" r="9" class="hungary-dot"></circle>
-          <circle cx="377" cy="172" r="9" class="hungary-dot"></circle>
-          <circle cx="250" cy="247" r="9" class="hungary-dot"></circle>
+          <path d="M126 188 L185 146 L250 144 L336 122 L395 155" class="hungary-route strong-route"></path>
+          <path d="M165 244 L233 204 L302 212 L382 225" class="hungary-route strong-route"></path>
+          <circle cx="150" cy="163" r="10" class="hungary-dot map-node map-node-west"></circle>
+          <circle cx="263" cy="145" r="10" class="hungary-dot map-node map-node-central is-active"></circle>
+          <circle cx="232" cy="96" r="10" class="hungary-dot map-node map-node-north"></circle>
+          <circle cx="377" cy="172" r="10" class="hungary-dot map-node map-node-east"></circle>
+          <circle cx="250" cy="247" r="10" class="hungary-dot map-node map-node-south"></circle>
         </svg>
-        <div class="logistics-panel" id="logisticsPanel">
+
+        <div class="dashboard-panel" id="logisticsPanel">
           <p class="logistics-panel-label"><%= t.home.logisticsPanelTitle %></p>
           <h3 id="logisticsPanelTitle"><%= activeRegion.title %></h3>
           <p id="logisticsPanelText"><%= activeRegion.text %></p>
         </div>
       </div>
 
-      <div class="logistics-region-list">
+      <div class="dashboard-side">
         <% logisticsRegions.forEach((region, index) => { %>
         <button
           type="button"
-          class="region-chip <%= index === 0 ? 'active' : '' %>"
+          class="region-chip region-card <%= index === 0 ? 'active' : '' %>"
           data-region-title="<%= region.title %>"
           data-region-text="<%= region.text %>"
+          data-region-key="<%= region.key %>"
           data-stagger
         >
           <span class="region-chip-index">0<%= index + 1 %></span>
-          <span><%= region.title %></span>
+          <span class="region-card-copy">
+            <strong><%= region.title %></strong>
+            <small><%= region.text %></small>
+          </span>
         </button>
         <% }) %>
       </div>
@@ -108,4 +133,3 @@
 </section>
 
 <%- include('partials/footer') %>
-

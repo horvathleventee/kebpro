@@ -13,13 +13,7 @@
       <h2>E-mail értesítés beállítás</h2>
       <form method="POST" action="/admin/email-settings/update" class="contact-form compact-form">
         <label for="notificationEmail">Értesítési e-mail cím</label>
-        <input
-          id="notificationEmail"
-          name="notificationEmail"
-          type="email"
-          value="<%= settings.notificationEmail %>"
-          required
-        />
+        <input id="notificationEmail" name="notificationEmail" type="email" value="<%= settings.notificationEmail %>" required />
         <button type="submit" class="btn btn-secondary">E-mail cím mentése</button>
       </form>
 
@@ -51,6 +45,7 @@
             <tr>
               <th>ID</th>
               <th>Típus</th>
+              <th>Státusz</th>
               <th>Dátum</th>
               <th>Név/Cég</th>
               <th>Termék</th>
@@ -64,6 +59,20 @@
             <tr>
               <td><%= item.id %></td>
               <td><%= item.type === 'order' ? 'Megrendelés' : 'Ajánlatkérés' %></td>
+              <td>
+                <form method="POST" action="/admin/igenyek/<%= item.id %>/status?type=<%= selectedType %>" class="status-form">
+                  <span class="status-badge status-<%= item.status || 'new' %>">
+                    <%= item.status === 'in_progress' ? 'Folyamatban' : item.status === 'closed' ? 'Lezárt' : item.status === 'called_back' ? 'Visszahívva' : 'Új' %>
+                  </span>
+                  <select name="status" class="status-select">
+                    <option value="new" <%= item.status === 'new' ? 'selected' : '' %>>Új</option>
+                    <option value="in_progress" <%= item.status === 'in_progress' ? 'selected' : '' %>>Folyamatban</option>
+                    <option value="called_back" <%= item.status === 'called_back' ? 'selected' : '' %>>Visszahívva</option>
+                    <option value="closed" <%= item.status === 'closed' ? 'selected' : '' %>>Lezárt</option>
+                  </select>
+                  <button type="submit" class="btn btn-secondary admin-mini-btn">Mentés</button>
+                </form>
+              </td>
               <td><%= item.created_at %></td>
               <td><strong><%= item.name %></strong><br /><%= item.company %></td>
               <td><%= item.product %></td>

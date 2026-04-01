@@ -5,6 +5,7 @@ const {
   getNotificationSettings,
   updateNotificationEmail,
   setEmailEnabled,
+  updateSubmissionStatus,
 } = require("../utils/db");
 const { sendNotificationEmail } = require("../utils/mailer");
 const {
@@ -314,6 +315,22 @@ router.post("/admin/email-settings/toggle", basicAuth, async (req, res, next) =>
   }
 });
 
+router.post("/admin/igenyek/:id/status", basicAuth, async (req, res, next) => {
+  try {
+    const allowedStatuses = ["new", "in_progress", "closed", "called_back"];
+    const status = (req.body.status || "").trim();
+
+    if (!allowedStatuses.includes(status)) {
+      return res.redirect("/admin/igenyek");
+    }
+
+    await updateSubmissionStatus(req.params.id, status);
+    return res.redirect(`/admin/igenyek${req.query.type ? `?type=${req.query.type}` : ""}`);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.get("/adatkezelesi-tajekoztato", (req, res) => {
   res.render("legal-privacy", { title: "Adatkezelési tájékoztató" });
 });
@@ -331,6 +348,3 @@ router.get("/belso-visszaeles-bejelentes", (req, res) => {
 });
 
 module.exports = router;
-
-
-
