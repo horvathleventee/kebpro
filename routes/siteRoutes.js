@@ -6,6 +6,7 @@ const {
   updateNotificationEmail,
   setEmailEnabled,
   updateSubmissionStatus,
+  getDbDiagnostics,
 } = require("../utils/db");
 const { sendNotificationEmail } = require("../utils/mailer");
 const {

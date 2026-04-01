@@ -69,6 +69,14 @@ const mapNodes = {
   south: document.querySelector(".map-node-south"),
 };
 
+const regionOverlays = {
+  west: document.querySelector(".region-overlay-west"),
+  central: document.querySelector(".region-overlay-central"),
+  north: document.querySelector(".region-overlay-north"),
+  east: document.querySelector(".region-overlay-east"),
+  south: document.querySelector(".region-overlay-south"),
+};
+
 if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
   const updateRegionPanel = (chip) => {
     regionChips.forEach((item) => item.classList.remove("active"));
@@ -77,9 +85,17 @@ if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
     logisticsPanelText.textContent = chip.dataset.regionText || "";
 
     Object.values(mapNodes).forEach((node) => node?.classList.remove("emphasis", "is-active"));
+    Object.values(regionOverlays).forEach((overlay) => overlay?.classList.remove("emphasis", "is-active"));
+
     const activeNode = mapNodes[chip.dataset.regionKey];
+    const activeOverlay = regionOverlays[chip.dataset.regionKey];
+
     if (activeNode) {
       activeNode.classList.add("emphasis", "is-active");
+    }
+
+    if (activeOverlay) {
+      activeOverlay.classList.add("emphasis", "is-active");
     }
   };
 

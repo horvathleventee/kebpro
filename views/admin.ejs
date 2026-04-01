@@ -1,26 +1,47 @@
-ï»¿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="page-hero section-animate">
   <div class="container">
     <p class="eyebrow">Admin</p>
-    <h1>BeÃ©rkezett ajÃ¡nlatkÃ©rÃ©sek Ã©s megrendelÃ©sek</h1>
+    <h1>Beérkezett ajánlatkérések és megrendelések</h1>
   </div>
 </section>
 
 <section class="section section-animate">
-  <div class="container">
+  <div class="container admin-overview-grid">
     <div class="panel wide">
-      <h2>E-mail Ã©rtesÃ­tÃ©s beÃ¡llÃ­tÃ¡s</h2>
+      <h2>Adatbázis állapot</h2>
+      <div class="admin-diagnostics-grid">
+        <article class="admin-diagnostic-card">
+          <span class="admin-diagnostic-label">Adapter</span>
+          <strong><%= diagnostics.adapter %></strong>
+          <p><%= diagnostics.adapter === 'postgres' ? 'Tartós felhõs adatbázis' : diagnostics.adapter === 'sqlite' ? 'Helyi fájl alapú adatbázis' : 'Memóriában tárolt ideiglenes adatok' %></p>
+        </article>
+        <article class="admin-diagnostic-card">
+          <span class="admin-diagnostic-label">Beküldések</span>
+          <strong><%= diagnostics.submissionCount %></strong>
+          <p><%= diagnostics.lastWriteAt ? `Utolsó mentés: ${diagnostics.lastWriteAt}` : 'Még nincs mentett rekord.' %></p>
+        </article>
+        <article class="admin-diagnostic-card <%= diagnostics.initError ? 'admin-diagnostic-alert' : '' %>">
+          <span class="admin-diagnostic-label">Kapcsolat</span>
+          <strong><%= diagnostics.initError ? 'Hiba' : 'Rendben' %></strong>
+          <p><%= diagnostics.initError || (diagnostics.adapter === 'postgres' ? 'A Postgres kapcsolat konfigurálva van.' : diagnostics.adapter === 'memory' ? 'A deploy jelenleg memóriába ment, nem tartós tárhelyre.' : 'A helyi SQLite adatbázis aktív.') %></p>
+        </article>
+      </div>
+    </div>
+
+    <div class="panel wide">
+      <h2>E-mail értesítés beállítás</h2>
       <form method="POST" action="/admin/email-settings/update" class="contact-form compact-form">
-        <label for="notificationEmail">Ã‰rtesÃ­tÃ©si e-mail cÃ­m</label>
+        <label for="notificationEmail">Értesítési e-mail cím</label>
         <input id="notificationEmail" name="notificationEmail" type="email" value="<%= settings.notificationEmail %>" required />
-        <button type="submit" class="btn btn-secondary">E-mail cÃ­m mentÃ©se</button>
+        <button type="submit" class="btn btn-secondary">E-mail cím mentése</button>
       </form>
 
       <form method="POST" action="/admin/email-settings/toggle" class="inline-form">
-        <span>Ãllapot: <strong><%= settings.emailEnabled ? 'Bekapcsolva' : 'Kikapcsolva' %></strong></span>
+        <span>Állapot: <strong><%= settings.emailEnabled ? 'Bekapcsolva' : 'Kikapcsolva' %></strong></span>
         <button type="submit" class="btn btn-primary">
-          <%= settings.emailEnabled ? 'Ã‰rtesÃ­tÃ©s kikapcsolÃ¡sa' : 'Ã‰rtesÃ­tÃ©s bekapcsolÃ¡sa' %>
+          <%= settings.emailEnabled ? 'Értesítés kikapcsolása' : 'Értesítés bekapcsolása' %>
         </button>
       </form>
     </div>
@@ -31,46 +52,46 @@
   <div class="container">
     <div class="panel wide">
       <div class="admin-filters">
-        <a href="/admin/igenyek?type=all" class="btn btn-secondary">Ã–sszes</a>
-        <a href="/admin/igenyek?type=quote" class="btn btn-secondary">AjÃ¡nlatkÃ©rÃ©s</a>
-        <a href="/admin/igenyek?type=order" class="btn btn-secondary">MegrendelÃ©s</a>
+        <a href="/admin/igenyek?type=all" class="btn btn-secondary">Összes</a>
+        <a href="/admin/igenyek?type=quote" class="btn btn-secondary">Ajánlatkérés</a>
+        <a href="/admin/igenyek?type=order" class="btn btn-secondary">Megrendelés</a>
       </div>
 
       <% if (!rows || rows.length === 0) { %>
-      <p>Jelenleg nincs beÃ©rkezett adat.</p>
+      <p>Jelenleg nincs beérkezett adat.</p>
       <% } else { %>
       <div class="table-wrap">
         <table class="admin-table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>TÃ­pus</th>
-              <th>StÃ¡tusz</th>
-              <th>DÃ¡tum</th>
-              <th>NÃ©v/CÃ©g</th>
-              <th>TermÃ©k</th>
-              <th>MennyisÃ©g</th>
-              <th>ElÃ©rhetÅ‘sÃ©g</th>
-              <th>RÃ©szletek</th>
+              <th>Típus</th>
+              <th>Státusz</th>
+              <th>Dátum</th>
+              <th>Név/Cég</th>
+              <th>Termék</th>
+              <th>Mennyiség</th>
+              <th>Elérhetõség</th>
+              <th>Részletek</th>
             </tr>
           </thead>
           <tbody>
             <% rows.forEach((item) => { %>
             <tr>
               <td><%= item.id %></td>
-              <td><%= item.type === 'order' ? 'MegrendelÃ©s' : 'AjÃ¡nlatkÃ©rÃ©s' %></td>
+              <td><%= item.type === 'order' ? 'Megrendelés' : 'Ajánlatkérés' %></td>
               <td>
                 <form method="POST" action="/admin/igenyek/<%= item.id %>/status?type=<%= selectedType %>" class="status-form">
                   <span class="status-badge status-<%= item.status || 'new' %>">
-                    <%= item.status === 'in_progress' ? 'Folyamatban' : item.status === 'closed' ? 'LezÃ¡rt' : item.status === 'called_back' ? 'VisszahÃ­vva' : 'Ãšj' %>
+                    <%= item.status === 'in_progress' ? 'Folyamatban' : item.status === 'closed' ? 'Lezárt' : item.status === 'called_back' ? 'Visszahívva' : 'Új' %>
                   </span>
                   <select name="status" class="status-select">
-                    <option value="new" <%= item.status === 'new' ? 'selected' : '' %>>Ãšj</option>
+                    <option value="new" <%= item.status === 'new' ? 'selected' : '' %>>Új</option>
                     <option value="in_progress" <%= item.status === 'in_progress' ? 'selected' : '' %>>Folyamatban</option>
-                    <option value="called_back" <%= item.status === 'called_back' ? 'selected' : '' %>>VisszahÃ­vva</option>
-                    <option value="closed" <%= item.status === 'closed' ? 'selected' : '' %>>LezÃ¡rt</option>
+                    <option value="called_back" <%= item.status === 'called_back' ? 'selected' : '' %>>Visszahívva</option>
+                    <option value="closed" <%= item.status === 'closed' ? 'selected' : '' %>>Lezárt</option>
                   </select>
-                  <button type="submit" class="btn btn-secondary admin-mini-btn">MentÃ©s</button>
+                  <button type="submit" class="btn btn-secondary admin-mini-btn">Mentés</button>
                 </form>
               </td>
               <td><%= item.created_at %></td>
@@ -79,9 +100,9 @@
               <td><%= item.quantity || '-' %></td>
               <td><%= item.email %><br /><%= item.phone %></td>
               <td>
-                <% if (item.address) { %><div>CÃ­m: <%= item.address %></div><% } %>
-                <% if (item.requested_date) { %><div>DÃ¡tum: <%= item.requested_date %></div><% } %>
-                <% if (item.message) { %><div>MegjegyzÃ©s: <%= item.message %></div><% } %>
+                <% if (item.address) { %><div>Cím: <%= item.address %></div><% } %>
+                <% if (item.requested_date) { %><div>Dátum: <%= item.requested_date %></div><% } %>
+                <% if (item.message) { %><div>Megjegyzés: <%= item.message %></div><% } %>
               </td>
             </tr>
             <% }) %>

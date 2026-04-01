@@ -218,6 +218,9 @@ a { color: inherit; text-decoration: none; }
 @keyframes heroFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
 .logistics-layout { display: grid; gap: 1.4rem; }
+.logistics-badges { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.logistics-badge { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.7rem 0.95rem; border-radius: 999px; border: 1px solid #d6e2ef; background: rgba(255, 255, 255, 0.88); box-shadow: 0 10px 24px rgba(16, 36, 63, 0.08); color: var(--primary); font-weight: 700; }
+.logistics-badge::before { content: ""; width: 8px; height: 8px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 6px rgba(218, 138, 29, 0.12); }
 .logistics-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 .stat-card { position: relative; overflow: hidden; }
 .stat-card::before { content: ""; position: absolute; inset: auto -40px -60px auto; width: 140px; height: 140px; border-radius: 999px; background: rgba(16, 36, 63, 0.06); }
@@ -247,10 +250,14 @@ a { color: inherit; text-decoration: none; }
 .hungary-map { width: 100%; height: 100%; min-height: 330px; }
 .strong-map { padding: 1.2rem; }
 .hungary-shape { fill: rgba(16, 36, 63, 0.1); stroke: rgba(16, 36, 63, 0.25); stroke-width: 5; }
+.region-overlay { fill: rgba(16, 36, 63, 0.06); stroke: rgba(255, 255, 255, 0.22); stroke-width: 2; transition: fill 0.2s ease, opacity 0.2s ease, transform 0.2s ease; opacity: 0.9; }
+.region-overlay.is-active, .region-overlay.emphasis { fill: rgba(29, 155, 125, 0.18); }
 .hungary-route { fill: none; stroke: rgba(29, 155, 125, 0.45); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 14 14; }
 .strong-route { stroke: rgba(29, 155, 125, 0.62); stroke-width: 9; }
 .hungary-dot { fill: var(--primary); stroke: #fff; stroke-width: 5; }
 .map-node { transition: transform 0.2s ease, fill 0.2s ease, opacity 0.2s ease; transform-origin: center; }
+.pulse-node { animation: pulseMarker 2.6s ease-in-out infinite; }
+@keyframes pulseMarker { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 .map-node.is-active { fill: var(--accent); }
 .map-node.emphasis { transform: scale(1.28); fill: var(--accent); }
 .dashboard-panel {
@@ -318,7 +325,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 980px) {
-  .hero-grid, .contact-grid, .grid-2, .cards, .footer-grid, .grant-grid, .logistics-stats, .logistics-dashboard, .product-card-grid { grid-template-columns: 1fr; }
+  .hero-grid, .contact-grid, .grid-2, .cards, .footer-grid, .grant-grid, .logistics-stats, .logistics-dashboard, .product-card-grid, .admin-diagnostics-grid { grid-template-columns: 1fr; }
   .cta-strip-inner { flex-direction: column; align-items: flex-start; }
   .dashboard-map { min-height: 360px; }
   .dashboard-panel { position: static; width: 100%; margin: 0.8rem; }
@@ -370,6 +377,13 @@ a { color: inherit; text-decoration: none; }
   color: #445266;
 }
 
+.admin-overview-grid { display: grid; gap: 1rem; }
+.admin-diagnostics-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
+.admin-diagnostic-card { padding: 1rem; border: 1px solid var(--border); border-radius: 16px; background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); }
+.admin-diagnostic-label { display: inline-block; margin-bottom: 0.45rem; color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; }
+.admin-diagnostic-card strong { display: block; font-size: 1.35rem; margin-bottom: 0.35rem; }
+.admin-diagnostic-card p { margin: 0; color: var(--muted); line-height: 1.55; }
+.admin-diagnostic-alert { border-color: #f0c88e; background: linear-gradient(180deg, #fffaf2 0%, #fff 100%); }
 .admin-mini-btn {
   padding: 0.5rem 0.7rem;
   font-size: 0.86rem;

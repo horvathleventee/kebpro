@@ -1,4 +1,4 @@
-﻿const path = require("path");
+const path = require("path");
 const fs = require("fs");
 
 const connectionString =
@@ -15,6 +15,7 @@ let sqlite;
 let db;
 let Pool;
 let pool;
+let dbInitError = null;
 let submissionsMemory = [];
 let settingsMemory = {
   notificationEmail:
@@ -68,12 +69,60 @@ function get(sql, params = []) {
 async function initDb() {
   if (adapter === "memory") return;
 
-  if (adapter === "postgres") {
-    await pool.query(`
+  try {
+    if (adapter === "postgres") {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS submissions (
+          id SERIAL PRIMARY KEY,
+          type TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'new',
+          name TEXT NOT NULL,
+          email TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          company TEXT NOT NULL,
+          product TEXT NOT NULL,
+          quantity TEXT,
+          address TEXT,
+          requested_date TEXT,
+          message TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `);
+
+      await pool.query(`
+        ALTER TABLE submissions
+        ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'new'
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS app_settings (
+          id INTEGER PRIMARY KEY,
+          notification_email TEXT NOT NULL,
+          email_enabled BOOLEAN NOT NULL DEFAULT FALSE
+        )
+      `);
+
+      await pool.query(
+        `
+          INSERT INTO app_settings (id, notification_email, email_enabled)
+          VALUES (1, $1, $2)
+          ON CONFLICT (id)
+          DO NOTHING
+        `,
+        [
+          process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || "info@kebpro.hu",
+          process.env.ENABLE_EMAIL === "true",
+        ]
+      );
+
+      dbInitError = null;
+      return;
+    }
+
+    await run(`
       CREATE TABLE IF NOT EXISTS submissions (
-        id SERIAL PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'new',
         name TEXT NOT NULL,
         email TEXT NOT NULL,
         phone TEXT NOT NULL,
@@ -83,76 +132,36 @@ async function initDb() {
         address TEXT,
         requested_date TEXT,
         message TEXT,
-        created_at TIMESTAMPTZ DEFAULT NOW()
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    await pool.query(`
-      ALTER TABLE submissions
-      ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'new'
-    `);
+    await run(`ALTER TABLE submissions ADD COLUMN status TEXT NOT NULL DEFAULT 'new'`).catch(() => {});
 
-    await pool.query(`
+    await run(`
       CREATE TABLE IF NOT EXISTS app_settings (
-        id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY CHECK (id = 1),
         notification_email TEXT NOT NULL,
-        email_enabled BOOLEAN NOT NULL DEFAULT FALSE
+        email_enabled INTEGER NOT NULL DEFAULT 0
       )
     `);
 
-    await pool.query(
+    await run(
       `
-        INSERT INTO app_settings (id, notification_email, email_enabled)
-        VALUES (1, $1, $2)
-        ON CONFLICT (id)
-        DO NOTHING
+        INSERT OR IGNORE INTO app_settings (id, notification_email, email_enabled)
+        VALUES (1, ?, ?)
       `,
       [
         process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || "info@kebpro.hu",
-        process.env.ENABLE_EMAIL === "true",
+        process.env.ENABLE_EMAIL === "true" ? 1 : 0,
       ]
     );
 
-    return;
+    dbInitError = null;
+  } catch (error) {
+    dbInitError = error;
+    throw error;
   }
-
-  await run(`
-    CREATE TABLE IF NOT EXISTS submissions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      type TEXT NOT NULL,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      company TEXT NOT NULL,
-      product TEXT NOT NULL,
-      quantity TEXT,
-      address TEXT,
-      requested_date TEXT,
-      message TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  await run(`ALTER TABLE submissions ADD COLUMN status TEXT NOT NULL DEFAULT 'new'`).catch(() => {});
-
-  await run(`
-    CREATE TABLE IF NOT EXISTS app_settings (
-      id INTEGER PRIMARY KEY CHECK (id = 1),
-      notification_email TEXT NOT NULL,
-      email_enabled INTEGER NOT NULL DEFAULT 0
-    )
-  `);
-
-  await run(
-    `
-      INSERT OR IGNORE INTO app_settings (id, notification_email, email_enabled)
-      VALUES (1, ?, ?)
-    `,
-    [
-      process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || "info@kebpro.hu",
-      process.env.ENABLE_EMAIL === "true" ? 1 : 0,
-    ]
-  );
 }
 
 async function insertSubmission(payload) {
@@ -343,6 +352,50 @@ async function updateSubmissionStatus(id, status) {
   await run("UPDATE submissions SET status = ? WHERE id = ?", [status, id]);
 }
 
+async function getDbDiagnostics() {
+  const diagnostics = {
+    adapter,
+    configured: Boolean(connectionString) || adapter !== "postgres",
+    connectionStringPresent: Boolean(connectionString),
+    initError: dbInitError ? dbInitError.message || String(dbInitError) : null,
+    writableStore:
+      adapter === "postgres" ? "persistent" : adapter === "sqlite" ? "local file" : "memory only",
+    submissionCount: 0,
+    lastWriteAt: null,
+  };
+
+  if (adapter === "memory") {
+    diagnostics.submissionCount = submissionsMemory.length;
+    diagnostics.lastWriteAt = submissionsMemory[0]?.created_at || null;
+    return diagnostics;
+  }
+
+  try {
+    if (adapter === "postgres") {
+      const countResult = await pool.query("SELECT COUNT(*)::int AS count FROM submissions");
+      const lastResult = await pool.query(
+        "SELECT created_at FROM submissions ORDER BY created_at DESC, id DESC LIMIT 1"
+      );
+
+      diagnostics.submissionCount = countResult.rows[0]?.count || 0;
+      diagnostics.lastWriteAt = lastResult.rows[0]?.created_at || null;
+      return diagnostics;
+    }
+
+    const countRow = await get("SELECT COUNT(*) AS count FROM submissions");
+    const lastRow = await get(
+      "SELECT created_at FROM submissions ORDER BY created_at DESC, id DESC LIMIT 1"
+    );
+
+    diagnostics.submissionCount = countRow?.count || 0;
+    diagnostics.lastWriteAt = lastRow?.created_at || null;
+    return diagnostics;
+  } catch (error) {
+    diagnostics.initError = error.message || String(error);
+    return diagnostics;
+  }
+}
+
 module.exports = {
   initDb,
   insertSubmission,
@@ -351,5 +404,6 @@ module.exports = {
   updateNotificationEmail,
   setEmailEnabled,
   updateSubmissionStatus,
+  getDbDiagnostics,
   adapter,
 };
