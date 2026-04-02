@@ -130,7 +130,7 @@ const logisticsPanelPositions = {
 
 const logisticsRegionExtras = {
   hu: [
-    { key: "balaton", title: "Balaton és térsége", text: "Kiemelt szezonális és állandó útvonal, gyors partnerkiszolgálással a Balaton környezetében." },
+    { key: "balaton", title: "Balaton \u00e9s t\u00e9rs\u00e9ge", text: "Kiemelt szezon\u00e1lis \u00e9s \u00e1lland\u00f3 \u00fatvonal, gyors partnerkiszolg\u00e1l\u00e1ssal a Balaton k\u00f6rnyezet\u00e9ben." },
   ],
   en: [
     { key: "balaton", title: "Lake Balaton area", text: "Priority seasonal and permanent route with fast partner coverage around Lake Balaton." },

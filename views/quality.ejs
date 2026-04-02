@@ -9,21 +9,30 @@
 
 <section class="section section-animate">
   <div class="container">
-    <article class="panel wide legal-content">
-      <% Object.values(t.quality.sections).forEach((section) => { %>
-      <h2><%= section.title %></h2>
-      <% if (section.paragraphs) { %>
-      <% section.paragraphs.forEach((paragraph) => { %>
-      <p><%= paragraph %></p>
-      <% }) %>
-      <% } %>
-      <% if (section.steps) { %>
-      <ol>
-        <% section.steps.forEach((step) => { %>
-        <li><%= step %></li>
-        <% }) %>
-      </ol>
-      <% } %>
+    <article class="panel wide legal-content quality-article">
+      <% Object.entries(t.quality.sections).forEach(([key, section]) => { %>
+      <section class="quality-block quality-block-<%= key %>">
+        <div class="quality-block-head">
+          <span class="quality-block-chip"><%= section.title %></span>
+          <h2><%= section.title %></h2>
+        </div>
+
+        <% if (section.paragraphs) { %>
+        <div class="quality-copy-grid">
+          <% section.paragraphs.forEach((paragraph) => { %>
+          <p><%= paragraph %></p>
+          <% }) %>
+        </div>
+        <% } %>
+
+        <% if (section.steps) { %>
+        <ol class="quality-steps-list">
+          <% section.steps.forEach((step) => { %>
+          <li><%= step %></li>
+          <% }) %>
+        </ol>
+        <% } %>
+      </section>
       <% }) %>
     </article>
   </div>
@@ -35,18 +44,64 @@
       <h2><%= t.quality.timelineTitle %></h2>
       <p><%= t.quality.timelineLead %></p>
     </div>
-    <div class="timeline">
-      <% t.quality.sections.process.steps.forEach((step, index) => { %>
-      <article class="timeline-item" data-stagger>
-        <div class="timeline-marker">0<%= index + 1 %></div>
-        <div class="timeline-content panel">
-          <h3><%= step %></h3>
+
+    <% const timelineIcons = ['Be', 'OK', 'Hű', 'Üz', 'Fű', 'Pih', 'Ny', 'Csom']; %>
+    <% const timelineTitles = [
+      'Beszállítás',
+      'Minőségi ellenőrzés',
+      'Hűtőtárolás',
+      'Gyártócsarnok',
+      'Fűszerezés',
+      'Pihentetés',
+      'Nyársra építés',
+      'Formázás és csomagolás'
+    ]; %>
+    <% const timelineTags = [
+      'Alapanyag',
+      'Kontrollpont',
+      'Hűtőlánc',
+      'Előkészítés',
+      'Ízprofil',
+      'Folyamat',
+      'Összeállítás',
+      'Késztermék'
+    ]; %>
+
+    <div class="quality-timeline-grid">
+      <div class="timeline-intro panel">
+        <span class="timeline-intro-kicker">Gyártási lánc</span>
+        <h3>Folyamatos ellenőrzés a beszállítástól a késztermékig</h3>
+        <p>
+          A kiemelt lépések között végig megmarad a minőségbiztosítási kontroll,
+          a hűtőlánc és a nyomonkövethetőség. Az idővonal aktív elemei görgetéskor
+          külön hangsúlyt kapnak.
+        </p>
+        <div class="timeline-checks">
+          <span class="timeline-check">Hőmérséklet-ellenőrzés</span>
+          <span class="timeline-check">Nyomonkövetés</span>
+          <span class="timeline-check">Hűtőlánc biztosítva</span>
         </div>
-      </article>
-      <% }) %>
+      </div>
+
+      <div class="timeline timeline-advanced">
+        <% t.quality.sections.process.steps.forEach((step, index) => { %>
+        <article class="timeline-item timeline-step-card" data-stagger>
+          <div class="timeline-marker">
+            <span class="timeline-marker-number">0<%= index + 1 %></span>
+            <span class="timeline-marker-icon"><%= timelineIcons[index] || '•' %></span>
+          </div>
+          <div class="timeline-content panel">
+            <div class="timeline-step-topline">
+              <span class="timeline-step-tag"><%= timelineTags[index] || 'Lépés' %></span>
+              <strong><%= timelineTitles[index] || `Lépés ${index + 1}` %></strong>
+            </div>
+            <h3><%= step %></h3>
+          </div>
+        </article>
+        <% }) %>
+      </div>
     </div>
   </div>
 </section>
 
 <%- include('partials/footer') %>
-
