@@ -1,47 +1,196 @@
-<%- include('partials/header') %>
+ï»¿<%- include('partials/header') %>
+<%
+  const adminCopy = {
+    hu: {
+      eyebrow: 'Admin',
+      title: 'BeÃ©rkezett ajÃ¡nlatkÃ©rÃ©sek Ã©s megrendelÃ©sek',
+      dbTitle: 'AdatbÃ¡zis Ã¡llapot',
+      adapter: 'Adapter',
+      submissions: 'BekÃ¼ldÃ©sek',
+      connection: 'Kapcsolat',
+      cloudDb: 'TartÃ³s felhÅ‘s adatbÃ¡zis',
+      localDb: 'Helyi fÃ¡jl alapÃº adatbÃ¡zis',
+      memoryDb: 'MemÃ³riÃ¡ban tÃ¡rolt ideiglenes adatok',
+      lastWrite: 'UtolsÃ³ mentÃ©s',
+      noSaved: 'MÃ©g nincs mentett rekord.',
+      statusError: 'Hiba',
+      statusOk: 'Rendben',
+      pgConfigured: 'A Postgres kapcsolat konfigurÃ¡lva van.',
+      memoryConfigured: 'A deploy jelenleg memÃ³riÃ¡ba ment, nem tartÃ³s tÃ¡rhelyre.',
+      sqliteConfigured: 'A helyi SQLite adatbÃ¡zis aktÃ­v.',
+      emailTitle: 'E-mail Ã©rtesÃ­tÃ©s beÃ¡llÃ­tÃ¡s',
+      emailLabel: 'Ã‰rtesÃ­tÃ©si e-mail cÃ­m',
+      saveEmail: 'E-mail cÃ­m mentÃ©se',
+      state: 'Ãllapot',
+      enabled: 'Bekapcsolva',
+      disabled: 'Kikapcsolva',
+      disableNotice: 'Ã‰rtesÃ­tÃ©s kikapcsolÃ¡sa',
+      enableNotice: 'Ã‰rtesÃ­tÃ©s bekapcsolÃ¡sa',
+      all: 'Ã–sszes',
+      quote: 'AjÃ¡nlatkÃ©rÃ©s',
+      order: 'MegrendelÃ©s',
+      empty: 'Jelenleg nincs beÃ©rkezett adat.',
+      id: 'ID',
+      type: 'TÃ­pus',
+      status: 'StÃ¡tusz',
+      date: 'DÃ¡tum',
+      nameCompany: 'NÃ©v/CÃ©g',
+      product: 'TermÃ©k',
+      quantity: 'MennyisÃ©g',
+      contact: 'ElÃ©rhetÅ‘sÃ©g',
+      details: 'RÃ©szletek',
+      new: 'Ãšj',
+      inProgress: 'Folyamatban',
+      calledBack: 'VisszahÃ­vva',
+      closed: 'LezÃ¡rt',
+      save: 'MentÃ©s',
+      address: 'CÃ­m',
+      requestedDate: 'DÃ¡tum',
+      note: 'MegjegyzÃ©s'
+    },
+    en: {
+      eyebrow: 'Admin',
+      title: 'Incoming quote requests and orders',
+      dbTitle: 'Database status',
+      adapter: 'Adapter',
+      submissions: 'Submissions',
+      connection: 'Connection',
+      cloudDb: 'Persistent cloud database',
+      localDb: 'Local file-based database',
+      memoryDb: 'Temporary in-memory data',
+      lastWrite: 'Last saved',
+      noSaved: 'No saved records yet.',
+      statusError: 'Error',
+      statusOk: 'OK',
+      pgConfigured: 'The Postgres connection is configured.',
+      memoryConfigured: 'The deployment is currently storing data in memory only.',
+      sqliteConfigured: 'The local SQLite database is active.',
+      emailTitle: 'Email notification settings',
+      emailLabel: 'Notification email address',
+      saveEmail: 'Save email address',
+      state: 'Status',
+      enabled: 'Enabled',
+      disabled: 'Disabled',
+      disableNotice: 'Disable notifications',
+      enableNotice: 'Enable notifications',
+      all: 'All',
+      quote: 'Quote request',
+      order: 'Order',
+      empty: 'There are no incoming records yet.',
+      id: 'ID',
+      type: 'Type',
+      status: 'Status',
+      date: 'Date',
+      nameCompany: 'Name/Company',
+      product: 'Product',
+      quantity: 'Quantity',
+      contact: 'Contact',
+      details: 'Details',
+      new: 'New',
+      inProgress: 'In progress',
+      calledBack: 'Called back',
+      closed: 'Closed',
+      save: 'Save',
+      address: 'Address',
+      requestedDate: 'Date',
+      note: 'Note'
+    },
+    de: {
+      eyebrow: 'Admin',
+      title: 'Eingegangene Angebotsanfragen und Bestellungen',
+      dbTitle: 'Datenbankstatus',
+      adapter: 'Adapter',
+      submissions: 'EingÃ¤nge',
+      connection: 'Verbindung',
+      cloudDb: 'Persistente Cloud-Datenbank',
+      localDb: 'Lokale dateibasierte Datenbank',
+      memoryDb: 'TemporÃ¤re Daten im Arbeitsspeicher',
+      lastWrite: 'Zuletzt gespeichert',
+      noSaved: 'Noch keine gespeicherten EintrÃ¤ge.',
+      statusError: 'Fehler',
+      statusOk: 'In Ordnung',
+      pgConfigured: 'Die Postgres-Verbindung ist konfiguriert.',
+      memoryConfigured: 'Das Deployment speichert derzeit nur im Speicher.',
+      sqliteConfigured: 'Die lokale SQLite-Datenbank ist aktiv.',
+      emailTitle: 'E-Mail-Benachrichtigung',
+      emailLabel: 'Benachrichtigungsadresse',
+      saveEmail: 'E-Mail-Adresse speichern',
+      state: 'Status',
+      enabled: 'Aktiviert',
+      disabled: 'Deaktiviert',
+      disableNotice: 'Benachrichtigung deaktivieren',
+      enableNotice: 'Benachrichtigung aktivieren',
+      all: 'Alle',
+      quote: 'Anfrage',
+      order: 'Bestellung',
+      empty: 'Derzeit liegen keine DatensÃ¤tze vor.',
+      id: 'ID',
+      type: 'Typ',
+      status: 'Status',
+      date: 'Datum',
+      nameCompany: 'Name/Firma',
+      product: 'Produkt',
+      quantity: 'Menge',
+      contact: 'Kontakt',
+      details: 'Details',
+      new: 'Neu',
+      inProgress: 'In Bearbeitung',
+      calledBack: 'ZurÃ¼ckgerufen',
+      closed: 'Abgeschlossen',
+      save: 'Speichern',
+      address: 'Adresse',
+      requestedDate: 'Datum',
+      note: 'Bemerkung'
+    }
+  };
+  const a = adminCopy[lang] || adminCopy.hu;
+  const adapterDescription = diagnostics.adapter === 'postgres' ? a.cloudDb : diagnostics.adapter === 'sqlite' ? a.localDb : a.memoryDb;
+  const connectionDescription = diagnostics.initError || (diagnostics.adapter === 'postgres' ? a.pgConfigured : diagnostics.adapter === 'memory' ? a.memoryConfigured : a.sqliteConfigured);
+  const currentState = settings.emailEnabled ? a.enabled : a.disabled;
+%>
 
 <section class="page-hero section-animate">
   <div class="container">
-    <p class="eyebrow">Admin</p>
-    <h1>Beérkezett ajánlatkérések és megrendelések</h1>
+    <p class="eyebrow"><%= a.eyebrow %></p>
+    <h1><%= a.title %></h1>
   </div>
 </section>
 
 <section class="section section-animate">
   <div class="container admin-overview-grid">
     <div class="panel wide">
-      <h2>Adatbázis állapot</h2>
+      <h2><%= a.dbTitle %></h2>
       <div class="admin-diagnostics-grid">
         <article class="admin-diagnostic-card">
-          <span class="admin-diagnostic-label">Adapter</span>
+          <span class="admin-diagnostic-label"><%= a.adapter %></span>
           <strong><%= diagnostics.adapter %></strong>
-          <p><%= diagnostics.adapter === 'postgres' ? 'Tartós felhõs adatbázis' : diagnostics.adapter === 'sqlite' ? 'Helyi fájl alapú adatbázis' : 'Memóriában tárolt ideiglenes adatok' %></p>
+          <p><%= adapterDescription %></p>
         </article>
         <article class="admin-diagnostic-card">
-          <span class="admin-diagnostic-label">Beküldések</span>
+          <span class="admin-diagnostic-label"><%= a.submissions %></span>
           <strong><%= diagnostics.submissionCount %></strong>
-          <p><%= diagnostics.lastWriteAt ? `Utolsó mentés: ${diagnostics.lastWriteAt}` : 'Még nincs mentett rekord.' %></p>
+          <p><%= diagnostics.lastWriteAt ? `${a.lastWrite}: ${diagnostics.lastWriteAt}` : a.noSaved %></p>
         </article>
         <article class="admin-diagnostic-card <%= diagnostics.initError ? 'admin-diagnostic-alert' : '' %>">
-          <span class="admin-diagnostic-label">Kapcsolat</span>
-          <strong><%= diagnostics.initError ? 'Hiba' : 'Rendben' %></strong>
-          <p><%= diagnostics.initError || (diagnostics.adapter === 'postgres' ? 'A Postgres kapcsolat konfigurálva van.' : diagnostics.adapter === 'memory' ? 'A deploy jelenleg memóriába ment, nem tartós tárhelyre.' : 'A helyi SQLite adatbázis aktív.') %></p>
+          <span class="admin-diagnostic-label"><%= a.connection %></span>
+          <strong><%= diagnostics.initError ? a.statusError : a.statusOk %></strong>
+          <p><%= connectionDescription %></p>
         </article>
       </div>
     </div>
 
     <div class="panel wide">
-      <h2>E-mail értesítés beállítás</h2>
+      <h2><%= a.emailTitle %></h2>
       <form method="POST" action="/admin/email-settings/update" class="contact-form compact-form">
-        <label for="notificationEmail">Értesítési e-mail cím</label>
+        <label for="notificationEmail"><%= a.emailLabel %></label>
         <input id="notificationEmail" name="notificationEmail" type="email" value="<%= settings.notificationEmail %>" required />
-        <button type="submit" class="btn btn-secondary">E-mail cím mentése</button>
+        <button type="submit" class="btn btn-secondary"><%= a.saveEmail %></button>
       </form>
 
       <form method="POST" action="/admin/email-settings/toggle" class="inline-form">
-        <span>Állapot: <strong><%= settings.emailEnabled ? 'Bekapcsolva' : 'Kikapcsolva' %></strong></span>
+        <span><%= a.state %>: <strong><%= currentState %></strong></span>
         <button type="submit" class="btn btn-primary">
-          <%= settings.emailEnabled ? 'Értesítés kikapcsolása' : 'Értesítés bekapcsolása' %>
+          <%= settings.emailEnabled ? a.disableNotice : a.enableNotice %>
         </button>
       </form>
     </div>
@@ -52,46 +201,46 @@
   <div class="container">
     <div class="panel wide">
       <div class="admin-filters">
-        <a href="/admin/igenyek?type=all" class="btn btn-secondary">Összes</a>
-        <a href="/admin/igenyek?type=quote" class="btn btn-secondary">Ajánlatkérés</a>
-        <a href="/admin/igenyek?type=order" class="btn btn-secondary">Megrendelés</a>
+        <a href="/admin/igenyek?type=all" class="btn btn-secondary"><%= a.all %></a>
+        <a href="/admin/igenyek?type=quote" class="btn btn-secondary"><%= a.quote %></a>
+        <a href="/admin/igenyek?type=order" class="btn btn-secondary"><%= a.order %></a>
       </div>
 
       <% if (!rows || rows.length === 0) { %>
-      <p>Jelenleg nincs beérkezett adat.</p>
+      <p><%= a.empty %></p>
       <% } else { %>
       <div class="table-wrap">
         <table class="admin-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Típus</th>
-              <th>Státusz</th>
-              <th>Dátum</th>
-              <th>Név/Cég</th>
-              <th>Termék</th>
-              <th>Mennyiség</th>
-              <th>Elérhetõség</th>
-              <th>Részletek</th>
+              <th><%= a.id %></th>
+              <th><%= a.type %></th>
+              <th><%= a.status %></th>
+              <th><%= a.date %></th>
+              <th><%= a.nameCompany %></th>
+              <th><%= a.product %></th>
+              <th><%= a.quantity %></th>
+              <th><%= a.contact %></th>
+              <th><%= a.details %></th>
             </tr>
           </thead>
           <tbody>
             <% rows.forEach((item) => { %>
             <tr>
               <td><%= item.id %></td>
-              <td><%= item.type === 'order' ? 'Megrendelés' : 'Ajánlatkérés' %></td>
+              <td><%= item.type === 'order' ? a.order : a.quote %></td>
               <td>
                 <form method="POST" action="/admin/igenyek/<%= item.id %>/status?type=<%= selectedType %>" class="status-form">
                   <span class="status-badge status-<%= item.status || 'new' %>">
-                    <%= item.status === 'in_progress' ? 'Folyamatban' : item.status === 'closed' ? 'Lezárt' : item.status === 'called_back' ? 'Visszahívva' : 'Új' %>
+                    <%= item.status === 'in_progress' ? a.inProgress : item.status === 'closed' ? a.closed : item.status === 'called_back' ? a.calledBack : a.new %>
                   </span>
                   <select name="status" class="status-select">
-                    <option value="new" <%= item.status === 'new' ? 'selected' : '' %>>Új</option>
-                    <option value="in_progress" <%= item.status === 'in_progress' ? 'selected' : '' %>>Folyamatban</option>
-                    <option value="called_back" <%= item.status === 'called_back' ? 'selected' : '' %>>Visszahívva</option>
-                    <option value="closed" <%= item.status === 'closed' ? 'selected' : '' %>>Lezárt</option>
+                    <option value="new" <%= item.status === 'new' ? 'selected' : '' %>><%= a.new %></option>
+                    <option value="in_progress" <%= item.status === 'in_progress' ? 'selected' : '' %>><%= a.inProgress %></option>
+                    <option value="called_back" <%= item.status === 'called_back' ? 'selected' : '' %>><%= a.calledBack %></option>
+                    <option value="closed" <%= item.status === 'closed' ? 'selected' : '' %>><%= a.closed %></option>
                   </select>
-                  <button type="submit" class="btn btn-secondary admin-mini-btn">Mentés</button>
+                  <button type="submit" class="btn btn-secondary admin-mini-btn"><%= a.save %></button>
                 </form>
               </td>
               <td><%= item.created_at %></td>
@@ -100,9 +249,9 @@
               <td><%= item.quantity || '-' %></td>
               <td><%= item.email %><br /><%= item.phone %></td>
               <td>
-                <% if (item.address) { %><div>Cím: <%= item.address %></div><% } %>
-                <% if (item.requested_date) { %><div>Dátum: <%= item.requested_date %></div><% } %>
-                <% if (item.message) { %><div>Megjegyzés: <%= item.message %></div><% } %>
+                <% if (item.address) { %><div><%= a.address %>: <%= item.address %></div><% } %>
+                <% if (item.requested_date) { %><div><%= a.requestedDate %>: <%= item.requested_date %></div><% } %>
+                <% if (item.message) { %><div><%= a.note %>: <%= item.message %></div><% } %>
               </td>
             </tr>
             <% }) %>
