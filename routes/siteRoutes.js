@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const crypto = require("crypto");
 const multer = require("multer");
 const {
   insertSubmission,
@@ -119,17 +120,46 @@ function validateCommon(body, lang) {
   return { errors, data, messages };
 }
 
-function requireAdminSession(req, res, next) {
-  if (req.session && req.session.adminAuthenticated) {
-    return next();
+// --- Signed cookie auth (stateless, works on Vercel serverless) ---
+const COOKIE_NAME = "kbp_admin";
+const COOKIE_MAX_AGE = 8 * 60 * 60; // 8 hours in seconds
+
+function signToken(secret) {
+  return crypto.createHmac("sha256", secret).update("admin:ok").digest("hex");
+}
+
+function setAdminCookie(res, secret) {
+  const token = signToken(secret);
+  res.setHeader("Set-Cookie", [
+    `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+  ]);
+}
+
+function clearAdminCookie(res) {
+  res.setHeader("Set-Cookie", [`${COOKIE_NAME}=; Path=/; HttpOnly; Max-Age=0`]);
+}
+
+function isAdminAuthenticated(req) {
+  const secret = process.env.SESSION_SECRET || "kebpro-admin-secret-2024";
+  const token = req.cookies && req.cookies[COOKIE_NAME];
+  if (!token) return false;
+  try {
+    const expected = Buffer.from(signToken(secret));
+    const actual = Buffer.from(token);
+    if (actual.length !== expected.length) return false;
+    return crypto.timingSafeEqual(actual, expected);
+  } catch {
+    return false;
   }
+}
+
+function requireAdminSession(req, res, next) {
+  if (isAdminAuthenticated(req)) return next();
   return res.redirect("/admin/login");
 }
 
 router.get("/admin/login", (req, res) => {
-  if (req.session && req.session.adminAuthenticated) {
-    return res.redirect("/admin");
-  }
+  if (isAdminAuthenticated(req)) return res.redirect("/admin");
   return res.render("admin-login", { error: null });
 });
 
@@ -140,7 +170,8 @@ router.post("/admin/login", (req, res) => {
   const expectedPass = process.env.ADMIN_PASS || "admin123";
 
   if (username === expectedUser && password === expectedPass) {
-    req.session.adminAuthenticated = true;
+    const secret = process.env.SESSION_SECRET || "kebpro-admin-secret-2024";
+    setAdminCookie(res, secret);
     return res.redirect("/admin");
   }
 
@@ -148,7 +179,8 @@ router.post("/admin/login", (req, res) => {
 });
 
 router.get("/admin/logout", (req, res) => {
-  req.session.destroy(() => res.redirect("/admin/login"));
+  clearAdminCookie(res);
+  return res.redirect("/admin/login");
 });
 
 // alias - backward compat

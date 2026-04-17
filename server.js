@@ -2,7 +2,6 @@
 
 const express = require("express");
 const path = require("path");
-const session = require("express-session");
 const siteRoutes = require("./routes/siteRoutes");
 const { initDb } = require("./utils/db");
 const { getLang, getTranslations, buildLangUrl, supportedLanguages } = require("./utils/i18n");
@@ -15,12 +14,20 @@ app.set("views", path.join(__dirname, "views"));
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
-app.use(session({
-  secret: process.env.SESSION_SECRET || "kebpro-admin-secret-2024",
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 8 * 60 * 60 * 1000 }, // 8 hours
-}));
+
+// Lightweight cookie parser — no extra package needed
+app.use((req, res, next) => {
+  req.cookies = Object.fromEntries(
+    (req.headers.cookie || "").split(";").flatMap((part) => {
+      const idx = part.indexOf("=");
+      if (idx === -1) return [];
+      const key = part.slice(0, idx).trim();
+      const val = decodeURIComponent(part.slice(idx + 1).trim());
+      return key ? [[key, val]] : [];
+    })
+  );
+  next();
+});
 
 app.use(async (req, res, next) => {
   try {
