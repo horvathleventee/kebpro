@@ -1,7 +1,7 @@
 {
   "name": "kebpro-webapp",
   "version": "1.1.0",
-  "description": "Modern, reszponzív webapp a Kiskunhalasi Kebpro Kft. számára",
+  "description": "Modern, reszponzív webapp a Halasi Kebpro Kft. számára",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -14,7 +14,7 @@
     "kebab",
     "gyros"
   ],
-  "author": "Kiskunhalasi Kebpro Kft.",
+  "author": "Halasi Kebpro Kft.",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^17.3.1",

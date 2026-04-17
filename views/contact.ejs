@@ -12,7 +12,7 @@
   <div class="container contact-grid">
     <aside class="panel">
       <h2><%= t.contact.details %></h2>
-      <p><strong><%= t.contact.company %>:</strong> <%= company?.name || 'Kiskunhalasi Kebpro Kft.' %></p>
+      <p><strong><%= t.contact.company %>:</strong> <%= company?.name || 'Halasi Kebpro Kft.' %></p>
       <p><strong><%= t.contact.address %>:</strong> <%= company?.address || '' %></p>
       <% if (company?.phone) { %>
       <p><strong><%= t.contact.phone1 %>:</strong> <a href="tel:<%= company.phone.replace(/\s+/g, '') %>"><%= company.phone %></a></p>

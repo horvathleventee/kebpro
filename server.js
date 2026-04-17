@@ -28,7 +28,7 @@ app.use(async (req, res, next) => {
       buildLangUrl(pathname, targetLang, extraQuery);
     res.locals.currentPath = req.path;
     res.locals.company = {
-      name: process.env.COMPANY_NAME || "Kiskunhalasi Kebpro Kft.",
+      name: process.env.COMPANY_NAME || "Halasi Kebpro Kft.",
       phone: process.env.COMPANY_PHONE || "+36 70 451 5003",
       phone2: process.env.COMPANY_PHONE2 || "+36 70 451 5002",
       fax: process.env.COMPANY_FAX || "+36 77 426 014",
