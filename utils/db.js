@@ -459,7 +459,6 @@ async function getDbDiagnostics() {
     envAdapter,
     configured: Boolean(connectionString) || adapter !== "postgres",
     connectionStringPresent: Boolean(connectionString),
-    connectionStringPreview: connectionString ? `${connectionString.slice(0, 24)}...` : "",
     initError: dbInitError ? dbInitError.message || String(dbInitError) : null,
     writableStore:
       adapter === "postgres" ? "persistent" : adapter === "sqlite" ? "local file" : "memory only",

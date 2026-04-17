@@ -2,6 +2,7 @@
 
 const express = require("express");
 const path = require("path");
+const helmet = require("helmet");
 const siteRoutes = require("./routes/siteRoutes");
 const { initDb } = require("./utils/db");
 const { getLang, getTranslations, buildLangUrl, supportedLanguages } = require("./utils/i18n");
@@ -11,6 +12,24 @@ const dbReady = initDb();
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "maps.gstatic.com", "*.googleapis.com"],
+      frameSrc: ["'self'", "maps.google.com", "www.google.com"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));

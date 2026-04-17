@@ -439,7 +439,7 @@
               <td><%= app.motivation || '-' %></td>
               <td>
                 <% if (app.cv_filename) { %>
-                <a href="/uploads/<%= app.cv_filename %>" target="_blank" class="btn btn-secondary admin-mini-btn"><%= a.downloadCv %></a>
+                <a href="/admin/cv/<%= app.cv_filename %>" target="_blank" class="btn btn-secondary admin-mini-btn"><%= a.downloadCv %></a>
                 <% } else { %>-<% } %>
               </td>
             </tr>

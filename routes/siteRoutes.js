@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
 const multer = require("multer");
+const rateLimit = require("express-rate-limit");
 const {
   insertSubmission,
   listSubmissions,
@@ -28,10 +29,15 @@ const {
 const router = express.Router();
 
 const fs = require("fs");
+// Store CV uploads OUTSIDE public/ so they are not served as static files
 const uploadsDir = process.env.VERCEL
   ? "/tmp/uploads"
-  : path.join(__dirname, "..", "public", "uploads");
+  : path.join(__dirname, "..", "uploads");
 try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (_) {}
+
+const ALLOWED_CV_EXTS = /\.(pdf|doc|docx)$/i;
+const ALLOWED_CV_MIMES = ["application/pdf", "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
 
 const cvUpload = multer({
   storage: multer.diskStorage({
@@ -40,16 +46,34 @@ const cvUpload = multer({
       cb(null, uploadsDir);
     },
     filename: (req, file, cb) => {
-      const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
-      const ext = path.extname(file.originalname);
+      const unique = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
+      const ext = path.extname(file.originalname).toLowerCase();
       cb(null, `cv-${unique}${ext}`);
     },
   }),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = /\.(pdf|doc|docx)$/i;
-    cb(null, allowed.test(path.extname(file.originalname)));
+    const extOk = ALLOWED_CV_EXTS.test(path.extname(file.originalname));
+    const mimeOk = ALLOWED_CV_MIMES.includes(file.mimetype);
+    cb(null, extOk && mimeOk);
   },
+});
+
+// Rate limiters
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: "Túl sok bejelentkezési kísérlet. Próbálja újra 15 perc múlva.",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const formLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20,
+  message: "Túl sok kérés. Próbálja újra később.",
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 function getValidationMessages(lang) {
@@ -136,7 +160,8 @@ function setAdminCookie(res, secret) {
 }
 
 function clearAdminCookie(res) {
-  res.setHeader("Set-Cookie", [`${COOKIE_NAME}=; Path=/; HttpOnly; Max-Age=0`]);
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  res.setHeader("Set-Cookie", [`${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`]);
 }
 
 function isAdminAuthenticated(req) {
@@ -163,13 +188,21 @@ router.get("/admin/login", (req, res) => {
   return res.render("admin-login", { error: null });
 });
 
-router.post("/admin/login", (req, res) => {
+router.post("/admin/login", loginLimiter, (req, res) => {
   const username = (req.body.username || "").trim();
   const password = (req.body.password || "").trim();
   const expectedUser = process.env.ADMIN_USER || "admin";
   const expectedPass = process.env.ADMIN_PASS || "admin123";
 
-  if (username === expectedUser && password === expectedPass) {
+  // Timing-safe comparison to prevent timing attacks
+  const userBuf = Buffer.alloc(64); const passBuf = Buffer.alloc(64);
+  const expUserBuf = Buffer.alloc(64); const expPassBuf = Buffer.alloc(64);
+  userBuf.write(username); expUserBuf.write(expectedUser);
+  passBuf.write(password); expPassBuf.write(expectedPass);
+  const userMatch = crypto.timingSafeEqual(userBuf, expUserBuf);
+  const passMatch = crypto.timingSafeEqual(passBuf, expPassBuf);
+
+  if (userMatch && passMatch) {
     const secret = process.env.SESSION_SECRET || "kebpro-admin-secret-2024";
     setAdminCookie(res, secret);
     return res.redirect("/admin");
@@ -184,8 +217,12 @@ router.get("/admin/logout", (req, res) => {
 });
 
 // alias - backward compat
+const ALLOWED_TYPES = new Set(["all", "quote", "order"]);
+function safeType(raw) { return ALLOWED_TYPES.has(raw) ? raw : null; }
+
 router.get("/admin/igenyek", requireAdminSession, (req, res) => {
-  return res.redirect("/admin" + (req.query.type ? `?type=${req.query.type}` : ""));
+  const t = safeType(req.query.type);
+  return res.redirect("/admin" + (t ? `?type=${t}` : ""));
 });
 
 router.get("/", (req, res) => {
@@ -262,7 +299,7 @@ router.get("/ajanlat-keres", (req, res) => {
   res.redirect(res.locals.withLang("/ajanlatkeres"));
 });
 
-router.post("/ajanlatkeres", async (req, res, next) => {
+router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
   try {
     const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
 
@@ -314,7 +351,7 @@ router.get("/megrendelesek", (req, res) => {
   res.redirect(res.locals.withLang("/megrendeles"));
 });
 
-router.post("/megrendeles", async (req, res, next) => {
+router.post("/megrendeles", formLimiter, async (req, res, next) => {
   try {
     const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
 
@@ -352,7 +389,7 @@ router.post("/megrendeles", async (req, res, next) => {
   }
 });
 
-router.post("/megrendelesek", async (req, res, next) => {
+router.post("/megrendelesek", formLimiter, async (req, res, next) => {
   req.url = `/megrendeles${req.query.lang ? `?lang=${req.query.lang}` : ""}`;
   return router.handle(req, res, next);
 });
@@ -380,7 +417,7 @@ router.get("/karrier", async (req, res, next) => {
   }
 });
 
-router.post("/karrier", cvUpload.single("cv"), async (req, res, next) => {
+router.post("/karrier", formLimiter, cvUpload.single("cv"), async (req, res, next) => {
   try {
     const positions = await listPositions(true);
     const v = getCareerValidation(res.locals.lang);
@@ -443,7 +480,7 @@ router.post("/karrier", cvUpload.single("cv"), async (req, res, next) => {
 
 router.get("/admin", requireAdminSession, async (req, res, next) => {
   try {
-    const type = req.query.type || "all";
+    const type = safeType(req.query.type) || "all";
     const rows = await listSubmissions(type);
     const settings = await getNotificationSettings();
     const diagnostics = await getDbDiagnostics();
@@ -521,7 +558,8 @@ router.post("/admin/igenyek/:id/status", requireAdminSession, async (req, res, n
     }
 
     await updateSubmissionStatus(req.params.id, status);
-    return res.redirect(`/admin${req.query.type ? `?type=${req.query.type}` : ""}`);
+    const t = safeType(req.query.type);
+    return res.redirect(`/admin${t ? `?type=${t}` : ""}`);
   } catch (error) {
     return next(error);
   }
@@ -551,6 +589,14 @@ router.post("/admin/positions/:id/delete", requireAdminSession, async (req, res,
   } catch (error) {
     return next(error);
   }
+});
+
+// Authenticated CV download — files stored outside public/
+router.get("/admin/cv/:filename", requireAdminSession, (req, res) => {
+  const filename = path.basename(req.params.filename); // strip any path traversal
+  const filePath = path.join(uploadsDir, filename);
+  if (!fs.existsSync(filePath)) return res.status(404).send("Not found");
+  res.download(filePath, filename);
 });
 
 router.get("/adatkezelesi-tajekoztato", (req, res) => {

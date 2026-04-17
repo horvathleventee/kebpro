@@ -4,3 +4,5 @@ data/*.sqlite
 npm-debug.log*
 .DS_Store
 .vscode/
+public/uploads/
+uploads/
