@@ -46,13 +46,13 @@ if (sections.length > 0) {
 
         entry.target.classList.add("is-visible");
         entry.target.querySelectorAll("[data-stagger]").forEach((child, index) => {
-          child.style.setProperty("--stagger-delay", `${index * 70}ms`);
+          child.style.setProperty("--stagger-delay", `${index * 45}ms`);
           child.classList.add("is-visible");
         });
         observer.unobserve(entry.target);
       });
     },
-    { threshold: 0.15 }
+    { threshold: 0, rootMargin: "0px 0px -40px 0px" }
   );
 
   sections.forEach((section) => observer.observe(section));
