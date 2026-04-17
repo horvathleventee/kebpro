@@ -23,10 +23,15 @@ let Pool;
 let pool;
 let dbInitError = null;
 let submissionsMemory = [];
+let positionsMemory = [];
+let careerApplicationsMemory = [];
 let settingsMemory = {
   notificationEmail:
     process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || "info@kebpro.hu",
   emailEnabled: process.env.ENABLE_EMAIL === "true",
+  careerNotificationEmail:
+    process.env.CAREER_NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || "info@kebpro.hu",
+  careerEmailEnabled: process.env.ENABLE_CAREER_EMAIL === "true",
 };
 
 if (adapter === "sqlite") {
@@ -121,6 +126,34 @@ async function initDb() {
         ]
       );
 
+      await pool.query(`ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS career_notification_email TEXT NOT NULL DEFAULT 'info@kebpro.hu'`);
+      await pool.query(`ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS career_email_enabled BOOLEAN NOT NULL DEFAULT FALSE`);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS positions (
+          id SERIAL PRIMARY KEY,
+          title TEXT NOT NULL,
+          description TEXT,
+          location TEXT,
+          type TEXT,
+          active BOOLEAN NOT NULL DEFAULT TRUE,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS career_applications (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          email TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          motivation TEXT,
+          position_id INTEGER REFERENCES positions(id),
+          cv_filename TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `);
+
       dbInitError = null;
       return;
     }
@@ -162,6 +195,34 @@ async function initDb() {
         process.env.ENABLE_EMAIL === "true" ? 1 : 0,
       ]
     );
+
+    await run(`ALTER TABLE app_settings ADD COLUMN career_notification_email TEXT NOT NULL DEFAULT 'info@kebpro.hu'`).catch(() => {});
+    await run(`ALTER TABLE app_settings ADD COLUMN career_email_enabled INTEGER NOT NULL DEFAULT 0`).catch(() => {});
+
+    await run(`
+      CREATE TABLE IF NOT EXISTS positions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        location TEXT,
+        type TEXT,
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await run(`
+      CREATE TABLE IF NOT EXISTS career_applications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        motivation TEXT,
+        position_id INTEGER REFERENCES positions(id),
+        cv_filename TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
     dbInitError = null;
   } catch (error) {
@@ -296,21 +357,27 @@ async function getNotificationSettings() {
 
   if (adapter === "postgres") {
     const result = await pool.query(
-      "SELECT notification_email, email_enabled FROM app_settings WHERE id = 1"
+      "SELECT notification_email, email_enabled, career_notification_email, career_email_enabled FROM app_settings WHERE id = 1"
     );
     const row = result.rows[0];
     return {
       notificationEmail:
         row?.notification_email || process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
       emailEnabled: Boolean(row?.email_enabled),
+      careerNotificationEmail:
+        row?.career_notification_email || process.env.CAREER_NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
+      careerEmailEnabled: Boolean(row?.career_email_enabled),
     };
   }
 
-  const row = await get("SELECT notification_email, email_enabled FROM app_settings WHERE id = 1");
+  const row = await get("SELECT notification_email, email_enabled, career_notification_email, career_email_enabled FROM app_settings WHERE id = 1");
   return {
     notificationEmail:
       row?.notification_email || process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
     emailEnabled: Boolean(row?.email_enabled),
+    careerNotificationEmail:
+      row?.career_notification_email || process.env.CAREER_NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
+    careerEmailEnabled: Boolean(row?.career_email_enabled),
   };
 }
 
@@ -340,6 +407,34 @@ async function setEmailEnabled(enabled) {
   }
 
   await run("UPDATE app_settings SET email_enabled = ? WHERE id = 1", [enabled ? 1 : 0]);
+}
+
+async function updateCareerNotificationEmail(email) {
+  if (adapter === "memory") {
+    settingsMemory.careerNotificationEmail = email;
+    return;
+  }
+
+  if (adapter === "postgres") {
+    await pool.query("UPDATE app_settings SET career_notification_email = $1 WHERE id = 1", [email]);
+    return;
+  }
+
+  await run("UPDATE app_settings SET career_notification_email = ? WHERE id = 1", [email]);
+}
+
+async function setCareerEmailEnabled(enabled) {
+  if (adapter === "memory") {
+    settingsMemory.careerEmailEnabled = Boolean(enabled);
+    return;
+  }
+
+  if (adapter === "postgres") {
+    await pool.query("UPDATE app_settings SET career_email_enabled = $1 WHERE id = 1", [Boolean(enabled)]);
+    return;
+  }
+
+  await run("UPDATE app_settings SET career_email_enabled = ? WHERE id = 1", [enabled ? 1 : 0]);
 }
 
 async function updateSubmissionStatus(id, status) {
@@ -404,6 +499,126 @@ async function getDbDiagnostics() {
   }
 }
 
+/* ── Positions (career) ── */
+
+async function listPositions(activeOnly = false) {
+  if (adapter === "memory") {
+    if (activeOnly) return positionsMemory.filter((p) => p.active);
+    return positionsMemory;
+  }
+
+  if (adapter === "postgres") {
+    const where = activeOnly ? "WHERE active = TRUE" : "";
+    const result = await pool.query(
+      `SELECT id, title, description, location, type, active, created_at FROM positions ${where} ORDER BY created_at DESC`
+    );
+    return result.rows;
+  }
+
+  const where = activeOnly ? "WHERE active = 1" : "";
+  return all(`SELECT id, title, description, location, type, active, created_at FROM positions ${where} ORDER BY created_at DESC`);
+}
+
+async function addPosition(payload) {
+  if (adapter === "memory") {
+    const id = positionsMemory.length + 1;
+    positionsMemory.unshift({
+      id,
+      title: payload.title,
+      description: payload.description || "",
+      location: payload.location || "",
+      type: payload.type || "",
+      active: 1,
+      created_at: new Date().toISOString(),
+    });
+    return id;
+  }
+
+  if (adapter === "postgres") {
+    const result = await pool.query(
+      `INSERT INTO positions (title, description, location, type) VALUES ($1, $2, $3, $4) RETURNING id`,
+      [payload.title, payload.description || "", payload.location || "", payload.type || ""]
+    );
+    return result.rows[0]?.id;
+  }
+
+  const result = await run(
+    `INSERT INTO positions (title, description, location, type) VALUES (?, ?, ?, ?)`,
+    [payload.title, payload.description || "", payload.location || "", payload.type || ""]
+  );
+  return result.lastID;
+}
+
+async function deletePosition(id) {
+  if (adapter === "memory") {
+    positionsMemory = positionsMemory.filter((p) => Number(p.id) !== Number(id));
+    return;
+  }
+
+  if (adapter === "postgres") {
+    await pool.query("DELETE FROM positions WHERE id = $1", [id]);
+    return;
+  }
+
+  await run("DELETE FROM positions WHERE id = ?", [id]);
+}
+
+/* ── Career applications ── */
+
+async function insertCareerApplication(payload) {
+  if (adapter === "memory") {
+    const id = careerApplicationsMemory.length + 1;
+    careerApplicationsMemory.unshift({
+      id,
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      motivation: payload.motivation || "",
+      position_id: payload.positionId || null,
+      cv_filename: payload.cvFilename || null,
+      created_at: new Date().toISOString(),
+    });
+    return id;
+  }
+
+  if (adapter === "postgres") {
+    const result = await pool.query(
+      `INSERT INTO career_applications (name, email, phone, motivation, position_id, cv_filename)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [payload.name, payload.email, payload.phone, payload.motivation || "", payload.positionId || null, payload.cvFilename || null]
+    );
+    return result.rows[0]?.id;
+  }
+
+  const result = await run(
+    `INSERT INTO career_applications (name, email, phone, motivation, position_id, cv_filename)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [payload.name, payload.email, payload.phone, payload.motivation || "", payload.positionId || null, payload.cvFilename || null]
+  );
+  return result.lastID;
+}
+
+async function listCareerApplications() {
+  if (adapter === "memory") return careerApplicationsMemory.slice(0, 300);
+
+  if (adapter === "postgres") {
+    const result = await pool.query(
+      `SELECT ca.*, p.title AS position_title
+       FROM career_applications ca
+       LEFT JOIN positions p ON ca.position_id = p.id
+       ORDER BY ca.created_at DESC LIMIT 300`
+    );
+    return result.rows;
+  }
+
+  return all(
+    `SELECT ca.*, p.title AS position_title
+     FROM career_applications ca
+     LEFT JOIN positions p ON ca.position_id = p.id
+     ORDER BY ca.created_at DESC LIMIT 300`
+  );
+}
+
 module.exports = {
   initDb,
   insertSubmission,
@@ -411,7 +626,14 @@ module.exports = {
   getNotificationSettings,
   updateNotificationEmail,
   setEmailEnabled,
+  updateCareerNotificationEmail,
+  setCareerEmailEnabled,
   updateSubmissionStatus,
   getDbDiagnostics,
+  listPositions,
+  addPosition,
+  deletePosition,
+  insertCareerApplication,
+  listCareerApplications,
   adapter,
 };

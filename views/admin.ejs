@@ -26,6 +26,13 @@
       disabled: 'Kikapcsolva',
       disableNotice: 'Értesítés kikapcsolása',
       enableNotice: 'Értesítés bekapcsolása',
+      careerEmailTitle: 'Karrieres e-mail értesítés',
+      careerEmailLabel: 'Karrieres értesítési e-mail cím',
+      saveCareerEmail: 'E-mail cím mentése',
+      careerEmailEnabled: 'Bekapcsolva',
+      careerEmailDisabled: 'Kikapcsolva',
+      disableCareerNotice: 'Értesítés kikapcsolása',
+      enableCareerNotice: 'Értesítés bekapcsolása',
       all: 'Összes',
       quote: 'Ajánlatkérés',
       order: 'Megrendelés',
@@ -46,7 +53,27 @@
       save: 'Mentés',
       address: 'Cím',
       requestedDate: 'Dátum',
-      note: 'Megjegyzés'
+      note: 'Megjegyzés',
+      positionsTitle: 'Nyitott pozíciók kezelése',
+      addPosition: 'Új pozíció hozzáadása',
+      posTitle: 'Cím',
+      posDescription: 'Leírás',
+      posLocation: 'Helyszín',
+      posType: 'Típus',
+      posAdd: 'Hozzáadás',
+      posDelete: 'Törlés',
+      posEmpty: 'Nincs felvett pozíció.',
+      posActive: 'Aktív',
+      careerTitle: 'Beérkezett jelentkezések',
+      careerEmpty: 'Nincs beérkezett jelentkezés.',
+      careerName: 'Név',
+      careerEmail: 'E-mail',
+      careerPhone: 'Telefon',
+      careerPosition: 'Pozíció',
+      careerMotivation: 'Motiváció',
+      careerCv: 'Önéletrajz',
+      careerDate: 'Dátum',
+      downloadCv: 'Letöltés'
     },
     en: {
       eyebrow: 'Admin',
@@ -73,6 +100,13 @@
       disabled: 'Disabled',
       disableNotice: 'Disable notifications',
       enableNotice: 'Enable notifications',
+      careerEmailTitle: 'Career email notifications',
+      careerEmailLabel: 'Career notification email address',
+      saveCareerEmail: 'Save email address',
+      careerEmailEnabled: 'Enabled',
+      careerEmailDisabled: 'Disabled',
+      disableCareerNotice: 'Disable notifications',
+      enableCareerNotice: 'Enable notifications',
       all: 'All',
       quote: 'Quote request',
       order: 'Order',
@@ -93,7 +127,27 @@
       save: 'Save',
       address: 'Address',
       requestedDate: 'Date',
-      note: 'Note'
+      note: 'Note',
+      positionsTitle: 'Open positions management',
+      addPosition: 'Add new position',
+      posTitle: 'Title',
+      posDescription: 'Description',
+      posLocation: 'Location',
+      posType: 'Type',
+      posAdd: 'Add',
+      posDelete: 'Delete',
+      posEmpty: 'No positions added.',
+      posActive: 'Active',
+      careerTitle: 'Career applications',
+      careerEmpty: 'No applications received.',
+      careerName: 'Name',
+      careerEmail: 'Email',
+      careerPhone: 'Phone',
+      careerPosition: 'Position',
+      careerMotivation: 'Motivation',
+      careerCv: 'CV',
+      careerDate: 'Date',
+      downloadCv: 'Download'
     },
     de: {
       eyebrow: 'Admin',
@@ -120,6 +174,13 @@
       disabled: 'Deaktiviert',
       disableNotice: 'Benachrichtigung deaktivieren',
       enableNotice: 'Benachrichtigung aktivieren',
+      careerEmailTitle: 'Karriere E-Mail-Benachrichtigung',
+      careerEmailLabel: 'Karriere-Benachrichtigungsadresse',
+      saveCareerEmail: 'E-Mail-Adresse speichern',
+      careerEmailEnabled: 'Aktiviert',
+      careerEmailDisabled: 'Deaktiviert',
+      disableCareerNotice: 'Benachrichtigung deaktivieren',
+      enableCareerNotice: 'Benachrichtigung aktivieren',
       all: 'Alle',
       quote: 'Anfrage',
       order: 'Bestellung',
@@ -140,13 +201,34 @@
       save: 'Speichern',
       address: 'Adresse',
       requestedDate: 'Datum',
-      note: 'Bemerkung'
+      note: 'Bemerkung',
+      positionsTitle: 'Offene Stellen verwalten',
+      addPosition: 'Neue Position hinzufügen',
+      posTitle: 'Titel',
+      posDescription: 'Beschreibung',
+      posLocation: 'Standort',
+      posType: 'Typ',
+      posAdd: 'Hinzufügen',
+      posDelete: 'Löschen',
+      posEmpty: 'Keine Positionen vorhanden.',
+      posActive: 'Aktiv',
+      careerTitle: 'Eingegangene Bewerbungen',
+      careerEmpty: 'Keine Bewerbungen eingegangen.',
+      careerName: 'Name',
+      careerEmail: 'E-Mail',
+      careerPhone: 'Telefon',
+      careerPosition: 'Position',
+      careerMotivation: 'Motivation',
+      careerCv: 'Lebenslauf',
+      careerDate: 'Datum',
+      downloadCv: 'Herunterladen'
     }
   };
   const a = adminCopy[lang] || adminCopy.hu;
   const adapterDescription = diagnostics.adapter === 'postgres' ? a.cloudDb : diagnostics.adapter === 'sqlite' ? a.localDb : a.memoryDb;
   const connectionDescription = diagnostics.initError || (diagnostics.adapter === 'postgres' ? a.pgConfigured : diagnostics.adapter === 'memory' ? a.memoryConfigured : a.sqliteConfigured);
   const currentState = settings.emailEnabled ? a.enabled : a.disabled;
+  const currentCareerState = settings.careerEmailEnabled ? a.careerEmailEnabled : a.careerEmailDisabled;
 %>
 
 <section class="page-hero section-animate">
@@ -188,9 +270,25 @@
       </form>
 
       <form method="POST" action="/admin/email-settings/toggle" class="inline-form">
-        <span><%= a.state %>: <strong><%= currentState %></strong></span>
+        <span><%= a.state %>: <span class="status-badge <%= settings.emailEnabled ? 'status-active' : 'status-inactive' %>"><%= currentState %></span></span>
         <button type="submit" class="btn btn-primary">
           <%= settings.emailEnabled ? a.disableNotice : a.enableNotice %>
+        </button>
+      </form>
+    </div>
+
+    <div class="panel wide">
+      <h2><%= a.careerEmailTitle %></h2>
+      <form method="POST" action="/admin/career-email-settings/update" class="contact-form compact-form">
+        <label for="careerNotificationEmail"><%= a.careerEmailLabel %></label>
+        <input id="careerNotificationEmail" name="careerNotificationEmail" type="email" value="<%= settings.careerNotificationEmail || '' %>" required />
+        <button type="submit" class="btn btn-secondary"><%= a.saveCareerEmail %></button>
+      </form>
+
+      <form method="POST" action="/admin/career-email-settings/toggle" class="inline-form">
+        <span><%= a.state %>: <span class="status-badge <%= settings.careerEmailEnabled ? 'status-active' : 'status-inactive' %>"><%= currentCareerState %></span></span>
+        <button type="submit" class="btn btn-primary">
+          <%= settings.careerEmailEnabled ? a.disableCareerNotice : a.enableCareerNotice %>
         </button>
       </form>
     </div>
@@ -201,9 +299,10 @@
   <div class="container">
     <div class="panel wide">
       <div class="admin-filters">
-        <a href="/admin/igenyek?type=all" class="btn btn-secondary"><%= a.all %></a>
-        <a href="/admin/igenyek?type=quote" class="btn btn-secondary"><%= a.quote %></a>
-        <a href="/admin/igenyek?type=order" class="btn btn-secondary"><%= a.order %></a>
+        <a href="/admin?type=all" class="btn btn-secondary"><%= a.all %></a>
+        <a href="/admin?type=quote" class="btn btn-secondary"><%= a.quote %></a>
+        <a href="/admin?type=order" class="btn btn-secondary"><%= a.order %></a>
+        <a href="/admin/logout" class="btn btn-secondary" style="margin-left:auto;">Kilépés</a>
       </div>
 
       <% if (!rows || rows.length === 0) { %>
@@ -252,6 +351,117 @@
                 <% if (item.address) { %><div><%= a.address %>: <%= item.address %></div><% } %>
                 <% if (item.requested_date) { %><div><%= a.requestedDate %>: <%= item.requested_date %></div><% } %>
                 <% if (item.message) { %><div><%= a.note %>: <%= item.message %></div><% } %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<!-- Positions Management -->
+<section class="section section-animate">
+  <div class="container">
+    <div class="panel wide">
+      <h2><%= a.positionsTitle %></h2>
+
+      <form method="POST" action="/admin/positions/add" class="contact-form compact-form" style="margin-bottom: 2rem;">
+        <h3><%= a.addPosition %></h3>
+        <label for="posTitle"><%= a.posTitle %></label>
+        <input id="posTitle" name="title" type="text" required />
+
+        <label for="posDesc"><%= a.posDescription %></label>
+        <input id="posDesc" name="description" type="text" />
+
+        <label for="posLoc"><%= a.posLocation %></label>
+        <input id="posLoc" name="location" type="text" />
+
+        <label for="posType"><%= a.posType %></label>
+        <input id="posType" name="type" type="text" />
+
+        <button type="submit" class="btn btn-primary"><%= a.posAdd %></button>
+      </form>
+
+      <% if (!positions || positions.length === 0) { %>
+      <p><%= a.posEmpty %></p>
+      <% } else { %>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th><%= a.id %></th>
+              <th><%= a.posTitle %></th>
+              <th><%= a.posDescription %></th>
+              <th><%= a.posLocation %></th>
+              <th><%= a.posType %></th>
+              <th><%= a.posActive %></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% positions.forEach((pos) => { %>
+            <tr>
+              <td><%= pos.id %></td>
+              <td><strong><%= pos.title %></strong></td>
+              <td><%= pos.description || '-' %></td>
+              <td><%= pos.location || '-' %></td>
+              <td><%= pos.type || '-' %></td>
+              <td><span class="status-badge <%= pos.active ? 'status-active' : 'status-inactive' %>"><%= pos.active ? '✓' : '✗' %></span></td>
+              <td>
+                <form method="POST" action="/admin/positions/<%= pos.id %>/delete" style="display:inline;">
+                  <button type="submit" class="btn btn-secondary admin-mini-btn" onclick="return confirm('?')"><%= a.posDelete %></button>
+                </form>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<!-- Career Applications -->
+<section class="section section-animate">
+  <div class="container">
+    <div class="panel wide">
+      <h2><%= a.careerTitle %></h2>
+
+      <% if (!careerApplications || careerApplications.length === 0) { %>
+      <p><%= a.careerEmpty %></p>
+      <% } else { %>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th><%= a.id %></th>
+              <th><%= a.careerDate %></th>
+              <th><%= a.careerName %></th>
+              <th><%= a.careerEmail %></th>
+              <th><%= a.careerPhone %></th>
+              <th><%= a.careerPosition %></th>
+              <th><%= a.careerMotivation %></th>
+              <th><%= a.careerCv %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% careerApplications.forEach((app) => { %>
+            <tr>
+              <td><%= app.id %></td>
+              <td><%= app.created_at %></td>
+              <td><strong><%= app.name %></strong></td>
+              <td><%= app.email %></td>
+              <td><%= app.phone %></td>
+              <td><%= app.position_title || '-' %></td>
+              <td><%= app.motivation || '-' %></td>
+              <td>
+                <% if (app.cv_filename) { %>
+                <a href="/uploads/<%= app.cv_filename %>" target="_blank" class="btn btn-secondary admin-mini-btn"><%= a.downloadCv %></a>
+                <% } else { %>-<% } %>
               </td>
             </tr>
             <% }) %>

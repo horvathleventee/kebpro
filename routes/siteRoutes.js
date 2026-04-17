@@ -1,14 +1,23 @@
 const express = require("express");
+const path = require("path");
+const multer = require("multer");
 const {
   insertSubmission,
   listSubmissions,
   getNotificationSettings,
   updateNotificationEmail,
   setEmailEnabled,
+  updateCareerNotificationEmail,
+  setCareerEmailEnabled,
   updateSubmissionStatus,
   getDbDiagnostics,
+  listPositions,
+  addPosition,
+  deletePosition,
+  insertCareerApplication,
+  listCareerApplications,
 } = require("../utils/db");
-const { sendNotificationEmail } = require("../utils/mailer");
+const { sendNotificationEmail, sendCareerNotificationEmail } = require("../utils/mailer");
 const {
   getGrantItems,
   getWholesaleCatalog,
@@ -16,6 +25,26 @@ const {
 } = require("../utils/i18n");
 
 const router = express.Router();
+
+const fs = require("fs");
+const uploadsDir = path.join(__dirname, "..", "public", "uploads");
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+const cvUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadsDir),
+    filename: (req, file, cb) => {
+      const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+      const ext = path.extname(file.originalname);
+      cb(null, `cv-${unique}${ext}`);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /\.(pdf|doc|docx)$/i;
+    cb(null, allowed.test(path.extname(file.originalname)));
+  },
+});
 
 function getValidationMessages(lang) {
   if (lang === "en") {
@@ -85,25 +114,42 @@ function validateCommon(body, lang) {
   return { errors, data, messages };
 }
 
-function basicAuth(req, res, next) {
-  const authHeader = req.headers.authorization || "";
-  const [scheme, encoded] = authHeader.split(" ");
-
-  if (scheme !== "Basic" || !encoded) {
-    res.set("WWW-Authenticate", 'Basic realm="Kebpro Admin"');
-    return res.status(401).send("Hitelesítés szükséges.");
+function requireAdminSession(req, res, next) {
+  if (req.session && req.session.adminAuthenticated) {
+    return next();
   }
+  return res.redirect("/admin/login");
+}
 
-  const [username, password] = Buffer.from(encoded, "base64").toString("utf8").split(":");
+router.get("/admin/login", (req, res) => {
+  if (req.session && req.session.adminAuthenticated) {
+    return res.redirect("/admin");
+  }
+  return res.render("admin-login", { error: null });
+});
+
+router.post("/admin/login", (req, res) => {
+  const username = (req.body.username || "").trim();
+  const password = (req.body.password || "").trim();
   const expectedUser = process.env.ADMIN_USER || "admin";
   const expectedPass = process.env.ADMIN_PASS || "admin123";
 
-  if (username !== expectedUser || password !== expectedPass) {
-    return res.status(403).send("Hibás admin hitelesítés.");
+  if (username === expectedUser && password === expectedPass) {
+    req.session.adminAuthenticated = true;
+    return res.redirect("/admin");
   }
 
-  return next();
-}
+  return res.render("admin-login", { error: "Hibás felhasználónév vagy jelszó." });
+});
+
+router.get("/admin/logout", (req, res) => {
+  req.session.destroy(() => res.redirect("/admin/login"));
+});
+
+// alias - backward compat
+router.get("/admin/igenyek", requireAdminSession, (req, res) => {
+  return res.redirect("/admin" + (req.query.type ? `?type=${req.query.type}` : ""));
+});
 
 router.get("/", (req, res) => {
   const logisticsRegions = getLogisticsRegions(res.locals.lang);
@@ -274,12 +320,98 @@ router.post("/megrendelesek", async (req, res, next) => {
   return router.handle(req, res, next);
 });
 
-router.get("/admin/igenyek", basicAuth, async (req, res, next) => {
+/* ── Career ── */
+
+function getCareerValidation(lang) {
+  if (lang === "en") return { name: "Name is required.", email: "A valid email is required.", phone: "A valid phone number is required.", motivation: "Please tell us about yourself (min 10 characters).", positionId: "Please select a position." };
+  if (lang === "de") return { name: "Name ist erforderlich.", email: "Eine gültige E-Mail ist erforderlich.", phone: "Eine gültige Telefonnummer ist erforderlich.", motivation: "Bitte erzählen Sie uns von sich (mind. 10 Zeichen).", positionId: "Bitte wählen Sie eine Position." };
+  return { name: "A név megadása kötelező.", email: "Érvényes e-mail cím szükséges.", phone: "Érvényes telefonszám szükséges.", motivation: "Kérjük, írjon magáról (min. 10 karakter).", positionId: "Kérjük, válasszon pozíciót." };
+}
+
+router.get("/karrier", async (req, res, next) => {
+  try {
+    const positions = await listPositions(true);
+    res.render("career", {
+      title: res.locals.t.nav.career,
+      positions,
+      errors: {},
+      formData: {},
+      successMessage: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/karrier", cvUpload.single("cv"), async (req, res, next) => {
+  try {
+    const positions = await listPositions(true);
+    const v = getCareerValidation(res.locals.lang);
+    const errors = {};
+    const data = {
+      name: (req.body.name || "").trim(),
+      email: (req.body.email || "").trim(),
+      phone: (req.body.phone || "").trim(),
+      motivation: (req.body.motivation || "").trim(),
+      positionId: (req.body.positionId || "").trim(),
+    };
+
+    if (data.name.length < 2) errors.name = v.name;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errors.email = v.email;
+    if (!/^[+()\d\s-]{7,20}$/.test(data.phone)) errors.phone = v.phone;
+    if (data.motivation.length < 10) errors.motivation = v.motivation;
+    if (!data.positionId) errors.positionId = v.positionId;
+
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).render("career", {
+        title: res.locals.t.nav.career,
+        positions,
+        errors,
+        formData: data,
+        successMessage: null,
+      });
+    }
+
+    await insertCareerApplication({
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      motivation: data.motivation,
+      positionId: data.positionId,
+      cvFilename: req.file ? req.file.filename : null,
+    });
+
+    const selectedPosition = positions.find((p) => String(p.id) === String(data.positionId));
+    const settings = await getNotificationSettings();
+    const cvFilePath = req.file ? req.file.path : null;
+    await sendCareerNotificationEmail(
+      { ...data, positionTitle: selectedPosition ? selectedPosition.title : data.positionId },
+      settings,
+      cvFilePath
+    );
+
+    return res.render("career", {
+      title: res.locals.t.nav.career,
+      positions,
+      errors: {},
+      formData: {},
+      successMessage: res.locals.t.career.success,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/* ── Admin ── */
+
+router.get("/admin", requireAdminSession, async (req, res, next) => {
   try {
     const type = req.query.type || "all";
     const rows = await listSubmissions(type);
     const settings = await getNotificationSettings();
     const diagnostics = await getDbDiagnostics();
+    const positions = await listPositions();
+    const careerApplications = await listCareerApplications();
 
     return res.render("admin", {
       title: "Admin - Beérkezett igények",
@@ -287,13 +419,15 @@ router.get("/admin/igenyek", basicAuth, async (req, res, next) => {
       selectedType: type,
       settings,
       diagnostics,
+      positions,
+      careerApplications,
     });
   } catch (error) {
     return next(error);
   }
 });
 
-router.post("/admin/email-settings/update", basicAuth, async (req, res, next) => {
+router.post("/admin/email-settings/update", requireAdminSession, async (req, res, next) => {
   try {
     const email = (req.body.notificationEmail || "").trim();
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -302,33 +436,81 @@ router.post("/admin/email-settings/update", basicAuth, async (req, res, next) =>
       await updateNotificationEmail(email);
     }
 
-    return res.redirect("/admin/igenyek");
+    return res.redirect("/admin");
   } catch (error) {
     return next(error);
   }
 });
 
-router.post("/admin/email-settings/toggle", basicAuth, async (req, res, next) => {
+router.post("/admin/email-settings/toggle", requireAdminSession, async (req, res, next) => {
   try {
     const settings = await getNotificationSettings();
     await setEmailEnabled(!settings.emailEnabled);
-    return res.redirect("/admin/igenyek");
+    return res.redirect("/admin");
   } catch (error) {
     return next(error);
   }
 });
 
-router.post("/admin/igenyek/:id/status", basicAuth, async (req, res, next) => {
+router.post("/admin/career-email-settings/update", requireAdminSession, async (req, res, next) => {
+  try {
+    const email = (req.body.careerNotificationEmail || "").trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      await updateCareerNotificationEmail(email);
+    }
+    return res.redirect("/admin");
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/admin/career-email-settings/toggle", requireAdminSession, async (req, res, next) => {
+  try {
+    const settings = await getNotificationSettings();
+    await setCareerEmailEnabled(!settings.careerEmailEnabled);
+    return res.redirect("/admin");
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/admin/igenyek/:id/status", requireAdminSession, async (req, res, next) => {
   try {
     const allowedStatuses = ["new", "in_progress", "closed", "called_back"];
     const status = (req.body.status || "").trim();
 
     if (!allowedStatuses.includes(status)) {
-      return res.redirect("/admin/igenyek");
+      return res.redirect("/admin");
     }
 
     await updateSubmissionStatus(req.params.id, status);
-    return res.redirect(`/admin/igenyek${req.query.type ? `?type=${req.query.type}` : ""}`);
+    return res.redirect(`/admin${req.query.type ? `?type=${req.query.type}` : ""}`);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/admin/positions/add", requireAdminSession, async (req, res, next) => {
+  try {
+    const title = (req.body.title || "").trim();
+    const description = (req.body.description || "").trim();
+    const location = (req.body.location || "").trim();
+    const type = (req.body.type || "").trim();
+
+    if (title.length >= 2) {
+      await addPosition({ title, description, location, type });
+    }
+
+    return res.redirect("/admin");
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.post("/admin/positions/:id/delete", requireAdminSession, async (req, res, next) => {
+  try {
+    await deletePosition(req.params.id);
+    return res.redirect("/admin");
   } catch (error) {
     return next(error);
   }
