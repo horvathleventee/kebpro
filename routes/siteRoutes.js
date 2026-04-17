@@ -27,12 +27,17 @@ const {
 const router = express.Router();
 
 const fs = require("fs");
-const uploadsDir = path.join(__dirname, "..", "public", "uploads");
-fs.mkdirSync(uploadsDir, { recursive: true });
+const uploadsDir = process.env.VERCEL
+  ? "/tmp/uploads"
+  : path.join(__dirname, "..", "public", "uploads");
+try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (_) {}
 
 const cvUpload = multer({
   storage: multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadsDir),
+    destination: (req, file, cb) => {
+      try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (_) {}
+      cb(null, uploadsDir);
+    },
     filename: (req, file, cb) => {
       const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
       const ext = path.extname(file.originalname);
