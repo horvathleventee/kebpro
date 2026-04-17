@@ -240,26 +240,6 @@
 
 <section class="section section-animate">
   <div class="container admin-overview-grid">
-    <div class="panel wide">
-      <h2><%= a.dbTitle %></h2>
-      <div class="admin-diagnostics-grid">
-        <article class="admin-diagnostic-card">
-          <span class="admin-diagnostic-label"><%= a.adapter %></span>
-          <strong><%= diagnostics.adapter %></strong>
-          <p><%= adapterDescription %></p>
-        </article>
-        <article class="admin-diagnostic-card">
-          <span class="admin-diagnostic-label"><%= a.submissions %></span>
-          <strong><%= diagnostics.submissionCount %></strong>
-          <p><%= diagnostics.lastWriteAt ? `${a.lastWrite}: ${diagnostics.lastWriteAt}` : a.noSaved %></p>
-        </article>
-        <article class="admin-diagnostic-card <%= diagnostics.initError ? 'admin-diagnostic-alert' : '' %>">
-          <span class="admin-diagnostic-label"><%= a.connection %></span>
-          <strong><%= diagnostics.initError ? a.statusError : a.statusOk %></strong>
-          <p><%= connectionDescription %></p>
-        </article>
-      </div>
-    </div>
 
     <div class="panel wide">
       <h2><%= a.emailTitle %></h2>
@@ -302,7 +282,6 @@
         <a href="/admin?type=all" class="btn btn-secondary"><%= a.all %></a>
         <a href="/admin?type=quote" class="btn btn-secondary"><%= a.quote %></a>
         <a href="/admin?type=order" class="btn btn-secondary"><%= a.order %></a>
-        <a href="/admin/logout" class="btn btn-secondary" style="margin-left:auto;">Kilépés</a>
       </div>
 
       <% if (!rows || rows.length === 0) { %>
@@ -472,6 +451,18 @@
     </div>
   </div>
 </section>
+
+<div class="container admin-db-footer">
+  <span class="admin-db-item">
+    <span class="admin-db-label"><%= a.adapter %>:</span> <strong><%= diagnostics.adapter %></strong>
+  </span>
+  <span class="admin-db-item">
+    <span class="admin-db-label"><%= a.submissions %>:</span> <strong><%= diagnostics.submissionCount %></strong>
+  </span>
+  <span class="admin-db-item <%= diagnostics.initError ? 'admin-db-error' : 'admin-db-ok' %>">
+    <span class="admin-db-label"><%= a.connection %>:</span> <strong><%= diagnostics.initError ? a.statusError : a.statusOk %></strong>
+  </span>
+</div>
 
 <%- include('partials/footer') %>
 
