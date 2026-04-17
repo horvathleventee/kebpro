@@ -1,4 +1,4 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="page-hero section-animate">
   <div class="container">
@@ -8,37 +8,120 @@
   </div>
 </section>
 
-<section class="section section-animate">
-  <div class="container contact-grid">
-    <aside class="panel">
-      <h2><%= t.contact.details %></h2>
-      <p><strong><%= t.contact.company %>:</strong> <%= company?.name || 'Halasi Kebpro Kft.' %></p>
-      <p><strong><%= t.contact.address %>:</strong> <%= company?.address || '' %></p>
-      <% if (company?.phone) { %>
-      <p><strong><%= t.contact.phone1 %>:</strong> <a href="tel:<%= company.phone.replace(/\s+/g, '') %>"><%= company.phone %></a></p>
-      <% } %>
-      <% if (company?.phone2) { %>
-      <p><strong><%= t.contact.phone2 %>:</strong> <a href="tel:<%= company.phone2.replace(/\s+/g, '') %>"><%= company.phone2 %></a></p>
-      <% } %>
-      <% if (company?.fax) { %>
-      <p><strong><%= t.contact.fax %>:</strong> <%= company.fax %></p>
-      <% } %>
-      <% if (company?.email) { %>
-      <p><strong><%= t.contact.email %>:</strong> <a href="mailto:<%= company.email %>"><%= company.email %></a></p>
-      <% } %>
-      <p><strong><%= t.contact.opening %>:</strong> <%= t.contact.openingHours %></p>
-    </aside>
+<!-- Elérhetőség kártyák -->
+<section class="section section-animate" style="padding-top: 2rem;">
+  <div class="container">
+    <div class="section-head"><h2><%= t.contact.details %></h2></div>
+    <div class="contact-info-grid reveal-grid">
 
-    <div class="panel">
-      <h2><%= t.contact.quickTitle %></h2>
-      <p><%= t.contact.quickText %></p>
-      <div class="hero-actions">
+      <article class="contact-info-card panel" data-stagger>
+        <div class="contact-info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="contact-info-body">
+          <h3><%= t.contact.locationTitle %></h3>
+          <p><strong><%= company?.name || 'Halasi Kebpro Kft.' %></strong></p>
+          <p><%= company?.address || '' %></p>
+        </div>
+      </article>
+
+      <article class="contact-info-card panel" data-stagger>
+        <div class="contact-info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        </div>
+        <div class="contact-info-body">
+          <h3><%= t.contact.phoneTitle %></h3>
+          <% if (company?.phone) { %>
+            <p><a href="tel:<%= company.phone.replace(/\s+/g, '') %>"><%= company.phone %></a></p>
+          <% } %>
+          <% if (company?.phone2) { %>
+            <p><a href="tel:<%= company.phone2.replace(/\s+/g, '') %>"><%= company.phone2 %></a></p>
+          <% } %>
+          <% if (company?.fax) { %>
+            <p class="contact-fax"><%= t.contact.fax %>: <%= company.fax %></p>
+          <% } %>
+        </div>
+      </article>
+
+      <article class="contact-info-card panel" data-stagger>
+        <div class="contact-info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <div class="contact-info-body">
+          <h3><%= t.contact.emailTitle %></h3>
+          <% if (company?.email) { %>
+            <p><a href="mailto:<%= company.email %>"><%= company.email %></a></p>
+          <% } %>
+        </div>
+      </article>
+
+      <article class="contact-info-card panel" data-stagger>
+        <div class="contact-info-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="contact-info-body">
+          <h3><%= t.contact.hoursTitle %></h3>
+          <p><%= t.contact.openingHours %></p>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- Google Maps -->
+<section class="section alt section-animate">
+  <div class="container">
+    <div class="section-head"><h2><%= t.contact.mapTitle %></h2></div>
+    <div class="contact-map panel">
+      <iframe
+        src="https://maps.google.com/maps?q=Szegedi+%C3%9At+8,+Kiskunhalas,+6400,+Hungary&output=embed"
+        width="100%"
+        height="400"
+        style="border:0; display:block;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+<!-- Gyors elérés -->
+<section class="section section-animate">
+  <div class="container">
+    <div class="section-head"><h2><%= t.contact.quickTitle %></h2></div>
+    <div class="contact-quick-grid reveal-grid">
+
+      <article class="contact-quick-card panel" data-stagger>
+        <div class="contact-quick-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3><%= t.nav.quote %></h3>
+        <p><%= t.contact.quickQuoteText %></p>
         <a href="<%= withLang('/ajanlatkeres') %>" class="btn btn-primary"><%= t.nav.quote %></a>
-        <a href="<%= withLang('/megrendeles') %>" class="btn btn-secondary"><%= t.nav.order %></a>
-      </div>
+      </article>
+
+      <article class="contact-quick-card panel" data-stagger>
+        <div class="contact-quick-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </div>
+        <h3><%= t.nav.order %></h3>
+        <p><%= t.contact.quickOrderText %></p>
+        <a href="<%= withLang('/megrendeles') %>" class="btn btn-primary"><%= t.nav.order %></a>
+      </article>
+
+      <article class="contact-quick-card panel" data-stagger>
+        <div class="contact-quick-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <h3><%= t.contact.quickCareer %></h3>
+        <p><%= t.contact.quickCareerText %></p>
+        <a href="<%= withLang('/karrier') %>" class="btn btn-primary"><%= t.nav.career %></a>
+      </article>
+
     </div>
   </div>
 </section>
 
 <%- include('partials/footer') %>
-

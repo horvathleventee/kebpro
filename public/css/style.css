@@ -523,6 +523,30 @@ a { color: inherit; text-decoration: none; }
 .contact-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 1.2rem; }
 .contact-form { display: grid; gap: 0.45rem; }
 .contact-form label { margin-top: 0.65rem; font-weight: 700; font-size: 0.92rem; }
+
+/* ── Contact info cards ── */
+.contact-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
+.contact-info-card { display: flex; gap: 1.1rem; align-items: flex-start; padding: 1.5rem; transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease); }
+.contact-info-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.contact-info-icon { flex-shrink: 0; width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #eef4fb, #e3ecf8); color: var(--primary); display: grid; place-content: center; }
+.contact-info-body h3 { font-size: 1rem; margin-bottom: 0.3rem; color: var(--primary); }
+.contact-info-body p { font-size: 0.92rem; line-height: 1.55; }
+.contact-info-body a { color: var(--primary); text-decoration: none; font-weight: 600; transition: color 0.2s; }
+.contact-info-body a:hover { color: var(--accent); }
+.contact-fax { color: var(--muted); font-size: 0.85rem !important; margin-top: 0.2rem; }
+
+/* ── Contact map ── */
+.contact-map { overflow: hidden; border-radius: var(--radius); padding: 0; }
+.contact-map iframe { border-radius: var(--radius); }
+
+/* ── Contact quick links ── */
+.contact-quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+.contact-quick-card { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 2rem 1.5rem; gap: 0.8rem; transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease); }
+.contact-quick-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.contact-quick-icon { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; display: grid; place-content: center; }
+.contact-quick-card h3 { font-size: 1.1rem; color: var(--primary); }
+.contact-quick-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.55; flex: 1; }
+.contact-quick-card .btn { margin-top: auto; }
 .contact-form input, .contact-form textarea {
   border: 1.5px solid var(--border);
   border-radius: 12px;
@@ -1061,7 +1085,7 @@ a { color: inherit; text-decoration: none; }
    RESPONSIVE — 980px
    ═══════════════════════════════════════ */
 @media (max-width: 980px) {
-  .hero-grid, .contact-grid, .grid-2, .cards, .footer-grid, .grant-grid,
+  .hero-grid, .contact-grid, .contact-info-grid, .contact-quick-grid, .grid-2, .cards, .footer-grid, .grant-grid,
   .logistics-stats, .logistics-dashboard, .product-card-grid,
   .admin-diagnostics-grid, .quality-timeline-grid { grid-template-columns: 1fr; }
   .cta-strip-inner { flex-direction: column; align-items: flex-start; }
