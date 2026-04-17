@@ -14,7 +14,7 @@
     <div class="section-head"><h2><%= t.contact.details %></h2></div>
     <div class="contact-info-grid reveal-grid">
 
-      <article class="contact-info-card panel" data-stagger>
+      <a href="#contact-map-section" class="contact-info-card panel" data-stagger>
         <div class="contact-info-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
@@ -23,7 +23,7 @@
           <p><strong><%= company?.name || 'Halasi Kebpro Kft.' %></strong></p>
           <p><%= company?.address || '' %></p>
         </div>
-      </article>
+      </a>
 
       <article class="contact-info-card panel" data-stagger>
         <div class="contact-info-icon">
@@ -70,7 +70,7 @@
 </section>
 
 <!-- Google Maps -->
-<section class="section alt section-animate">
+<section id="contact-map-section" class="section alt section-animate">
   <div class="container">
     <div class="section-head"><h2><%= t.contact.mapTitle %></h2></div>
     <div class="contact-map panel">
