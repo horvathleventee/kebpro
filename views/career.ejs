@@ -1,0 +1,113 @@
+<%- include('partials/header') %>
+
+<section class="page-hero section-animate">
+  <div class="container">
+    <p class="eyebrow"><%= t.career.eyebrow %></p>
+    <h1><%= t.career.title %></h1>
+    <p class="lead"><%= t.career.lead %></p>
+  </div>
+</section>
+
+<section class="section section-animate">
+  <div class="container">
+    <div class="section-head">
+      <h2><%= t.career.whyTitle %></h2>
+    </div>
+    <div class="cards reveal-grid">
+      <% t.career.whyItems.forEach((item) => { %>
+      <article class="card" data-stagger>
+        <p><strong><%= item %></strong></p>
+      </article>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<section class="section alt section-animate">
+  <div class="container">
+    <div class="section-head">
+      <h2><%= t.career.openPositions %></h2>
+    </div>
+
+    <% if (!positions || positions.length === 0) { %>
+    <article class="panel wide center">
+      <h3><%= t.career.noPositions %></h3>
+    </article>
+    <% } else { %>
+
+    <div class="alert" style="background: var(--accent-soft); border: 1px solid rgba(224,148,34,0.3); color: #9a5f12; margin-bottom: 1.5rem;">
+      &#9888; <%= t.career.dummyNotice %>
+    </div>
+
+    <div class="cards reveal-grid">
+      <% positions.forEach((pos) => { %>
+      <article class="card" data-stagger>
+        <h3><%= pos.title %></h3>
+        <% if (pos.description) { %><p><%= pos.description %></p><% } %>
+        <% if (pos.location) { %><p><small><strong><%= t.career.location %>:</strong> <%= pos.location %></small></p><% } %>
+        <% if (pos.type) { %><p><small><strong><%= t.career.type %>:</strong> <%= pos.type %></small></p><% } %>
+      </article>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<% if (positions && positions.length > 0) { %>
+<section class="section section-animate" id="career-form">
+  <div class="container">
+    <div class="panel wide">
+      <h2><%= t.career.applyTitle %></h2>
+      <p><%= t.career.applyLead %></p>
+
+      <% if (successMessage) { %>
+      <div class="alert success"><%= successMessage %></div>
+      <% } %>
+
+      <form method="POST" action="<%= withLang('/karrier') %>" enctype="multipart/form-data" class="contact-form" novalidate>
+        <label for="careerName"><%= t.career.formName %></label>
+        <input id="careerName" name="name" type="text" value="<%= formData.name || '' %>" required />
+        <% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %>
+
+        <label for="careerEmail"><%= t.career.formEmail %></label>
+        <input id="careerEmail" name="email" type="email" value="<%= formData.email || '' %>" required />
+        <% if (errors.email) { %><small class="error"><%= errors.email %></small><% } %>
+
+        <label for="careerPhone"><%= t.career.formPhone %></label>
+        <input id="careerPhone" name="phone" type="tel" value="<%= formData.phone || '' %>" required />
+        <% if (errors.phone) { %><small class="error"><%= errors.phone %></small><% } %>
+
+        <label for="careerPosition"><%= t.career.formPosition %></label>
+        <select id="careerPosition" name="positionId" class="status-select" required>
+          <option value="">—</option>
+          <% positions.forEach((pos) => { %>
+          <option value="<%= pos.id %>" <%= formData.positionId == pos.id ? 'selected' : '' %>><%= pos.title %></option>
+          <% }) %>
+        </select>
+        <% if (errors.positionId) { %><small class="error"><%= errors.positionId %></small><% } %>
+
+        <label for="careerMotivation"><%= t.career.formMotivation %></label>
+        <textarea id="careerMotivation" name="motivation" rows="5"><%= formData.motivation || '' %></textarea>
+        <% if (errors.motivation) { %><small class="error"><%= errors.motivation %></small><% } %>
+
+        <label for="careerCv"><%= t.career.formCv %></label>
+        <input id="careerCv" name="cv" type="file" accept=".pdf,.doc,.docx" />
+        <small style="color: var(--muted);"><%= t.career.formCvHint %></small>
+
+        <button type="submit" class="btn btn-primary"><%= t.career.formSubmit %></button>
+      </form>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<%- include('partials/footer') %>
+
+<% if (successMessage || (errors && Object.keys(errors).length > 0)) { %>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var el = document.getElementById('career-form');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+</script>
+<% } %>
