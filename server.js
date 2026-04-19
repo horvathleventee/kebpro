@@ -10,6 +10,9 @@ const { getLang, getTranslations, buildLangUrl, supportedLanguages } = require("
 const app = express();
 const dbReady = initDb();
 
+// Trust Vercel / reverse-proxy headers (needed for correct IP in rate limiting)
+app.set("trust proxy", 1);
+
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 

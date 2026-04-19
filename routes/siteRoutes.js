@@ -201,14 +201,23 @@ function signToken(secret) {
 
 function setAdminCookie(res, secret) {
   const token = signToken(secret);
-  res.setHeader("Set-Cookie", [
-    `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
-  ]);
+  res.cookie(COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: COOKIE_MAX_AGE * 1000,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
 }
 
 function clearAdminCookie(res) {
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  res.setHeader("Set-Cookie", [`${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`]);
+  res.cookie(COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 0,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+  });
 }
 
 function isAdminAuthenticated(req) {
