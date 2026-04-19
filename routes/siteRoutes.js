@@ -600,15 +600,23 @@ router.get("/admin", requireAdminSession, async (req, res, next) => {
 
     return res.render("admin", {
       title: "Admin - Beérkezett igények",
+      seo: null,
       rows,
       selectedType: type,
       settings,
       diagnostics,
       positions,
       careerApplications,
+    }, (err, html) => {
+      if (err) {
+        console.error("[admin render error]", err.message, err.stack);
+        return res.status(500).json({ error: err.message, stack: err.stack?.split("\n").slice(0,5) });
+      }
+      res.send(html);
     });
   } catch (error) {
-    return next(error);
+    console.error("[admin route error]", error.message, error.stack);
+    return res.status(500).json({ error: error.message, stack: error.stack?.split("\n").slice(0,5) });
   }
 });
 
