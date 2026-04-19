@@ -239,33 +239,11 @@ function requireAdminSession(req, res, next) {
   return res.redirect("/admin/login");
 }
 
-router.get("/admin/ping", (req, res) => {
-  try {
-    const info = {
-      node: process.version,
-      env: process.env.NODE_ENV || "undefined",
-      vercel: process.env.VERCEL || "undefined",
-      adapter: process.env.DB_ADAPTER || "auto",
-      time: new Date().toISOString(),
-    };
-    res.json(info);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 router.get("/admin/login", (req, res, next) => {
   try {
     if (isAdminAuthenticated(req)) return res.redirect("/admin");
-    return res.render("admin-login", { error: null }, (err, html) => {
-      if (err) {
-        console.error("[admin-login render error]", err);
-        return next(err);
-      }
-      res.send(html);
-    });
+    return res.render("admin-login", { error: null });
   } catch (err) {
-    console.error("[admin-login route error]", err);
     return next(err);
   }
 });
@@ -607,16 +585,9 @@ router.get("/admin", requireAdminSession, async (req, res, next) => {
       diagnostics,
       positions,
       careerApplications,
-    }, (err, html) => {
-      if (err) {
-        console.error("[admin render error]", err.message, err.stack);
-        return res.status(500).json({ error: err.message, stack: err.stack?.split("\n").slice(0,5) });
-      }
-      res.send(html);
     });
   } catch (error) {
-    console.error("[admin route error]", error.message, error.stack);
-    return res.status(500).json({ error: error.message, stack: error.stack?.split("\n").slice(0,5) });
+    return next(error);
   }
 });
 
