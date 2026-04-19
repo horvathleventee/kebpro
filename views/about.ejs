@@ -1,4 +1,4 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="page-hero section-animate">
   <div class="container">
@@ -7,34 +7,44 @@
   </div>
 </section>
 
+<!-- Bemutatkozás -->
 <section class="section section-animate">
-  <div class="container grid-2 reveal-grid">
-    <article class="panel" data-stagger>
-      <h2><%= t.about.introTitle %></h2>
-      <% t.about.introText.forEach((paragraph) => { %>
-      <p><%= paragraph %></p>
-      <% }) %>
-    </article>
-    <article class="panel" data-stagger>
-      <h2><%= t.about.philosophyTitle %></h2>
-      <% t.about.philosophyText.forEach((paragraph) => { %>
-      <p><%= paragraph %></p>
-      <% }) %>
-    </article>
+  <div class="container">
+    <div class="about-intro-grid">
+      <div class="about-intro-text">
+        <h2><%= t.about.introTitle %></h2>
+        <% t.about.introText.forEach((paragraph) => { %>
+        <p><%= paragraph %></p>
+        <% }) %>
+      </div>
+      <div class="about-stats-col">
+        <% t.about.stats.forEach((stat) => { %>
+        <div class="about-stat-card panel" data-stagger>
+          <span class="about-stat-value"><%= stat.value %></span>
+          <span class="about-stat-label"><%= stat.label %></span>
+        </div>
+        <% }) %>
+      </div>
+    </div>
   </div>
 </section>
 
+<!-- Filosófiánk -->
 <section class="section alt section-animate">
   <div class="container">
     <div class="section-head">
-      <h2><%= t.about.logisticsTitle %></h2>
-      <p><%= t.about.logisticsLead %></p>
+      <h2><%= t.about.philosophyTitle %></h2>
     </div>
-    <article class="panel wide">
-      <p><%= t.about.logisticsText %></p>
-    </article>
+    <div class="about-philosophy-grid reveal-grid">
+      <% t.about.philosophyItems.forEach((item, i) => { %>
+      <article class="about-philosophy-card panel" data-stagger>
+        <span class="about-philosophy-num"><%= String(i + 1).padStart(2, '0') %></span>
+        <h3><%= item.title %></h3>
+        <p><%= item.text %></p>
+      </article>
+      <% }) %>
+    </div>
   </div>
 </section>
 
 <%- include('partials/footer') %>
-

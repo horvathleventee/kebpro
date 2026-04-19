@@ -551,14 +551,19 @@ async function addPosition(payload) {
 async function deletePosition(id) {
   if (adapter === "memory") {
     positionsMemory = positionsMemory.filter((p) => Number(p.id) !== Number(id));
+    careerApplicationsMemory = careerApplicationsMemory.map((a) =>
+      Number(a.position_id) === Number(id) ? { ...a, position_id: null } : a
+    );
     return;
   }
 
   if (adapter === "postgres") {
+    await pool.query("UPDATE career_applications SET position_id = NULL WHERE position_id = $1", [id]);
     await pool.query("DELETE FROM positions WHERE id = $1", [id]);
     return;
   }
 
+  await run("UPDATE career_applications SET position_id = NULL WHERE position_id = ?", [id]);
   await run("DELETE FROM positions WHERE id = ?", [id]);
 }
 
