@@ -42,6 +42,12 @@
       </article>
       <% }) %>
     </div>
+    <% if (t.home.productsIntro) { %>
+    <p class="products-intro-text">
+      <%= t.home.productsIntro %>
+      <a href="<%= withLang('/termekek/nagykereskedelem') %>" class="inline-link"><%= t.home.productsLink %> →</a>
+    </p>
+    <% } %>
   </div>
 </section>
 
@@ -76,6 +82,23 @@
     </article>
   </div>
 </section>
+
+<% if (t.home.ctaQuoteText) { %>
+<section class="section section-animate">
+  <div class="container cta-panels reveal-grid">
+    <article class="panel cta-panel" data-stagger>
+      <h2><%= t.home.ctaQuoteTitle %></h2>
+      <p><%= t.home.ctaQuoteText %></p>
+      <a href="<%= withLang('/ajanlatkeres') %>" class="btn btn-primary"><%= t.buttons.quote %></a>
+    </article>
+    <article class="panel cta-panel" data-stagger>
+      <h2><%= t.home.ctaOrderTitle %></h2>
+      <p><%= t.home.ctaOrderText %></p>
+      <a href="<%= withLang('/megrendeles') %>" class="btn btn-secondary"><%= t.buttons.order %></a>
+    </article>
+  </div>
+</section>
+<% } %>
 
 <section class="section cta-strip section-animate">
   <div class="container cta-strip-inner">

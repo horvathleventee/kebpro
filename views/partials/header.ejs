@@ -69,12 +69,12 @@
             </div>
 
             <div class="header-utilities">
+              <a href="<%= withLang('/kapcsolat') %>" class="cta-link <%= currentPath === '/kapcsolat' ? 'active' : '' %>"><%= t.nav.contact %></a>
               <div class="lang-switcher" aria-label="Nyelvválasztó">
                 <% supportedLanguages.forEach((item) => { %>
                 <a href="<%= buildLangUrl(currentPath, item) %>" class="lang-pill <%= lang === item ? 'active' : '' %>"><%= item.toUpperCase() %></a>
                 <% }) %>
               </div>
-              <a href="<%= withLang('/kapcsolat') %>" class="cta-link <%= currentPath === '/kapcsolat' ? 'active' : '' %>"><%= t.nav.contact %></a>
             </div>
           </nav>
         </div>
