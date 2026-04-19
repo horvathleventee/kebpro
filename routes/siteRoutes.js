@@ -82,7 +82,7 @@ const LEGACY_REDIRECTS = {
   "/kezdolap":            "/",
   "/bemutatkozas":        "/rolunk",
   "/termekek-es-gyartas": "/termekek/nagykereskedelem",
-  "/logisztika":          "/#logisztika",
+  "/logisztika":          "/rolunk",
   "/referencia":          "/rolunk",
   "/elerhetoseg":         "/kapcsolat",
 };
@@ -284,9 +284,13 @@ router.get("/", (req, res) => {
 });
 
 router.get("/rolunk", (req, res) => {
+  const lang = res.locals.lang;
+  const logisticsRegions = getLogisticsRegions(lang);
   res.render("about", {
     title: res.locals.t.nav.about,
-    seo: buildPageSeo("about", res.locals.lang, "/rolunk"),
+    seo: buildPageSeo("about", lang, "/rolunk"),
+    logisticsRegions,
+    activeRegion: logisticsRegions[0],
   });
 });
 
