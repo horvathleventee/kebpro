@@ -239,9 +239,35 @@ function requireAdminSession(req, res, next) {
   return res.redirect("/admin/login");
 }
 
-router.get("/admin/login", (req, res) => {
-  if (isAdminAuthenticated(req)) return res.redirect("/admin");
-  return res.render("admin-login", { error: null });
+router.get("/admin/ping", (req, res) => {
+  try {
+    const info = {
+      node: process.version,
+      env: process.env.NODE_ENV || "undefined",
+      vercel: process.env.VERCEL || "undefined",
+      adapter: process.env.DB_ADAPTER || "auto",
+      time: new Date().toISOString(),
+    };
+    res.json(info);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get("/admin/login", (req, res, next) => {
+  try {
+    if (isAdminAuthenticated(req)) return res.redirect("/admin");
+    return res.render("admin-login", { error: null }, (err, html) => {
+      if (err) {
+        console.error("[admin-login render error]", err);
+        return next(err);
+      }
+      res.send(html);
+    });
+  } catch (err) {
+    console.error("[admin-login route error]", err);
+    return next(err);
+  }
 });
 
 router.post("/admin/login", loginLimiter, (req, res) => {
