@@ -3,6 +3,7 @@ const path = require("path");
 const crypto = require("crypto");
 const multer = require("multer");
 const rateLimit = require("express-rate-limit");
+const { buildPageSeo } = require("../utils/seo");
 const {
   insertSubmission,
   listSubmissions,
@@ -74,6 +75,52 @@ const formLimiter = rateLimit({
   message: "Túl sok kérés. Próbálja újra később.",
   standardHeaders: true,
   legacyHeaders: false,
+});
+
+// ── Legacy URL 301 redirects (csirkegyros.hu old URLs) ──────────────────────
+const LEGACY_REDIRECTS = {
+  "/kezdolap":            "/",
+  "/bemutatkozas":        "/rolunk",
+  "/termekek-es-gyartas": "/termekek/nagykereskedelem",
+  "/logisztika":          "/#logisztika",
+  "/referencia":          "/rolunk",
+  "/elerhetoseg":         "/kapcsolat",
+};
+Object.entries(LEGACY_REDIRECTS).forEach(([from, to]) => {
+  router.get(from, (req, res) => res.redirect(301, to));
+});
+
+// ── Sitemap ──────────────────────────────────────────────────────────────────
+router.get("/sitemap.xml", (req, res) => {
+  const siteUrl = (process.env.SITE_URL || "https://csirkegyros.hu").replace(/\/$/, "");
+  const today = new Date().toISOString().split("T")[0];
+  const urls = [
+    { loc: "/",                          priority: "1.0", changefreq: "weekly"  },
+    { loc: "/rolunk",                    priority: "0.8", changefreq: "monthly" },
+    { loc: "/minoseg",                   priority: "0.8", changefreq: "monthly" },
+    { loc: "/termekek/nagykereskedelem", priority: "0.9", changefreq: "monthly" },
+    { loc: "/termekek/kiskereskedelem",  priority: "0.6", changefreq: "monthly" },
+    { loc: "/palyazatok",                priority: "0.5", changefreq: "monthly" },
+    { loc: "/ajanlatkeres",              priority: "0.9", changefreq: "monthly" },
+    { loc: "/megrendeles",               priority: "0.9", changefreq: "monthly" },
+    { loc: "/karrier",                   priority: "0.7", changefreq: "weekly"  },
+    { loc: "/kapcsolat",                 priority: "0.8", changefreq: "monthly" },
+  ];
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...urls.map((u) => [
+      "  <url>",
+      `    <loc>${siteUrl}${u.loc}</loc>`,
+      `    <lastmod>${today}</lastmod>`,
+      `    <changefreq>${u.changefreq}</changefreq>`,
+      `    <priority>${u.priority}</priority>`,
+      "  </url>",
+    ].join("\n")),
+    "</urlset>",
+  ].join("\n");
+  res.setHeader("Content-Type", "application/xml; charset=UTF-8");
+  res.send(xml);
 });
 
 function getValidationMessages(lang) {
@@ -226,20 +273,28 @@ router.get("/admin/igenyek", requireAdminSession, (req, res) => {
 });
 
 router.get("/", (req, res) => {
-  const logisticsRegions = getLogisticsRegions(res.locals.lang);
+  const lang = res.locals.lang;
+  const logisticsRegions = getLogisticsRegions(lang);
   res.render("index", {
     title: res.locals.t.nav.home,
+    seo: buildPageSeo("home", lang, "/"),
     logisticsRegions,
     activeRegion: logisticsRegions[0],
   });
 });
 
 router.get("/rolunk", (req, res) => {
-  res.render("about", { title: res.locals.t.nav.about });
+  res.render("about", {
+    title: res.locals.t.nav.about,
+    seo: buildPageSeo("about", res.locals.lang, "/rolunk"),
+  });
 });
 
 router.get("/minoseg", (req, res) => {
-  res.render("quality", { title: res.locals.t.nav.quality });
+  res.render("quality", {
+    title: res.locals.t.nav.quality,
+    seo: buildPageSeo("quality", res.locals.lang, "/minoseg"),
+  });
 });
 
 router.get("/termekek", (req, res) => {
@@ -249,12 +304,16 @@ router.get("/termekek", (req, res) => {
 router.get("/termekek/nagykereskedelem", (req, res) => {
   res.render("services", {
     title: `${res.locals.t.nav.products} - ${res.locals.t.nav.wholesale}`,
+    seo: buildPageSeo("wholesale", res.locals.lang, "/termekek/nagykereskedelem"),
     categories: getWholesaleCatalog(res.locals.lang),
   });
 });
 
 router.get("/termekek/kiskereskedelem", (req, res) => {
-  res.render("retail", { title: `${res.locals.t.nav.products} - ${res.locals.t.nav.retail}` });
+  res.render("retail", {
+    title: `${res.locals.t.nav.products} - ${res.locals.t.nav.retail}`,
+    seo: buildPageSeo("retail", res.locals.lang, "/termekek/kiskereskedelem"),
+  });
 });
 
 router.get("/szolgaltatasok", (req, res) => {
@@ -264,6 +323,7 @@ router.get("/szolgaltatasok", (req, res) => {
 router.get("/palyazatok", (req, res) => {
   res.render("grants", {
     title: res.locals.t.nav.grants,
+    seo: buildPageSeo("grants", res.locals.lang, "/palyazatok"),
     grants: getGrantItems(res.locals.lang),
   });
 });
@@ -283,12 +343,16 @@ router.get("/palyazatok/:slug", (req, res) => {
 });
 
 router.get("/kapcsolat", (req, res) => {
-  res.render("contact", { title: res.locals.t.nav.contact });
+  res.render("contact", {
+    title: res.locals.t.nav.contact,
+    seo: buildPageSeo("contact", res.locals.lang, "/kapcsolat"),
+  });
 });
 
 router.get("/ajanlatkeres", (req, res) => {
   res.render("quote", {
     title: res.locals.t.nav.quote,
+    seo: buildPageSeo("quote", res.locals.lang, "/ajanlatkeres"),
     errors: {},
     formData: {},
     successMessage: null,
@@ -310,6 +374,7 @@ router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("quote", {
         title: res.locals.t.nav.quote,
+        seo: buildPageSeo("quote", res.locals.lang, "/ajanlatkeres"),
         errors,
         formData: data,
         successMessage: null,
@@ -324,6 +389,7 @@ router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
 
     return res.render("quote", {
       title: res.locals.t.nav.quote,
+      seo: buildPageSeo("quote", res.locals.lang, "/ajanlatkeres"),
       errors: {},
       formData: {},
       successMessage: res.locals.t.quote.success,
@@ -341,6 +407,7 @@ router.post("/ajanlat-keres", async (req, res, next) => {
 router.get("/megrendeles", (req, res) => {
   res.render("order", {
     title: res.locals.t.nav.order,
+    seo: buildPageSeo("order", res.locals.lang, "/megrendeles"),
     errors: {},
     formData: {},
     successMessage: null,
@@ -366,6 +433,7 @@ router.post("/megrendeles", formLimiter, async (req, res, next) => {
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("order", {
         title: res.locals.t.nav.order,
+        seo: buildPageSeo("order", res.locals.lang, "/megrendeles"),
         errors,
         formData: data,
         successMessage: null,
@@ -380,6 +448,7 @@ router.post("/megrendeles", formLimiter, async (req, res, next) => {
 
     return res.render("order", {
       title: res.locals.t.nav.order,
+      seo: buildPageSeo("order", res.locals.lang, "/megrendeles"),
       errors: {},
       formData: {},
       successMessage: res.locals.t.order.success,
@@ -407,6 +476,7 @@ router.get("/karrier", async (req, res, next) => {
     const positions = await listPositions(true);
     res.render("career", {
       title: res.locals.t.nav.career,
+      seo: buildPageSeo("career", res.locals.lang, "/karrier"),
       positions,
       errors: {},
       formData: {},
@@ -439,6 +509,7 @@ router.post("/karrier", formLimiter, cvUpload.single("cv"), async (req, res, nex
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("career", {
         title: res.locals.t.nav.career,
+        seo: buildPageSeo("career", res.locals.lang, "/karrier"),
         positions,
         errors,
         formData: data,
@@ -466,6 +537,7 @@ router.post("/karrier", formLimiter, cvUpload.single("cv"), async (req, res, nex
 
     return res.render("career", {
       title: res.locals.t.nav.career,
+      seo: buildPageSeo("career", res.locals.lang, "/karrier"),
       positions,
       errors: {},
       formData: {},
