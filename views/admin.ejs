@@ -232,9 +232,12 @@
 %>
 
 <section class="page-hero section-animate">
-  <div class="container">
-    <p class="eyebrow"><%= a.eyebrow %></p>
-    <h1><%= a.title %></h1>
+  <div class="container" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+    <div>
+      <p class="eyebrow"><%= a.eyebrow %></p>
+      <h1><%= a.title %></h1>
+    </div>
+    <a href="/admin/logout" class="btn btn-secondary" style="white-space:nowrap;">Kijelentkezés →</a>
   </div>
 </section>
 
