@@ -28,6 +28,69 @@
   </div>
 </section>
 
+<!-- Logisztika — teljes interaktív térkép -->
+<section class="section alt section-animate" id="logisztika">
+  <div class="container logistics-layout">
+    <div class="section-head logistics-copy">
+      <p class="eyebrow"><%= t.home.logisticsEyebrow %></p>
+      <h2><%= t.home.logisticsTitle %></h2>
+      <p><%= t.home.logisticsLead %></p>
+    </div>
+
+    <% if (t.home.logisticsBadges && t.home.logisticsBadges.length) { %>
+    <div class="logistics-badges reveal-grid">
+      <% t.home.logisticsBadges.forEach((badge) => { %>
+      <span class="logistics-badge" data-stagger><%= badge %></span>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <% if (t.home.logisticsStats && t.home.logisticsStats.length) { %>
+    <div class="logistics-stats reveal-grid">
+      <% t.home.logisticsStats.forEach((stat) => { %>
+      <article class="stat-card panel" data-stagger>
+        <span class="stat-label"><%= stat.label %></span>
+        <strong class="count-up" data-target="<%= stat.value %>"><%= stat.value %></strong>
+        <p><%= stat.text %></p>
+      </article>
+      <% }) %>
+    </div>
+    <% } %>
+
+    <div class="logistics-dashboard panel">
+      <div class="dashboard-map">
+        <div class="dashboard-glow dashboard-glow-a"></div>
+        <div class="dashboard-glow dashboard-glow-b"></div>
+        <%- include('partials/hungary-map') %>
+        <div class="dashboard-panel <%= activeRegion.panelPosition || 'panel-bottom-right' %>" id="logisticsPanel">
+          <p class="logistics-panel-label"><%= t.home.logisticsPanelTitle %></p>
+          <h3 id="logisticsPanelTitle"><%= activeRegion.title %></h3>
+          <p id="logisticsPanelText"><%= activeRegion.text %></p>
+        </div>
+      </div>
+      <div class="dashboard-side">
+        <% logisticsRegions.forEach((region, index) => { %>
+        <button
+          type="button"
+          class="region-chip region-card <%= index === 0 ? 'active' : '' %>"
+          data-region-title="<%= region.title %>"
+          data-region-text="<%= region.text %>"
+          data-region-key="<%= region.key %>"
+          data-panel-position="<%= region.panelPosition || 'panel-bottom-right' %>"
+          data-stagger
+        >
+          <span class="region-chip-index">0<%= index + 1 %></span>
+          <span class="region-card-copy">
+            <strong><%= region.title %></strong>
+            <small><%= region.text %></small>
+          </span>
+        </button>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section section-animate">
   <div class="container">
     <div class="section-head">
@@ -47,28 +110,6 @@
       <%= t.home.productsIntro %>
       <a href="<%= withLang('/termekek/nagykereskedelem') %>" class="inline-link"><%= t.home.productsLink %> →</a>
     </p>
-    <% } %>
-  </div>
-</section>
-
-<section class="section alt section-animate" id="logisztika">
-  <div class="container logistics-short-grid">
-    <div class="logistics-short-copy">
-      <p class="eyebrow"><%= t.home.logisticsEyebrow %></p>
-      <h2><%= t.home.logisticsTitle %></h2>
-      <p class="lead"><%= t.home.logisticsLead %></p>
-      <a href="<%= withLang('/rolunk') %>" class="btn btn-secondary"><%= t.buttons.logisticsDetails %></a>
-    </div>
-    <% if (t.home.logisticsStats && t.home.logisticsStats.length) { %>
-    <div class="logistics-short-stats reveal-grid">
-      <% t.home.logisticsStats.forEach((stat) => { %>
-      <article class="stat-card panel" data-stagger>
-        <span class="stat-label"><%= stat.label %></span>
-        <strong><%= stat.value %></strong>
-        <p><%= stat.text %></p>
-      </article>
-      <% }) %>
-    </div>
     <% } %>
   </div>
 </section>
