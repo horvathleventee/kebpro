@@ -111,3 +111,45 @@ if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
     });
   });
 }
+
+/* ── Count-up animation ── */
+const countUpElements = document.querySelectorAll(".count-up[data-target]");
+if (countUpElements.length > 0) {
+  const countObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const raw = el.dataset.target;
+        const match = raw.match(/([\d]+)/);
+        if (!match) return;
+        const target = parseInt(match[1], 10);
+        const suffix = raw.replace(match[1], "");
+        const duration = 1600;
+        const start = performance.now();
+        const step = (now) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.round(target * eased) + suffix;
+          if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+        countObserver.unobserve(el);
+      });
+    },
+    { threshold: 0.3 }
+  );
+  countUpElements.forEach((el) => countObserver.observe(el));
+}
+
+/* ── Scroll progress bar ── */
+const scrollBar = document.querySelector(".scroll-progress");
+if (scrollBar) {
+  const updateProgress = () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    scrollBar.style.width = docHeight > 0 ? (scrollTop / docHeight) * 100 + "%" : "0%";
+  };
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  updateProgress();
+}

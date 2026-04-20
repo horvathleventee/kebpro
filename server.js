@@ -26,7 +26,7 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "maps.gstatic.com", "*.googleapis.com"],
       frameSrc: ["'self'", "maps.google.com", "www.google.com"],
       connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
+      fontSrc: ["'self'", "fonts.gstatic.com"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
     },

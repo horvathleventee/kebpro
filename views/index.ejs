@@ -32,6 +32,8 @@
 <section class="section alt section-animate" id="logisztika">
   <div class="container logistics-layout">
     <div class="section-head logistics-copy">
+      <!-- Animated truck icon -->
+      <svg class="section-icon icon-truck" viewBox="0 0 64 40" fill="none" aria-hidden="true"><rect class="truck-body" x="2" y="6" width="36" height="22" rx="4" fill="var(--primary)" opacity="0.9"/><path class="truck-cab" d="M38 14h10l8 10v4a4 4 0 01-4 4h-14V14z" fill="var(--primary-light)"/><circle class="truck-wheel truck-wheel-rear" cx="14" cy="32" r="5" fill="var(--accent)"/><circle class="truck-wheel truck-wheel-front" cx="48" cy="32" r="5" fill="var(--accent)"/><rect x="8" y="12" width="12" height="3" rx="1.5" fill="#fff" opacity="0.3"/><rect x="8" y="18" width="8" height="2" rx="1" fill="#fff" opacity="0.2"/></svg>
       <p class="eyebrow"><%= t.home.logisticsEyebrow %></p>
       <h2><%= t.home.logisticsTitle %></h2>
       <p><%= t.home.logisticsLead %></p>
@@ -98,8 +100,14 @@
       <p><%= t.home.qualityLead %></p>
     </div>
     <div class="cards reveal-grid">
-      <% t.home.qualityCards.forEach((card) => { %>
+      <% const qualityIcons = [
+        '<svg class="card-icon icon-shield" viewBox="0 0 40 44" fill="none" aria-hidden="true"><path class="shield-body" d="M20 2L4 10v12c0 10 7 17 16 20 9-3 16-10 16-20V10L20 2z" fill="var(--primary)" opacity="0.12" stroke="var(--primary)" stroke-width="2"/><path class="shield-check" d="M13 22l5 5 9-10" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        '<svg class="card-icon icon-snowflake" viewBox="0 0 40 40" fill="none" aria-hidden="true"><line x1="20" y1="4" x2="20" y2="36" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/><line x1="4" y1="20" x2="36" y2="20" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/><line x1="8.7" y1="8.7" x2="31.3" y2="31.3" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/><line x1="31.3" y1="8.7" x2="8.7" y2="31.3" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="4" r="2" fill="var(--accent)"/><circle cx="20" cy="36" r="2" fill="var(--accent)"/><circle cx="4" cy="20" r="2" fill="var(--accent)"/><circle cx="36" cy="20" r="2" fill="var(--accent)"/></svg>',
+        '<svg class="card-icon icon-clipboard" viewBox="0 0 36 44" fill="none" aria-hidden="true"><rect x="4" y="6" width="28" height="34" rx="4" fill="var(--primary)" opacity="0.12" stroke="var(--primary)" stroke-width="2"/><rect class="clip-top" x="11" y="2" width="14" height="8" rx="3" fill="var(--primary)" opacity="0.9"/><line class="clip-line clip-line-1" x1="10" y1="20" x2="26" y2="20" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/><line class="clip-line clip-line-2" x1="10" y1="26" x2="22" y2="26" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/><line class="clip-line clip-line-3" x1="10" y1="32" x2="18" y2="32" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg>'
+      ]; %>
+      <% t.home.qualityCards.forEach((card, idx) => { %>
       <article class="card" data-stagger>
+        <%- qualityIcons[idx] || '' %>
         <h3><%= card.title %></h3>
         <p><%= card.text %></p>
       </article>
