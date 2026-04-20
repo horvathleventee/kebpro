@@ -118,6 +118,135 @@ copy.de.home.logisticsStats = [
   { label: "Rhythmus", value: "W\u00f6chentlich", text: "Geplante Wochenrouten mit mehreren Stopps an priorisierten Punkten." },
   { label: "K\u00fchlkette", value: "Kontrolliert", text: "\u00dcberwachte K\u00fchlkette und abgestimmtes Lieferfenster bis zur \u00dcbergabe." },
 ];
+
+copy.hu.home.zipPlaceholder = "Irányítószám...";
+copy.hu.home.zipResult = "Szállítási régiója:";
+copy.hu.home.zipNotFound = "Nem található régió ehhez az irányítószámhoz.";
+
+copy.en.home.zipPlaceholder = "Postal code...";
+copy.en.home.zipResult = "Your delivery region:";
+copy.en.home.zipNotFound = "No region found for this postal code.";
+
+copy.de.home.zipPlaceholder = "Postleitzahl...";
+copy.de.home.zipResult = "Ihre Lieferregion:";
+copy.de.home.zipNotFound = "Keine Region für diese Postleitzahl gefunden.";
+
+copy.hu.home.callbackBtn = "Visszahívást kérek";
+copy.hu.home.callbackTitle = "Visszahívás kérése";
+copy.hu.home.callbackName = "Név";
+copy.hu.home.callbackPhone = "Telefonszám";
+copy.hu.home.callbackTime = "Mikor hívhatjuk?";
+copy.hu.home.callbackTimes = ["Délelőtt (8–12)", "Délután (12–17)", "Bármikor"];
+copy.hu.home.callbackSend = "Visszahívást kérek";
+copy.hu.home.callbackSuccess = "Köszönjük! Hamarosan hívjuk.";
+
+copy.en.home.callbackBtn = "Request callback";
+copy.en.home.callbackTitle = "Request a callback";
+copy.en.home.callbackName = "Name";
+copy.en.home.callbackPhone = "Phone number";
+copy.en.home.callbackTime = "When can we call?";
+copy.en.home.callbackTimes = ["Morning (8–12)", "Afternoon (12–17)", "Anytime"];
+copy.en.home.callbackSend = "Request callback";
+copy.en.home.callbackSuccess = "Thank you! We will call you soon.";
+
+copy.de.home.callbackBtn = "Rückruf anfordern";
+copy.de.home.callbackTitle = "Rückruf anfordern";
+copy.de.home.callbackName = "Name";
+copy.de.home.callbackPhone = "Telefonnummer";
+copy.de.home.callbackTime = "Wann können wir anrufen?";
+copy.de.home.callbackTimes = ["Vormittag (8–12)", "Nachmittag (12–17)", "Jederzeit"];
+copy.de.home.callbackSend = "Rückruf anfordern";
+copy.de.home.callbackSuccess = "Vielen Dank! Wir rufen Sie bald an.";
+
+copy.hu.home.calcTitle = "Mennyiség kalkulátor";
+copy.hu.home.calcLead = "Válasszon terméket és adja meg az adagszámot — kiszámítjuk a becsült mennyiséget.";
+copy.hu.home.calcProduct = "Termék kategória";
+copy.hu.home.calcServings = "Adagszám";
+copy.hu.home.calcResult = "Becsült mennyiség:";
+copy.hu.home.calcCta = "Ajánlatot kérek";
+copy.hu.home.calcProducts = [
+  { name: "Gyros tömb (csirke)", kgPerServing: 0.15 },
+  { name: "Gyros tömb (marha-pulyka)", kgPerServing: 0.15 },
+  { name: "Kebab tömb", kgPerServing: 0.12 },
+  { name: "Csíkozott húsfalatok", kgPerServing: 0.13 },
+  { name: "Fűszerezett húskészítmény", kgPerServing: 0.14 }
+];
+
+copy.en.home.calcTitle = "Quantity calculator";
+copy.en.home.calcLead = "Choose a product and enter the number of servings — we'll estimate the quantity.";
+copy.en.home.calcProduct = "Product category";
+copy.en.home.calcServings = "Servings";
+copy.en.home.calcResult = "Estimated quantity:";
+copy.en.home.calcCta = "Request a quote";
+copy.en.home.calcProducts = [
+  { name: "Gyros block (chicken)", kgPerServing: 0.15 },
+  { name: "Gyros block (beef-turkey)", kgPerServing: 0.15 },
+  { name: "Kebab block", kgPerServing: 0.12 },
+  { name: "Sliced meat strips", kgPerServing: 0.13 },
+  { name: "Seasoned meat product", kgPerServing: 0.14 }
+];
+
+copy.de.home.calcTitle = "Mengenrechner";
+copy.de.home.calcLead = "Wählen Sie ein Produkt und geben Sie die Portionszahl ein — wir schätzen die Menge.";
+copy.de.home.calcProduct = "Produktkategorie";
+copy.de.home.calcServings = "Portionen";
+copy.de.home.calcResult = "Geschätzte Menge:";
+copy.de.home.calcCta = "Angebot anfragen";
+copy.de.home.calcProducts = [
+  { name: "Gyros-Block (Hähnchen)", kgPerServing: 0.15 },
+  { name: "Gyros-Block (Rind-Pute)", kgPerServing: 0.15 },
+  { name: "Kebab-Block", kgPerServing: 0.12 },
+  { name: "Fleischstreifen", kgPerServing: 0.13 },
+  { name: "Gewürztes Fleischprodukt", kgPerServing: 0.14 }
+];
+
+copy.hu.home.explorerTitle = "Termékeink egy pillantásra";
+copy.hu.home.explorerLead = "Fedezze fel kínálatunkat — válasszon kategóriát, és tekintse meg a termékeket.";
+copy.hu.home.explorerCta = "Ajánlatot kérek erre →";
+copy.hu.home.explorerMore = "Teljes terméklista →";
+
+copy.en.home.explorerTitle = "Our products at a glance";
+copy.en.home.explorerLead = "Explore our range — select a category and browse the products.";
+copy.en.home.explorerCta = "Request a quote →";
+copy.en.home.explorerMore = "Full product list →";
+
+copy.de.home.explorerTitle = "Unsere Produkte auf einen Blick";
+copy.de.home.explorerLead = "Entdecken Sie unser Sortiment — wählen Sie eine Kategorie und sehen Sie die Produkte.";
+copy.de.home.explorerCta = "Angebot anfragen →";
+copy.de.home.explorerMore = "Vollständige Produktliste →";
+
+copy.hu.home.faqTitle = "Gyakran ismételt kérdések";
+copy.hu.home.faqItems = [
+  { q: "Mekkora a minimális rendelési mennyiség?", a: "Partnereinknek rugalmasan biztosítunk kisebb és nagyobb tételeket egyaránt. Kérjük, vegye fel velünk a kapcsolatot a részletekért." },
+  { q: "Milyen gyakran szállítanak?", a: "Heti rendszerességgel, előre ütemezett útvonalakon szállítunk Magyarország teljes területére. Kiemelt pontokon többszöri fordulóval." },
+  { q: "Hogyan biztosítják a hűtőlánc folytonosságát?", a: "Saját hűtős gépjárműparkunkkal szállítunk, a teljes logisztikai folyamat során ellenőrzött hőmérsékleten tartjuk a termékeket." },
+
+  { q: "Hogyan kérhetek árajánlatot?", a: "Online ajánlatkérő űrlapunkon, telefonon, vagy e-mailben is felkereshet minket. Kollégáink rövid időn belül válaszolnak." }
+];
+copy.hu.home.faqShowMore = "Több kérdés megjelenítése";
+copy.hu.home.faqShowLess = "Kevesebb";
+
+copy.en.home.faqTitle = "Frequently asked questions";
+copy.en.home.faqItems = [
+  { q: "What is the minimum order quantity?", a: "We flexibly serve both small and large orders for our partners. Please contact us for details." },
+  { q: "How often do you deliver?", a: "We deliver weekly on scheduled routes covering all of Hungary, with multiple stops at priority locations." },
+  { q: "How do you ensure cold chain continuity?", a: "We deliver with our own refrigerated fleet, maintaining monitored temperatures throughout the entire logistics process." },
+
+  { q: "How can I request a quote?", a: "You can reach us through our online quote form, by phone, or by email. Our team will respond promptly." }
+];
+copy.en.home.faqShowMore = "Show more questions";
+copy.en.home.faqShowLess = "Show less";
+
+copy.de.home.faqTitle = "Häufig gestellte Fragen";
+copy.de.home.faqItems = [
+  { q: "Was ist die Mindestbestellmenge?", a: "Wir bedienen unsere Partner flexibel mit kleinen und großen Aufträgen. Kontaktieren Sie uns für Details." },
+  { q: "Wie oft liefern Sie?", a: "Wir liefern wöchentlich auf geplanten Routen in ganz Ungarn, mit mehreren Stopps an priorisierten Standorten." },
+  { q: "Wie stellen Sie die Kühlkette sicher?", a: "Wir liefern mit unserer eigenen Kühlflotte und halten die Produkte während des gesamten Logistikprozesses auf kontrollierter Temperatur." },
+
+  { q: "Wie kann ich ein Angebot anfordern?", a: "Sie erreichen uns über unser Online-Formular, per Telefon oder E-Mail. Unser Team antwortet zeitnah." }
+];
+copy.de.home.faqShowMore = "Mehr Fragen anzeigen";
+copy.de.home.faqShowLess = "Weniger";
 function getLang(value) { return supportedLanguages.includes(value) ? value : defaultLanguage; }
 function getTranslations(lang) { return copy[getLang(lang)]; }
 function getWholesaleCatalog(lang) { return productCatalog[getLang(lang)]; }

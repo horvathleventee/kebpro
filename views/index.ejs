@@ -28,12 +28,51 @@
   </div>
 </section>
 
+<section class="section section-animate">
+  <div class="container">
+    <div class="section-head">
+      <h2><%= t.home.qualityHeading %></h2>
+      <p><%= t.home.qualityLead %></p>
+    </div>
+    <div class="cards reveal-grid">
+      <% const qualityIcons = [
+        '<svg class="card-icon icon-shield" viewBox="0 0 36 42" fill="none" aria-hidden="true"><path d="M18 2L4 9v11c0 9.4 6 16.2 14 19 8-2.8 14-9.6 14-19V9L18 2z" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linejoin="round"/><path d="M18 6L8 11v8c0 7.2 4.6 12.5 10 14.6" fill="var(--primary)" opacity="0.06"/><path class="shield-check" d="M12 21l4.5 4.5L25 16" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        '<svg class="card-icon icon-snowflake" viewBox="0 0 40 40" fill="none" aria-hidden="true"><g stroke="var(--primary)" stroke-width="1.8" stroke-linecap="round"><line x1="20" y1="2" x2="20" y2="38"/><line x1="2" y1="20" x2="38" y2="20"/><line x1="7.3" y1="7.3" x2="32.7" y2="32.7"/><line x1="32.7" y1="7.3" x2="7.3" y2="32.7"/><line x1="20" y1="2" x2="16" y2="6"/><line x1="20" y1="2" x2="24" y2="6"/><line x1="20" y1="38" x2="16" y2="34"/><line x1="20" y1="38" x2="24" y2="34"/><line x1="2" y1="20" x2="6" y2="16"/><line x1="2" y1="20" x2="6" y2="24"/><line x1="38" y1="20" x2="34" y2="16"/><line x1="38" y1="20" x2="34" y2="24"/><line x1="7.3" y1="7.3" x2="10.5" y2="4.8"/><line x1="7.3" y1="7.3" x2="4.8" y2="10.5"/><line x1="32.7" y1="32.7" x2="29.5" y2="35.2"/><line x1="32.7" y1="32.7" x2="35.2" y2="29.5"/><line x1="32.7" y1="7.3" x2="35.2" y2="10.5"/><line x1="32.7" y1="7.3" x2="29.5" y2="4.8"/><line x1="7.3" y1="32.7" x2="4.8" y2="29.5"/><line x1="7.3" y1="32.7" x2="10.5" y2="35.2"/></g><circle cx="20" cy="20" r="3" fill="var(--accent)" opacity="0.25"/></svg>',
+        '<svg class="card-icon icon-clipboard" viewBox="0 0 34 42" fill="none" aria-hidden="true"><rect x="3" y="6" width="28" height="33" rx="4" fill="none" stroke="var(--primary)" stroke-width="2"/><rect x="11" y="2" width="12" height="7" rx="2.5" fill="var(--primary)" opacity="0.15" stroke="var(--primary)" stroke-width="1.5"/><circle cx="11" cy="19" r="1.5" fill="var(--accent)"/><line class="clip-line clip-line-1" x1="15" y1="19" x2="26" y2="19" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round"/><circle cx="11" cy="26" r="1.5" fill="var(--accent)"/><line class="clip-line clip-line-2" x1="15" y1="26" x2="23" y2="26" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round"/><circle cx="11" cy="33" r="1.5" fill="var(--accent)"/><line class="clip-line clip-line-3" x1="15" y1="33" x2="20" y2="33" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round"/></svg>'
+      ]; %>
+      <% t.home.qualityCards.forEach((card, idx) => { %>
+      <article class="card" data-stagger>
+        <%- qualityIcons[idx] || '' %>
+        <h3><%= card.title %></h3>
+        <p><%= card.text %></p>
+      </article>
+      <% }) %>
+    </div>
+    <% if (t.home.productsIntro) { %>
+    <p class="products-intro-text">
+      <%= t.home.productsIntro %>
+      <a href="<%= withLang('/termekek/nagykereskedelem') %>" class="inline-link"><%= t.home.productsLink %> →</a>
+    </p>
+    <% } %>
+  </div>
+</section>
+
+<section class="section alt section-animate">
+  <div class="container">
+    <article class="panel wide">
+      <h2><%= t.home.qualityPillarsTitle %></h2>
+      <p><%= t.home.qualityPillarsText %></p>
+      <a href="<%= withLang('/minoseg') %>" class="btn btn-secondary"><%= t.buttons.qualityDetails %></a>
+    </article>
+  </div>
+</section>
+
 <!-- Logisztika — teljes interaktív térkép -->
 <section class="section alt section-animate" id="logisztika">
   <div class="container logistics-layout">
     <div class="section-head logistics-copy">
-      <!-- Animated truck icon -->
-      <svg class="section-icon icon-truck" viewBox="0 0 64 40" fill="none" aria-hidden="true"><rect class="truck-body" x="2" y="6" width="36" height="22" rx="4" fill="var(--primary)" opacity="0.9"/><path class="truck-cab" d="M38 14h10l8 10v4a4 4 0 01-4 4h-14V14z" fill="var(--primary-light)"/><circle class="truck-wheel truck-wheel-rear" cx="14" cy="32" r="5" fill="var(--accent)"/><circle class="truck-wheel truck-wheel-front" cx="48" cy="32" r="5" fill="var(--accent)"/><rect x="8" y="12" width="12" height="3" rx="1.5" fill="#fff" opacity="0.3"/><rect x="8" y="18" width="8" height="2" rx="1" fill="#fff" opacity="0.2"/></svg>
+      <!-- Refrigerated truck icon -->
+      <svg class="section-icon icon-truck" viewBox="0 0 56 32" fill="none" aria-hidden="true"><rect x="1" y="4" width="30" height="19" rx="3" stroke="var(--primary)" stroke-width="2" fill="var(--surface-alt)"/><path d="M31 10h9a3 3 0 012.12.88l5 5A3 3 0 0148 17.12V23H31V10z" stroke="var(--primary)" stroke-width="2" fill="var(--surface-alt)"/><line x1="31" y1="10" x2="31" y2="23" stroke="var(--primary)" stroke-width="2"/><circle class="truck-wheel" cx="11" cy="26" r="4" fill="var(--primary)" stroke="var(--primary)" stroke-width="1.5"/><circle cx="11" cy="26" r="1.5" fill="#fff"/><circle class="truck-wheel" cx="41" cy="26" r="4" fill="var(--primary)" stroke="var(--primary)" stroke-width="1.5"/><circle cx="41" cy="26" r="1.5" fill="#fff"/><line x1="1" y1="23" x2="7" y2="23" stroke="var(--primary)" stroke-width="2"/><line x1="15" y1="23" x2="31" y2="23" stroke="var(--primary)" stroke-width="2"/><line x1="45" y1="23" x2="48" y2="23" stroke="var(--primary)" stroke-width="2"/><path d="M12 9v8M17 9v8M22 9v8" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/><rect x="35" y="13" width="6" height="4" rx="1" fill="rgba(16,36,63,0.1)" stroke="var(--primary)" stroke-width="1"/></svg>
       <p class="eyebrow"><%= t.home.logisticsEyebrow %></p>
       <h2><%= t.home.logisticsTitle %></h2>
       <p><%= t.home.logisticsLead %></p>
@@ -58,6 +97,14 @@
       <% }) %>
     </div>
     <% } %>
+
+    <div class="zip-checker">
+      <div class="zip-input-wrap">
+        <input type="text" id="zipInput" class="zip-input" placeholder="<%= t.home.zipPlaceholder %>" maxlength="4" inputmode="numeric" autocomplete="off" />
+        <span class="zip-result" id="zipResult"></span>
+      </div>
+      <span class="zip-labels" data-zip-result="<%= t.home.zipResult %>" data-zip-not-found="<%= t.home.zipNotFound %>"></span>
+    </div>
 
     <div class="logistics-dashboard panel">
       <div class="dashboard-map">
@@ -93,44 +140,61 @@
   </div>
 </section>
 
+<% if (productCatalog && productCatalog.length) { %>
 <section class="section section-animate">
   <div class="container">
     <div class="section-head">
-      <h2><%= t.home.qualityHeading %></h2>
-      <p><%= t.home.qualityLead %></p>
+      <h2><%= t.home.explorerTitle %></h2>
+      <p><%= t.home.explorerLead %></p>
     </div>
-    <div class="cards reveal-grid">
-      <% const qualityIcons = [
-        '<svg class="card-icon icon-shield" viewBox="0 0 40 44" fill="none" aria-hidden="true"><path class="shield-body" d="M20 2L4 10v12c0 10 7 17 16 20 9-3 16-10 16-20V10L20 2z" fill="var(--primary)" opacity="0.12" stroke="var(--primary)" stroke-width="2"/><path class="shield-check" d="M13 22l5 5 9-10" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-        '<svg class="card-icon icon-snowflake" viewBox="0 0 40 40" fill="none" aria-hidden="true"><line x1="20" y1="4" x2="20" y2="36" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/><line x1="4" y1="20" x2="36" y2="20" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/><line x1="8.7" y1="8.7" x2="31.3" y2="31.3" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/><line x1="31.3" y1="8.7" x2="8.7" y2="31.3" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="4" r="2" fill="var(--accent)"/><circle cx="20" cy="36" r="2" fill="var(--accent)"/><circle cx="4" cy="20" r="2" fill="var(--accent)"/><circle cx="36" cy="20" r="2" fill="var(--accent)"/></svg>',
-        '<svg class="card-icon icon-clipboard" viewBox="0 0 36 44" fill="none" aria-hidden="true"><rect x="4" y="6" width="28" height="34" rx="4" fill="var(--primary)" opacity="0.12" stroke="var(--primary)" stroke-width="2"/><rect class="clip-top" x="11" y="2" width="14" height="8" rx="3" fill="var(--primary)" opacity="0.9"/><line class="clip-line clip-line-1" x1="10" y1="20" x2="26" y2="20" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/><line class="clip-line clip-line-2" x1="10" y1="26" x2="22" y2="26" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/><line class="clip-line clip-line-3" x1="10" y1="32" x2="18" y2="32" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg>'
-      ]; %>
-      <% t.home.qualityCards.forEach((card, idx) => { %>
-      <article class="card" data-stagger>
-        <%- qualityIcons[idx] || '' %>
-        <h3><%= card.title %></h3>
-        <p><%= card.text %></p>
-      </article>
+    <div class="explorer-tabs">
+      <% productCatalog.forEach((cat, i) => { %>
+      <button type="button" class="explorer-tab <%= i === 0 ? 'active' : '' %>" data-explorer-idx="<%= i %>"><%= cat.title %></button>
       <% }) %>
     </div>
-    <% if (t.home.productsIntro) { %>
-    <p class="products-intro-text">
-      <%= t.home.productsIntro %>
-      <a href="<%= withLang('/termekek/nagykereskedelem') %>" class="inline-link"><%= t.home.productsLink %> →</a>
+    <div class="explorer-panels">
+      <% productCatalog.forEach((cat, i) => { %>
+      <div class="explorer-panel <%= i === 0 ? 'active' : '' %>" data-explorer-panel="<%= i %>">
+        <p class="explorer-panel-lead"><%= cat.cardLead %></p>
+        <div class="explorer-items">
+          <% cat.items.forEach((item) => { %>
+          <div class="explorer-item">
+            <strong><%= item[0] %></strong>
+            <span class="explorer-item-size"><%= item[1] %></span>
+          </div>
+          <% }) %>
+        </div>
+        <a href="<%= withLang('/ajanlatkeres') %>" class="btn btn-primary"><%= t.home.explorerCta %></a>
+      </div>
+      <% }) %>
+    </div>
+    <p class="products-intro-text" style="margin-top:1.5rem;">
+      <a href="<%= withLang('/termekek/nagykereskedelem') %>" class="inline-link"><%= t.home.explorerMore %></a>
     </p>
-    <% } %>
   </div>
 </section>
+<% } %>
 
+<% if (t.home.faqItems && t.home.faqItems.length) { %>
 <section class="section alt section-animate">
   <div class="container">
-    <article class="panel wide">
-      <h2><%= t.home.qualityPillarsTitle %></h2>
-      <p><%= t.home.qualityPillarsText %></p>
-      <a href="<%= withLang('/minoseg') %>" class="btn btn-secondary"><%= t.buttons.qualityDetails %></a>
-    </article>
+    <div class="section-head">
+      <h2><%= t.home.faqTitle %></h2>
+    </div>
+    <div class="faq-list" id="faqList">
+      <% t.home.faqItems.forEach((item, i) => { %>
+      <details class="faq-item <%= i >= 2 ? 'faq-hidden' : '' %>">
+        <summary class="faq-question"><%= item.q %></summary>
+        <p class="faq-answer"><%= item.a %></p>
+      </details>
+      <% }) %>
+      <% if (t.home.faqItems.length > 2) { %>
+      <button type="button" class="btn btn-secondary faq-toggle" id="faqToggle" data-show="<%= t.home.faqShowMore %>" data-hide="<%= t.home.faqShowLess %>"><%= t.home.faqShowMore %></button>
+      <% } %>
+    </div>
   </div>
 </section>
+<% } %>
 
 <% if (t.home.ctaQuoteText) { %>
 <section class="section section-animate">

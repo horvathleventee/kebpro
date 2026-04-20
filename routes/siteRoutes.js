@@ -293,17 +293,15 @@ router.get("/", (req, res) => {
     seo: buildPageSeo("home", lang, "/"),
     logisticsRegions,
     activeRegion: logisticsRegions[0],
+    productCatalog: getWholesaleCatalog(lang),
   });
 });
 
 router.get("/rolunk", (req, res) => {
   const lang = res.locals.lang;
-  const logisticsRegions = getLogisticsRegions(lang);
   res.render("about", {
     title: res.locals.t.nav.about,
     seo: buildPageSeo("about", lang, "/rolunk"),
-    logisticsRegions,
-    activeRegion: logisticsRegions[0],
   });
 });
 
@@ -367,11 +365,14 @@ router.get("/kapcsolat", (req, res) => {
 });
 
 router.get("/ajanlatkeres", (req, res) => {
+  const prefill = {};
+  if (req.query.product) prefill.product = req.query.product;
+  if (req.query.quantity) prefill.quantity = req.query.quantity;
   res.render("quote", {
     title: res.locals.t.nav.quote,
     seo: buildPageSeo("quote", res.locals.lang, "/ajanlatkeres"),
     errors: {},
-    formData: {},
+    formData: prefill,
     successMessage: null,
   });
 });
@@ -478,6 +479,31 @@ router.post("/megrendeles", formLimiter, async (req, res, next) => {
 router.post("/megrendelesek", formLimiter, async (req, res, next) => {
   req.url = `/megrendeles${req.query.lang ? `?lang=${req.query.lang}` : ""}`;
   return router.handle(req, res, next);
+});
+
+/* ── Callback widget ── */
+
+router.post("/visszahivas", formLimiter, async (req, res, next) => {
+  try {
+    const { name, phone, timeslot } = req.body;
+    if (!name || !phone) return res.status(400).json({ error: "missing fields" });
+    const payload = {
+      name: name.trim().slice(0, 120),
+      phone: phone.trim().slice(0, 40),
+      message: `Visszahívás kérés — idősáv: ${(timeslot || "").slice(0, 60)}`,
+      type: "quote",
+      email: "",
+      company: "",
+      product: "Visszahívás / Callback",
+      lang: res.locals.lang,
+    };
+    await insertSubmission(payload);
+    const settings = await getNotificationSettings();
+    await sendNotificationEmail(payload, settings);
+    return res.json({ ok: true });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 /* ── Career ── */
@@ -690,19 +716,19 @@ router.get("/admin/cv/:filename", requireAdminSession, (req, res) => {
 });
 
 router.get("/adatkezelesi-tajekoztato", (req, res) => {
-  res.render("legal-privacy", { title: "Adatkezelési tájékoztató" });
+  res.render("legal-privacy", { title: "Adatkezelési tájékoztató", seo: null });
 });
 
 router.get("/panaszkezelesi-szabalyzat", (req, res) => {
-  res.render("legal-complaints", { title: "Panaszkezelési szabályzat" });
+  res.render("legal-complaints", { title: "Panaszkezelési szabályzat", seo: null });
 });
 
 router.get("/impresszum", (req, res) => {
-  res.render("legal-impresszum", { title: "Impresszum" });
+  res.render("legal-impressum", { title: "Impresszum", seo: null });
 });
 
 router.get("/belso-visszaeles-bejelentes", (req, res) => {
-  res.render("legal-whistleblowing", { title: "Belső Visszaélés-Bejelentés" });
+  res.render("legal-whistleblowing", { title: "Belső Visszaélés-Bejelentés", seo: null });
 });
 
 module.exports = router;

@@ -153,3 +153,125 @@ if (scrollBar) {
   window.addEventListener("scroll", updateProgress, { passive: true });
   updateProgress();
 }
+
+/* ── Postal code → delivery region checker ── */
+const zipInput = document.getElementById("zipInput");
+const zipResult = document.getElementById("zipResult");
+const zipLabels = document.querySelector(".zip-labels");
+
+if (zipInput && zipResult && zipLabels) {
+  // Hungarian postal code → delivery region (2-digit prefix mapping)
+  // 1xxx Budapest, 2xxx Pest → central
+  // 3xxx Észak-Magyarország → north
+  // 4xxx Hajdú-Bihar, Szabolcs, Jász → east
+  // 50-52xx Szolnok area → east, 53-59xx Békés → south
+  // 60-64xx Bács-Kiskun → south, 65-69xx Csongrád → south
+  // 70-72xx Baranya → west, 73-74xx Tolna → west, 75-77xx Somogy → west
+  // 80-81xx Székesfehérvár/Fejér → central, 82-84xx Veszprém → balaton
+  // 85-87xx Zala → balaton, 88-89xx Veszprém/Balaton → balaton
+  // 90-96xx Győr-Moson-Sopron → west, 97-99xx Vas → west
+  const zipMap2 = {
+    "10": "central", "11": "central", "12": "central", "13": "central", "14": "central",
+    "15": "central", "16": "central", "17": "central", "18": "central", "19": "central",
+    "20": "central", "21": "central", "22": "central", "23": "central", "24": "central",
+    "25": "central", "26": "central", "27": "central", "28": "central", "29": "central",
+    "30": "north", "31": "north", "32": "north", "33": "north", "34": "north",
+    "35": "north", "36": "north", "37": "north", "38": "north", "39": "north",
+    "40": "east", "41": "east", "42": "east", "43": "east", "44": "east",
+    "45": "east", "46": "east", "47": "east", "48": "east", "49": "east",
+    "50": "east", "51": "east", "52": "east",
+    "53": "south", "54": "south", "55": "south", "56": "south", "57": "south", "58": "south", "59": "south",
+    "60": "south", "61": "south", "62": "south", "63": "south", "64": "south",
+    "65": "south", "66": "south", "67": "south", "68": "south", "69": "south",
+    "70": "west", "71": "west", "72": "west", "73": "west", "74": "west",
+    "75": "west", "76": "west", "77": "west",
+    "80": "central", "81": "central",
+    "82": "balaton", "83": "balaton", "84": "balaton",
+    "85": "balaton", "86": "balaton", "87": "balaton", "88": "balaton", "89": "balaton",
+    "90": "west", "91": "west", "92": "west", "93": "west", "94": "west",
+    "95": "west", "96": "west", "97": "west", "98": "west", "99": "west",
+  };
+  const resultText = zipLabels.dataset.zipResult;
+  const notFoundText = zipLabels.dataset.zipNotFound;
+
+  zipInput.addEventListener("input", () => {
+    const val = zipInput.value.replace(/\D/g, "");
+    zipInput.value = val;
+    if (val.length < 2) {
+      zipResult.textContent = "";
+      zipResult.className = "zip-result";
+      return;
+    }
+    const prefix2 = val.substring(0, 2);
+    const regionKey = zipMap2[prefix2];
+    if (regionKey) {
+      const chip = document.querySelector(`.region-chip[data-region-key="${regionKey}"]`);
+      if (chip) {
+        chip.click();
+        zipResult.textContent = resultText + " " + chip.dataset.regionTitle;
+        zipResult.className = "zip-result";
+      }
+    } else {
+      zipResult.textContent = notFoundText;
+      zipResult.className = "zip-result zip-error";
+    }
+  });
+}
+
+/* ── Callback widget toggle + submit ── */
+const callbackToggle = document.getElementById("callbackToggle");
+const callbackWidget = document.getElementById("callbackWidget");
+const callbackForm = document.getElementById("callbackForm");
+
+if (callbackToggle && callbackWidget) {
+  callbackToggle.addEventListener("click", () => {
+    callbackWidget.classList.toggle("open");
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#callbackWidget")) {
+      callbackWidget.classList.remove("open");
+    }
+  });
+}
+
+if (callbackForm) {
+  callbackForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new URLSearchParams(new FormData(callbackForm));
+    try {
+      const res = await fetch("/visszahivas", { method: "POST", body: formData, headers: { "Content-Type": "application/x-www-form-urlencoded" } });
+      if (res.ok) {
+        callbackWidget.classList.add("sent");
+        setTimeout(() => {
+          callbackWidget.classList.remove("open", "sent");
+          callbackForm.reset();
+        }, 3000);
+      }
+    } catch (_) { /* silent */ }
+  });
+}
+
+/* ── Product explorer tab switching ── */
+const explorerTabs = document.querySelectorAll(".explorer-tab");
+if (explorerTabs.length > 0) {
+  explorerTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const idx = tab.dataset.explorerIdx;
+      document.querySelectorAll(".explorer-tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".explorer-panel").forEach((p) => p.classList.remove("active"));
+      tab.classList.add("active");
+      const panel = document.querySelector(`.explorer-panel[data-explorer-panel="${idx}"]`);
+      if (panel) panel.classList.add("active");
+    });
+  });
+}
+
+/* ── FAQ show more / less toggle ── */
+const faqToggle = document.getElementById("faqToggle");
+const faqList = document.getElementById("faqList");
+if (faqToggle && faqList) {
+  faqToggle.addEventListener("click", () => {
+    const expanded = faqList.classList.toggle("faq-expanded");
+    faqToggle.textContent = expanded ? faqToggle.dataset.hide : faqToggle.dataset.show;
+  });
+}
