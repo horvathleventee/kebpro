@@ -155,7 +155,7 @@ productCatalog.de = productCatalog.hu.map((category) => ({ ...category, title: c
 const productImages = {
   "kebab-nyars": "/images/products/kebab-nyars.png",
   saslik: "/images/products/saslik.jpeg",
-  elosutott: "/images/products/elosutott.png",
+  elosutott: "/images/products/sultkebab.jpeg",
   kulonlegessegek: "/images/products/kulonlegessegek.png",
   joghurtok: "/images/products/joghurtok.png",
   pitak: "/images/products/pitak.png",

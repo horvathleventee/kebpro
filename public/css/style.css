@@ -608,7 +608,7 @@ a { color: inherit; text-decoration: none; }
   margin: -0.15rem 0 0.35rem;
 }
 .form-brand img {
-  width: 92px;
+  width: 46px;
   height: auto;
   display: block;
   filter: drop-shadow(0 8px 14px rgba(16, 36, 63, 0.1));
@@ -710,6 +710,11 @@ a { color: inherit; text-decoration: none; }
 .about-hero-photo {
   padding: 0.7rem;
   overflow: hidden;
+  position: static !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  will-change: auto;
 }
 .about-hero-photo img {
   width: 100%;
@@ -717,6 +722,9 @@ a { color: inherit; text-decoration: none; }
   object-fit: cover;
   border-radius: 18px;
   display: block;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
 }
 .about-stats-col { display: flex; flex-direction: column; gap: 0.9rem; }
 .about-stat-card { padding: 1.1rem 1.3rem; text-align: center; }
@@ -1350,7 +1358,7 @@ a { color: inherit; text-decoration: none; }
   transition: transform 0.5s var(--ease);
 }
 .product-card:hover .product-slot-image { transform: scale(1.03); }
-.product-image-slot-elosutott .product-slot-image { object-position: center 58%; }
+.product-image-slot-elosutott .product-slot-image { object-position: center 54%; }
 .product-image-slot-kebab-nyars .product-slot-image { object-position: center 48%; }
 .product-placeholder {
   min-height: 164px;
