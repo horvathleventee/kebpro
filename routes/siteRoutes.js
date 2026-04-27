@@ -379,6 +379,7 @@ router.get("/ajanlatkeres", (req, res) => {
   res.render("quote", {
     title: res.locals.t.nav.quote,
     seo: buildPageSeo("quote", res.locals.lang, "/ajanlatkeres"),
+    productOptions: getOrderProductOptions(res.locals.lang),
     errors: {},
     formData: prefill,
     successMessage: null,
@@ -392,11 +393,36 @@ router.get("/ajanlat-keres", (req, res) => {
 router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
   try {
     const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
+    const products = Array.isArray(req.body.products)
+      ? req.body.products
+      : req.body.products ? [req.body.products] : [];
+    const quantities = Array.isArray(req.body.productQuantities)
+      ? req.body.productQuantities
+      : req.body.productQuantities ? [req.body.productQuantities] : [];
+    const selectedProducts = products
+      .map((product, index) => ({
+        product: (product || "").trim(),
+        quantity: (quantities[index] || "").trim(),
+      }))
+      .filter((item) => item.product);
+
+    if (selectedProducts.length > 0) {
+      delete errors.product;
+      data.product = selectedProducts
+        .map((item) => `${item.product}${item.quantity ? ` - ${item.quantity}` : ""}`)
+        .join("\n");
+      data.quantity = selectedProducts
+        .map((item) => item.quantity)
+        .filter(Boolean)
+        .join("; ");
+      data.products = selectedProducts;
+    }
 
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("quote", {
         title: res.locals.t.nav.quote,
         seo: buildPageSeo("quote", res.locals.lang, "/ajanlatkeres"),
+        productOptions: getOrderProductOptions(res.locals.lang),
         errors,
         formData: data,
         successMessage: null,
@@ -418,6 +444,7 @@ router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
     return res.render("quote", {
       title: res.locals.t.nav.quote,
       seo: buildPageSeo("quote", res.locals.lang, "/ajanlatkeres"),
+      productOptions: getOrderProductOptions(res.locals.lang),
       errors: {},
       formData: {},
       successMessage: res.locals.t.quote.success,

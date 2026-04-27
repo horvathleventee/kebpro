@@ -7,37 +7,6 @@
   </div>
 </section>
 
-<section class="section section-animate">
-  <div class="container">
-    <article class="panel wide legal-content quality-article">
-      <% Object.entries(t.quality.sections).forEach(([key, section]) => { %>
-      <section class="quality-block quality-block-<%= key %>">
-        <div class="quality-block-head">
-          <span class="quality-block-chip"><%= section.title %></span>
-          <h2><%= section.title %></h2>
-        </div>
-
-        <% if (section.paragraphs) { %>
-        <div class="quality-copy-grid">
-          <% section.paragraphs.forEach((paragraph) => { %>
-          <p><%= paragraph %></p>
-          <% }) %>
-        </div>
-        <% } %>
-
-        <% if (section.steps) { %>
-        <ol class="quality-steps-list">
-          <% section.steps.forEach((step) => { %>
-          <li><%= step %></li>
-          <% }) %>
-        </ol>
-        <% } %>
-      </section>
-      <% }) %>
-    </article>
-  </div>
-</section>
-
 <section class="section alt section-animate">
   <div class="container">
     <div class="section-head">
@@ -109,6 +78,37 @@
         <% }) %>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="section section-animate">
+  <div class="container">
+    <article class="panel wide legal-content quality-article">
+      <% Object.entries(t.quality.sections).forEach(([key, section]) => { %>
+      <section class="quality-block quality-block-<%= key %>">
+        <div class="quality-block-head">
+          <span class="quality-block-chip"><%= section.title %></span>
+          <h2><%= section.title %></h2>
+        </div>
+
+        <% if (section.paragraphs) { %>
+        <div class="quality-copy-grid">
+          <% section.paragraphs.forEach((paragraph) => { %>
+          <p><%= paragraph %></p>
+          <% }) %>
+        </div>
+        <% } %>
+
+        <% if (section.steps) { %>
+        <ol class="quality-steps-list">
+          <% section.steps.forEach((step) => { %>
+          <li><%= step %></li>
+          <% }) %>
+        </ol>
+        <% } %>
+      </section>
+      <% }) %>
+    </article>
   </div>
 </section>
 

@@ -140,41 +140,6 @@
   </div>
 </section>
 
-<% if (productCatalog && productCatalog.length) { %>
-<section class="section section-animate">
-  <div class="container">
-    <div class="section-head">
-      <h2><%= t.home.explorerTitle %></h2>
-      <p><%= t.home.explorerLead %></p>
-    </div>
-    <div class="explorer-tabs">
-      <% productCatalog.forEach((cat, i) => { %>
-      <button type="button" class="explorer-tab <%= i === 0 ? 'active' : '' %>" data-explorer-idx="<%= i %>"><%= cat.title %></button>
-      <% }) %>
-    </div>
-    <div class="explorer-panels">
-      <% productCatalog.forEach((cat, i) => { %>
-      <div class="explorer-panel <%= i === 0 ? 'active' : '' %>" data-explorer-panel="<%= i %>">
-        <p class="explorer-panel-lead"><%= cat.cardLead %></p>
-        <div class="explorer-items">
-          <% cat.items.forEach((item) => { %>
-          <div class="explorer-item">
-            <strong><%= item[0] %></strong>
-            <span class="explorer-item-size"><%= item[1] %></span>
-          </div>
-          <% }) %>
-        </div>
-        <a href="<%= withLang('/ajanlatkeres') %>" class="btn btn-primary"><%= t.home.explorerCta %></a>
-      </div>
-      <% }) %>
-    </div>
-    <p class="products-intro-text" style="margin-top:1.5rem;">
-      <a href="<%= withLang('/termekek/nagykereskedelem') %>" class="inline-link"><%= t.home.explorerMore %></a>
-    </p>
-  </div>
-</section>
-<% } %>
-
 <% if (t.home.faqItems && t.home.faqItems.length) { %>
 <section class="section alt section-animate">
   <div class="container">

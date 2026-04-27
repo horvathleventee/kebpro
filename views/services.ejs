@@ -21,10 +21,10 @@
 
       <div class="product-card-grid reveal-grid">
         <% categories.forEach((category) => { %>
-        <article class="product-card panel" data-stagger>
+        <a href="#<%= category.slug %>" class="product-card panel product-card-link" data-stagger>
           <div class="product-image-slot">
             <img
-              src="/images/products/<%= category.slug %>.jpg"
+              src="<%= category.image || `/images/products/${category.slug}.jpg` %>"
               alt="<%= category.title %>"
               class="product-slot-image"
               onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';"
@@ -36,8 +36,8 @@
           </div>
           <h3><%= category.title %></h3>
           <p><%= category.cardLead %></p>
-          <a href="#<%= category.slug %>" class="text-link"><%= t.services.categoryJump %></a>
-        </article>
+          <span class="text-link"><%= t.services.categoryJump %></span>
+        </a>
         <% }) %>
       </div>
 

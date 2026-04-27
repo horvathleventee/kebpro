@@ -152,6 +152,31 @@ productCatalog.hu = [
 productCatalog.en = productCatalog.hu.map((category) => ({ ...category, title: category.title, cardLead: category.cardLead }));
 productCatalog.de = productCatalog.hu.map((category) => ({ ...category, title: category.title, cardLead: category.cardLead }));
 
+const productImages = {
+  "kebab-nyars": "/images/products/kebab-nyars.png",
+  saslik: "/images/products/saslik.jpeg",
+  elosutott: "/images/products/elosutott.png",
+  kulonlegessegek: "/images/products/kulonlegessegek.png",
+  joghurtok: "/images/products/joghurtok.png",
+  pitak: "/images/products/pitak.jpeg",
+  pitas: "/images/products/pitak.jpeg",
+  tortillak: "/images/products/tortillak.png",
+  tortillas: "/images/products/tortillak.png",
+  desszertek: "/images/products/desszertek.png",
+  desserts: "/images/products/desszertek.png",
+  "kiegeszitok-csomagolas": "/images/products/kiegeszitok-csomagolas.png",
+  "extras-packaging": "/images/products/kiegeszitok-csomagolas.png",
+  "extras-verpackung": "/images/products/kiegeszitok-csomagolas.png",
+};
+
+[productCatalog, retailCatalog].forEach((catalogSet) => {
+  Object.values(catalogSet).forEach((catalog) => {
+    catalog.forEach((category) => {
+      category.image = productImages[category.slug] || category.image;
+    });
+  });
+});
+
 // Kebpro 2026 content overrides
 copy.hu.nav.wholesale = "HORECA";
 copy.en.nav.wholesale = "HORECA";

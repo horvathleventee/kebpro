@@ -21,6 +21,7 @@
       </div>
       <% } %>
 
+      <% const initialProducts = formData.products && formData.products.length ? formData.products : [{ product: formData.product || '', quantity: formData.quantity || '' }]; %>
       <form method="POST" action="<%= withLang('/ajanlatkeres') %>" class="contact-form" novalidate>
         <p class="form-required-hint"><%= t.forms.requiredHint %></p>
 
@@ -40,12 +41,29 @@
         <input id="phone" name="phone" type="tel" value="<%= formData.phone || '' %>" />
         <% if (errors.phone) { %><small class="error"><%= errors.phone %></small><% } %>
 
-        <label for="product"><%= t.forms.productInterest %> <span class="required-mark">*</span></label>
-        <input id="product" name="product" type="text" value="<%= formData.product || '' %>" />
+        <div class="order-products-builder" data-order-products>
+          <label><%= t.forms.productInterest %> <span class="required-mark">*</span></label>
+          <div class="order-product-rows" data-order-product-rows>
+            <% initialProducts.forEach((initialProduct) => { %>
+            <div class="order-product-row">
+              <select name="products" class="status-select order-product-select">
+                <option value=""><%= t.forms.selectProduct %></option>
+                <% (productOptions || []).forEach((option) => { %>
+                <option value="<%= option.value %>" <%= initialProduct.product === option.value ? 'selected' : '' %>><%= option.label %></option>
+                <% }) %>
+              </select>
+              <input name="productQuantities" type="text" placeholder="<%= t.forms.estimatedQuantity %>" value="<%= initialProduct.quantity || '' %>" />
+              <button type="button" class="btn btn-secondary order-remove-product" aria-label="<%= t.forms.removeProduct %>">×</button>
+            </div>
+            <% }) %>
+          </div>
+          <button type="button" class="btn btn-secondary order-add-product" data-add-order-product><%= t.forms.addProduct %></button>
+        </div>
+        <input id="product" name="product" type="hidden" value="<%= formData.product || '' %>" />
         <% if (errors.product) { %><small class="error"><%= errors.product %></small><% } %>
 
-        <label for="quantity"><%= t.forms.estimatedQuantity %></label>
-        <input id="quantity" name="quantity" type="text" value="<%= formData.quantity || '' %>" />
+        <label for="quantity" class="visually-hidden"><%= t.forms.estimatedQuantity %></label>
+        <input id="quantity" name="quantity" type="hidden" value="<%= formData.quantity || '' %>" />
 
         <label for="message"><%= t.forms.message %></label>
         <textarea id="message" name="message" rows="5"><%= formData.message || '' %></textarea>
