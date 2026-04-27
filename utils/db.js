@@ -34,6 +34,10 @@ let settingsMemory = {
   careerEmailEnabled: process.env.ENABLE_CAREER_EMAIL === "true",
 };
 
+function shouldUseMemoryFallback() {
+  return adapter === "memory" || (Boolean(dbInitError) && Boolean(process.env.VERCEL));
+}
+
 if (adapter === "sqlite") {
   sqlite = require("sqlite3").verbose();
   const dbPath = process.env.DB_PATH || path.join(__dirname, "..", "data", "kebpro.sqlite");
@@ -235,12 +239,16 @@ async function initDb() {
     dbInitError = null;
   } catch (error) {
     dbInitError = error;
+    if (process.env.VERCEL) {
+      console.error("[db] Database init failed, falling back to memory storage:", error.message || error);
+      return;
+    }
     throw error;
   }
 }
 
 async function insertSubmission(payload) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     const id = submissionsMemory.length + 1;
     submissionsMemory.unshift({
       id,
@@ -319,7 +327,7 @@ async function listSubmissions(type = "all") {
     row.type === "callback" ||
     /visszahív|visszahiv|callback|telefon/i.test(`${row.product || ""} ${row.message || ""}`);
 
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     if (type === "all") return submissionsMemory.slice(0, 300);
     if (type === "callback") return submissionsMemory.filter(isCallbackLike).slice(0, 300);
     if (type === "quote") {
@@ -409,7 +417,7 @@ async function listSubmissions(type = "all") {
 }
 
 async function getNotificationSettings() {
-  if (adapter === "memory") return { ...settingsMemory };
+  if (shouldUseMemoryFallback()) return { ...settingsMemory };
 
   if (adapter === "postgres") {
     const result = await pool.query(
@@ -438,7 +446,7 @@ async function getNotificationSettings() {
 }
 
 async function updateNotificationEmail(email) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     settingsMemory.notificationEmail = email;
     return;
   }
@@ -452,7 +460,7 @@ async function updateNotificationEmail(email) {
 }
 
 async function setEmailEnabled(enabled) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     settingsMemory.emailEnabled = Boolean(enabled);
     return;
   }
@@ -466,7 +474,7 @@ async function setEmailEnabled(enabled) {
 }
 
 async function updateCareerNotificationEmail(email) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     settingsMemory.careerNotificationEmail = email;
     return;
   }
@@ -480,7 +488,7 @@ async function updateCareerNotificationEmail(email) {
 }
 
 async function setCareerEmailEnabled(enabled) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     settingsMemory.careerEmailEnabled = Boolean(enabled);
     return;
   }
@@ -494,7 +502,7 @@ async function setCareerEmailEnabled(enabled) {
 }
 
 async function updateSubmissionStatus(id, status) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     submissionsMemory = submissionsMemory.map((row) =>
       Number(row.id) === Number(id) ? { ...row, status } : row
     );
@@ -522,9 +530,12 @@ async function getDbDiagnostics() {
     lastWriteAt: null,
   };
 
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     diagnostics.submissionCount = submissionsMemory.length;
     diagnostics.lastWriteAt = submissionsMemory[0]?.created_at || null;
+    if (dbInitError) {
+      diagnostics.writableStore = "memory fallback";
+    }
     return diagnostics;
   }
 
@@ -557,7 +568,7 @@ async function getDbDiagnostics() {
 /* ── Positions (career) ── */
 
 async function listPositions(activeOnly = false) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     if (activeOnly) return positionsMemory.filter((p) => p.active);
     return positionsMemory;
   }
@@ -575,7 +586,7 @@ async function listPositions(activeOnly = false) {
 }
 
 async function addPosition(payload) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     const id = positionsMemory.length + 1;
     positionsMemory.unshift({
       id,
@@ -605,7 +616,7 @@ async function addPosition(payload) {
 }
 
 async function deletePosition(id) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     positionsMemory = positionsMemory.filter((p) => Number(p.id) !== Number(id));
     careerApplicationsMemory = careerApplicationsMemory.map((a) =>
       Number(a.position_id) === Number(id) ? { ...a, position_id: null } : a
@@ -626,7 +637,7 @@ async function deletePosition(id) {
 /* ── Career applications ── */
 
 async function insertCareerApplication(payload) {
-  if (adapter === "memory") {
+  if (shouldUseMemoryFallback()) {
     const id = careerApplicationsMemory.length + 1;
     careerApplicationsMemory.unshift({
       id,
@@ -659,7 +670,7 @@ async function insertCareerApplication(payload) {
 }
 
 async function listCareerApplications() {
-  if (adapter === "memory") return careerApplicationsMemory.slice(0, 300);
+  if (shouldUseMemoryFallback()) return careerApplicationsMemory.slice(0, 300);
 
   if (adapter === "postgres") {
     const result = await pool.query(
