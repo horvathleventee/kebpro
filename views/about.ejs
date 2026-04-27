@@ -17,6 +17,9 @@
         <p><%= paragraph %></p>
         <% }) %>
       </div>
+      <figure class="about-hero-photo panel">
+        <img src="/images/company/bemutatkozas.png" alt="<%= t.about.photoAlt || t.about.introTitle %>" loading="lazy" decoding="async" />
+      </figure>
       <div class="about-stats-col">
         <% t.about.stats.forEach((stat) => { %>
         <div class="about-stat-card panel" data-stagger>

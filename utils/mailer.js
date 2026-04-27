@@ -1,4 +1,12 @@
-﻿async function sendNotificationEmail(payload, settings) {
+﻿function normalizeRecipients(value) {
+  return String(value || '')
+    .split(/[\n,;]+/)
+    .map((email) => email.trim())
+    .filter(Boolean)
+    .join(', ');
+}
+
+async function sendNotificationEmail(payload, settings) {
   const shouldSend = Boolean(settings?.emailEnabled);
 
   if (!shouldSend) {
@@ -52,7 +60,7 @@
 
     await transporter.sendMail({
       from: process.env.MAIL_FROM || process.env.SMTP_USER,
-      to: settings.notificationEmail || process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
+      to: normalizeRecipients(settings.notificationEmail || process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL),
       subject,
       text,
     });
@@ -116,7 +124,7 @@ async function sendCareerNotificationEmail(payload, settings, cvFilePath) {
 
     await transporter.sendMail({
       from: process.env.MAIL_FROM || process.env.SMTP_USER,
-      to: settings.careerNotificationEmail || process.env.CAREER_NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
+      to: normalizeRecipients(settings.careerNotificationEmail || process.env.CAREER_NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL),
       subject,
       text,
       attachments,
@@ -130,3 +138,4 @@ async function sendCareerNotificationEmail(payload, settings, cvFilePath) {
 }
 
 module.exports = { sendNotificationEmail, sendCareerNotificationEmail };
+

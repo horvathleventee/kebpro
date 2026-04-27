@@ -228,6 +228,19 @@ function applySelectedProducts(data, errors, selectedProducts) {
   data.products = selectedProducts;
 }
 
+function normalizeEmailList(value) {
+  return String(value || "")
+    .split(/[\n,;]+/)
+    .map((email) => email.trim())
+    .filter(Boolean)
+    .join(", ");
+}
+
+function isValidEmailList(value) {
+  const emails = normalizeEmailList(value).split(", ").filter(Boolean);
+  return emails.length > 0 && emails.every((email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+}
+
 // --- Signed cookie auth (stateless, works on Vercel serverless) ---
 const COOKIE_NAME = "kbp_admin";
 const COOKIE_MAX_AGE = 8 * 60 * 60; // 8 hours in seconds
@@ -687,8 +700,8 @@ router.get("/admin", requireAdminSession, async (req, res, next) => {
 
 router.post("/admin/email-settings/update", requireAdminSession, async (req, res, next) => {
   try {
-    const email = (req.body.notificationEmail || "").trim();
-    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const email = normalizeEmailList(req.body.notificationEmail);
+    const valid = isValidEmailList(email);
 
     if (valid) {
       await updateNotificationEmail(email);
@@ -712,8 +725,8 @@ router.post("/admin/email-settings/toggle", requireAdminSession, async (req, res
 
 router.post("/admin/career-email-settings/update", requireAdminSession, async (req, res, next) => {
   try {
-    const email = (req.body.careerNotificationEmail || "").trim();
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const email = normalizeEmailList(req.body.careerNotificationEmail);
+    if (isValidEmailList(email)) {
       await updateCareerNotificationEmail(email);
     }
     return res.redirect("/admin");

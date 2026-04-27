@@ -27,6 +27,8 @@
               src="<%= category.image || `/images/products/${category.slug}.jpg` %>"
               alt="<%= category.title %>"
               class="product-slot-image"
+              loading="lazy"
+              decoding="async"
               onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';"
             />
             <div class="product-placeholder product-placeholder-fallback">

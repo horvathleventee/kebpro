@@ -34,7 +34,15 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"), {
+  etag: true,
+  maxAge: process.env.NODE_ENV === "production" ? "7d" : 0,
+  setHeaders(res, filePath) {
+    if (/\.(?:png|jpe?g|gif|webp|svg|ico)$/i.test(filePath)) {
+      res.setHeader("Cache-Control", "public, max-age=2592000, stale-while-revalidate=604800");
+    }
+  },
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // Lightweight cookie parser — no extra package needed

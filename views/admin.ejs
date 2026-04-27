@@ -19,16 +19,18 @@
       memoryConfigured: 'A deploy jelenleg memóriába ment, nem tartós tárhelyre.',
       sqliteConfigured: 'A helyi SQLite adatbázis aktív.',
       emailTitle: 'E-mail értesítés beállítás',
-      emailLabel: 'Értesítési e-mail cím',
+      emailLabel: 'Értesítési e-mail címek',
       saveEmail: 'E-mail cím mentése',
+      emailHint: 'Több cím megadható vesszővel, pontosvesszővel vagy új sorban elválasztva.',
       state: 'Állapot',
       enabled: 'Bekapcsolva',
       disabled: 'Kikapcsolva',
       disableNotice: 'Értesítés kikapcsolása',
       enableNotice: 'Értesítés bekapcsolása',
       careerEmailTitle: 'Karrieres e-mail értesítés',
-      careerEmailLabel: 'Karrieres értesítési e-mail cím',
+      careerEmailLabel: 'Karrieres értesítési e-mail címek',
       saveCareerEmail: 'E-mail cím mentése',
+      careerEmailHint: 'Több cím megadható vesszővel, pontosvesszővel vagy új sorban elválasztva.',
       careerEmailEnabled: 'Bekapcsolva',
       careerEmailDisabled: 'Kikapcsolva',
       disableCareerNotice: 'Értesítés kikapcsolása',
@@ -96,16 +98,18 @@
       memoryConfigured: 'The deployment is currently storing data in memory only.',
       sqliteConfigured: 'The local SQLite database is active.',
       emailTitle: 'Email notification settings',
-      emailLabel: 'Notification email address',
+      emailLabel: 'Notification email addresses',
       saveEmail: 'Save email address',
+      emailHint: 'Multiple addresses can be separated by comma, semicolon or new line.',
       state: 'Status',
       enabled: 'Enabled',
       disabled: 'Disabled',
       disableNotice: 'Disable notifications',
       enableNotice: 'Enable notifications',
       careerEmailTitle: 'Career email notifications',
-      careerEmailLabel: 'Career notification email address',
+      careerEmailLabel: 'Career notification email addresses',
       saveCareerEmail: 'Save email address',
+      careerEmailHint: 'Multiple addresses can be separated by comma, semicolon or new line.',
       careerEmailEnabled: 'Enabled',
       careerEmailDisabled: 'Disabled',
       disableCareerNotice: 'Disable notifications',
@@ -173,16 +177,18 @@
       memoryConfigured: 'Das Deployment speichert derzeit nur im Speicher.',
       sqliteConfigured: 'Die lokale SQLite-Datenbank ist aktiv.',
       emailTitle: 'E-Mail-Benachrichtigung',
-      emailLabel: 'Benachrichtigungsadresse',
+      emailLabel: 'Benachrichtigungsadressen',
       saveEmail: 'E-Mail-Adresse speichern',
+      emailHint: 'Mehrere Adressen können durch Komma, Semikolon oder neue Zeile getrennt werden.',
       state: 'Status',
       enabled: 'Aktiviert',
       disabled: 'Deaktiviert',
       disableNotice: 'Benachrichtigung deaktivieren',
       enableNotice: 'Benachrichtigung aktivieren',
       careerEmailTitle: 'Karriere E-Mail-Benachrichtigung',
-      careerEmailLabel: 'Karriere-Benachrichtigungsadresse',
+      careerEmailLabel: 'Karriere-Benachrichtigungsadressen',
       saveCareerEmail: 'E-Mail-Adresse speichern',
+      careerEmailHint: 'Mehrere Adressen können durch Komma, Semikolon oder neue Zeile getrennt werden.',
       careerEmailEnabled: 'Aktiviert',
       careerEmailDisabled: 'Deaktiviert',
       disableCareerNotice: 'Benachrichtigung deaktivieren',
@@ -257,7 +263,8 @@
       <h2><%= a.emailTitle %></h2>
       <form method="POST" action="/admin/email-settings/update" class="contact-form compact-form">
         <label for="notificationEmail"><%= a.emailLabel %></label>
-        <input id="notificationEmail" name="notificationEmail" type="email" value="<%= settings.notificationEmail %>" required />
+        <textarea id="notificationEmail" name="notificationEmail" rows="3" required><%= settings.notificationEmail %></textarea>
+        <small style="color: var(--muted);"><%= a.emailHint %></small>
         <button type="submit" class="btn btn-secondary"><%= a.saveEmail %></button>
       </form>
 
@@ -273,7 +280,8 @@
       <h2><%= a.careerEmailTitle %></h2>
       <form method="POST" action="/admin/career-email-settings/update" class="contact-form compact-form">
         <label for="careerNotificationEmail"><%= a.careerEmailLabel %></label>
-        <input id="careerNotificationEmail" name="careerNotificationEmail" type="email" value="<%= settings.careerNotificationEmail || '' %>" required />
+        <textarea id="careerNotificationEmail" name="careerNotificationEmail" rows="3" required><%= settings.careerNotificationEmail || '' %></textarea>
+        <small style="color: var(--muted);"><%= a.careerEmailHint %></small>
         <button type="submit" class="btn btn-secondary"><%= a.saveCareerEmail %></button>
       </form>
 

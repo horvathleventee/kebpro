@@ -284,6 +284,23 @@ copy.hu.home.faqItems = [
   { q: "Visszak\u00f6vethet\u0151k a gy\u00e1rt\u00e1si t\u00e9telek?", a: "Igen, nyomon k\u00f6vet\u00e9si rendszer\u00fcnk az alapanyag-besz\u00e1ll\u00edt\u00f3t\u00f3l a vev\u0151ig r\u00f6gz\u00edti a kapcsolatokat." },
 ];
 
+copy.hu.career.galleryEyebrow = "Munkakörnyezet";
+copy.hu.career.galleryTitle = "Valódi üzemi háttér, stabil csapat";
+copy.hu.career.galleryText = "A napi munka tiszta, ellenőrzött élelmiszeripari környezetben zajlik, ahol a folyamatok és a csapatmunka egyaránt fontosak.";
+copy.en.career.galleryEyebrow = "Work environment";
+copy.en.career.galleryTitle = "Real production background, stable team";
+copy.en.career.galleryText = "Daily work takes place in a clean, controlled food-industry environment where process discipline and teamwork both matter.";
+copy.de.career.galleryEyebrow = "Arbeitsumfeld";
+copy.de.career.galleryTitle = "Echter Produktionshintergrund, stabiles Team";
+copy.de.career.galleryText = "Die tägliche Arbeit erfolgt in einer sauberen, kontrollierten Lebensmittelumgebung, in der Prozesse und Teamarbeit gleichermaßen wichtig sind.";
+
+copy.hu.quality.photoAlt = "Minőségellenőrzött kebab gyártási folyamat";
+copy.en.quality.photoAlt = "Quality-controlled kebab production process";
+copy.de.quality.photoAlt = "Qualitätskontrollierter Kebab-Produktionsprozess";
+copy.hu.about.photoAlt = "Halasi Kebpro üzem bemutatkozó kép";
+copy.en.about.photoAlt = "Halasi Kebpro facility introduction image";
+copy.de.about.photoAlt = "Halasi Kebpro Betriebsbild";
+
 copy.en.home.zipPlaceholder = "Postal code";
 copy.en.home.zipResult = "Belongs to this zone";
 copy.en.home.zipNotFound = "Enter a 4-digit postal code";
