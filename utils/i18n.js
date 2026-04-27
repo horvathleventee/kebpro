@@ -7,7 +7,7 @@ const copy = {
     languages: { hu: "Magyar", en: "English", de: "Deutsch" },
     buttons: { quote: "Ajánlatot kérek", order: "Megrendelést adok le", contact: "Kapcsolatfelvétel", openDetails: "Részletek megnyitása", qualityDetails: "Részletes minőségi leírás", viewWholesale: "Nagykereskedelem megtekintése", logisticsDetails: "Logisztika részletei", submitQuote: "Ajánlatkérés elküldése", submitOrder: "Megrendelés elküldése", goHome: "Vissza a főoldalra" },
     footer: { description: "Magyar tulajdonú, családi vállalkozásként gyorsfagyasztott gyros- és kebab termékek gyártásával, illetve országos kiszállítással állunk partnereink rendelkezésére.", legal: "Jogi oldalak", contact: "Kapcsolat", privacy: "Adatkezelési tájékoztató", complaints: "Panaszkezelési szabályzat", imprint: "Impresszum", whistleblowing: "Belső Visszaélés-Bejelentés", copyright: "© Copyright 2026 Halasi Kebpro Kft." },
-    home: { eyebrow: "Gyros- és kebab hús gyártás", title: "Minőségbiztosított húsipari gyártás Kiskunhalasról, országos lefedettséggel.", title: "Gyros- és kebab hús gyártás Kiskunhalasról — minőségbiztosítva, országos lefedettséggel.", lead: "A Halasi Kebpro Kft. gyorsfagyasztott gyros- és kebab termékeket, fűszeres húskészítményeket, valamint kiegészítő termékeket gyárt és forgalmaz partnerei számára.", advantages: "Kiemelt előnyeink", advantageItems: ["Hazai alapanyagokra épülő, ellenőrzött gyártás", "A legrégebbi magyar gyros üzem", "Saját hűtött gépjárműves kiszállítás", "Nyomonkövethető, kiváló minőség"], qualityHeading: "Minőség és gyártás", qualityLead: "Sikerünk titka az alapanyagaink és végtermékeink folyamatosan ellenőrzött kiváló minősége, a modern és a hagyományos technológia egyedi ötvözete, illetve a szigorú élelmiszerhigiéniai szabályok következetes betartása.", qualityCards: [{ title: "Nyersanyagok", text: "A felhasznált hús kizárólag ellenőrzött forrásból érkezik, amelyet átvételkor és feldolgozás előtt többlépcsős kontrollnak vetünk alá." }, { title: "Fagyasztás", text: "A kész termékeket -42°C-ra beállított hűtőkamrában sokkolásos eljárással fagyasztjuk le." }, { title: "Nyomonkövetés", text: "Minden gyártási tétel teljes körűen visszakereshető, így partnereink számára átlátható és biztonságos ellátást biztosítunk." }], logisticsEyebrow: "Logisztika", logisticsTitle: "Országos lefedettség, heti ütemezésű kiszállítással.", logisticsLead: "Saját hűtős járműveinkkel Magyarország teljes területét kiszolgáljuk.", logisticsPanelTitle: "Aktív logisztikai információ", logisticsPanelText: "Mozgasd az egeret a régiók fölé, és megmutatjuk az adott zónához tartozó ellátási fókuszt.", qualityPillarsTitle: "Minőségbiztosítás 5 pillére", qualityPillarsText: "A Halasi Kebpro Kft.-nél a minőség nem külön folyamat, hanem a teljes működés alapja: ellenőrzött alapanyagok, szabályozott gyártás, sokkolásos fagyasztás, folyamatos kontroll és teljes nyomonkövethetőség.", ctaTitle: "Legyen Ön is partnerünk nagykereskedelmi vagy HORECA kiszolgálásban.", productsIntro: "Termékkínálatunk gyros- és kebab tömböket, csíkozott húsfalatokat, pitát, fűszerezett és pácolt húskészítményeket, valamint egyéb hús specialitásokat foglal magában — megrendelésre bármilyen receptúrával.", productsLink: "Részletek a termékkínálatról", ctaQuoteTitle: "Ajánlatkérés", ctaQuoteText: "Kérjen személyre szabott árajánlatot online felületünkön. Kollégáink rövid időn belül felkeresik Önt válaszunkkal!", ctaOrderTitle: "Megrendelés leadása", ctaOrderText: "Megrendelését közvetlenül online is leadhatja. Töltse ki az űrlapot, és munkatársaink rövid időn belül visszaigazolják rendelését." },
+    home: { eyebrow: "Gyros- és kebab hús gyártás", title: "Gyros- és kebab hús gyártás Kiskunhalasról — minőségbiztosítva, országos lefedettséggel.", lead: "A Halasi Kebpro Kft. gyorsfagyasztott gyros- és kebab termékeket, fűszeres húskészítményeket, valamint kiegészítő termékeket gyárt és forgalmaz partnerei számára.", advantages: "Kiemelt előnyeink", advantageItems: ["Hazai alapanyagokra épülő, ellenőrzött gyártás", "A legrégebbi magyar gyros üzem", "Saját hűtött gépjárműves kiszállítás", "Nyomonkövethető, kiváló minőség"], qualityHeading: "Minőség és gyártás", qualityLead: "Sikerünk titka az alapanyagaink és végtermékeink folyamatosan ellenőrzött kiváló minősége, a modern és a hagyományos technológia egyedi ötvözete, illetve a szigorú élelmiszerhigiéniai szabályok következetes betartása.", qualityCards: [{ title: "Nyersanyagok", text: "A felhasznált hús kizárólag ellenőrzött forrásból érkezik, amelyet átvételkor és feldolgozás előtt többlépcsős kontrollnak vetünk alá." }, { title: "Fagyasztás", text: "A kész termékeket -42°C-ra beállított hűtőkamrában sokkolásos eljárással fagyasztjuk le." }, { title: "Nyomonkövetés", text: "Minden gyártási tétel teljes körűen visszakereshető, így partnereink számára átlátható és biztonságos ellátást biztosítunk." }], logisticsEyebrow: "Logisztika", logisticsTitle: "Országos lefedettség, heti ütemezésű kiszállítással.", logisticsLead: "Saját hűtős járműveinkkel Magyarország teljes területét kiszolgáljuk.", logisticsPanelTitle: "Aktív logisztikai információ", logisticsPanelText: "Mozgasd az egeret a régiók fölé, és megmutatjuk az adott zónához tartozó ellátási fókuszt.", qualityPillarsTitle: "Minőségbiztosítás 5 pillére", qualityPillarsText: "A Halasi Kebpro Kft.-nél a minőség nem külön folyamat, hanem a teljes működés alapja: ellenőrzött alapanyagok, szabályozott gyártás, sokkolásos fagyasztás, folyamatos kontroll és teljes nyomonkövethetőség.", ctaTitle: "Legyen Ön is partnerünk nagykereskedelmi vagy HORECA kiszolgálásban.", productsIntro: "Termékkínálatunk gyros- és kebab tömböket, csíkozott húsfalatokat, pitát, fűszerezett és pácolt húskészítményeket, valamint egyéb hús specialitásokat foglal magában — megrendelésre bármilyen receptúrával.", productsLink: "Részletek a termékkínálatról", ctaQuoteTitle: "Ajánlatkérés", ctaQuoteText: "Kérjen személyre szabott árajánlatot online felületünkön. Kollégáink rövid időn belül felkeresik Önt válaszunkkal!", ctaOrderTitle: "Megrendelés leadása", ctaOrderText: "Megrendelését közvetlenül online is leadhatja. Töltse ki az űrlapot, és munkatársaink rövid időn belül visszaigazolják rendelését." },
     about: { eyebrow: "Rólunk", title: "Magyar tulajdonú, folyamatosan fejlődő élelmiszeripari gyártó cég.", introTitle: "Bemutatkozás", introText: ["A Halasi Kebpro Kft. 2004 májusában alakult, német-magyar vegyes vállalkozásként. Fő tevékenységünk a kebab/gyros gyártása, melyhez a technológiát, know-how-t, fűszereket Németországból hoztuk be.", "Cégünk 2005-től teljes mértékben magyar, családi vállalkozásként működik. Folyamatosan növekvő forgalmunk 2008-ra tette elkerülhetetlenné, hogy az addigi bérelt üzemünket egy nagyobb, saját üzemre cseréljük. Jelenlegi kapacitásunk heti 14–15 tonna gyorsfagyasztott kebab/gyros gyártását teszi lehetővé, tárolókapacitásunk mintegy 18–20 tonna.", "Minden gyártási és minőségellenőrzési folyamatot kiválóan képzett szakembereink felügyelnek. A gyártás minden fázisa megfelel a legszigorúbb élelmiszerkezelési előírásoknak — dolgozóink rendszeres továbbképzéseken vesznek részt.", "A Halasi Kebpro Kft.-nek exportjoga van, amely folyamatos állatorvosi ellenőrzést is garantál. A kebab/gyros-hús tömbökön kívül csíkozott húst, saslikot, májjal töltött combfiléet és egyéb termékeket is gyártunk."], stats: [{ value: "2004", label: "Alapítás éve" }, { value: "14–15 t", label: "Heti kapacitás" }, { value: "18–20 t", label: "Tárolókapacitás" }, { value: "80+", label: "Alkalmazott" }], philosophyTitle: "Filozófiánk", philosophyItems: [{ title: "Kiváló ár-érték arány", text: "A termékek széles skáláját kínáljuk különböző variációkban, ízesítésben és méretben, kiváló ár-érték arány mellett." }, { title: "Szakértelem", text: "Jól ismerjük ügyfeleink igényeit és képesek vagyunk minden pillanatban rövid határidőn belül és rugalmasan teljesíteni a kívánságaikat. Ha hozzánk fordul, akkor a szakértőhöz fordul." }, { title: "Kiváló minőség", text: "Garantáljuk az állandó kiváló minőséget és a megbízható, határidőre történő szállítást. Modern gyártósorainkat folyamatosan fejlesztjük." }, { title: "Felelősség", text: "Élelmiszerrel dolgozunk — ez felelősséggel jár. A felelősségtudat és a szakmai felkészültség fejlesztése minden dolgozónk számára prioritás." }, { title: "A legjobbnak lenni", text: "Mi kizárólag a legjobbra koncentrálunk minden folyamatban, minden termékben." }] },
     quality: { eyebrow: "Minőség", title: "Kiemelt minőségbiztosítás a teljes gyártási és logisztikai folyamatban.", timelineTitle: "Gyártási idővonal", timelineLead: "A gyártási folyamat legfontosabb lépéseit vizuális sorrendben is kiemeltük.", sections: { quality: { title: "Kebpro minőség", paragraphs: ["Vállalatunk jelenleg mintegy 80 alkalmazottat foglalkoztat, termékeinkkel pedig az ország egész területén jelen vagyunk.", "Az élelmiszerhigiéniai szabályok maximális betartása mellett korszerű technológiai eljárásokkal és saját hűtött gépjárműveinkkel szolgáljuk ki partnereinket."] }, raw: { title: "Nyersanyagok", paragraphs: ["A termékeinkhez felhasznált húst kizárólag ellenőrzött forrásból, magyarországi partnereinktől szerezzük be.", "A nyersanyagok tekintetében napi szintű ellenőrzéseket végzünk." ] }, process: { title: "Gyártási folyamat", steps: ["A baromfihús szükség szerint megrendelésre kerül a beszállítótól.", "A leszállított áru hőmérsékletét és minőségét szakképzett kollégáink vizsgálják.", "A hús speciális hűtőházba kerül.", "A hús innen jut a gyártócsarnokba.", "A csontozást a speciális fűszerezés követi.", "Várakozási idő után a hús készen áll a döner kebab készítéséhez.", "Az ízesített csirke kebabot döner nyársra fűzzük.", "A végső súly elérése után következik a formázás és a csomagolás."] }, freezing: { title: "Fagyasztás", paragraphs: ["Az elkészült kebab nyársakat -42 °C-ra beállított speciális hűtőkamrában sokkolással lefagyasztjuk.", "Ezután -18 °C és -20 °C közötti hűtőkamrákban tároljuk őket a kiszállításig."] }, traceability: { title: "Nyomonkövetés", paragraphs: ["Az egy lépés előre, egy lépés hátra elv alapján garantáljuk az élelmiszerek biztonságát és visszakereshetőségét.", "Rendszerünk az alapanyag-beszállítótól a vevőig rögzíti a kapcsolatokat."] } } },
     services: { eyebrow: "Termékek", title: "Nagykereskedelmi termékpaletta gyros, kebab és kapcsolódó termékekhez.", introTitle: "Nagykereskedelem", introText: "A képkártyák most placeholderként működnek, így később egyszerűen csak a végleges termékfotókat kell majd a megfelelő helyre cserélni.", categoryJump: "Ugrás kategóriára", tableProduct: "Termék megnevezés", tablePack: "Kiszerelés", tableUnit: "Egység", tablePrice: "Ár", priceCustom: "Egyedi", placeholderLabel: "Termékkép helye", customText: "Bármilyen fűszerezett terméket előállítunk rendelésre, valamint friss baromfi és vízi szárnyas terméket is szállítunk. Termékeinket a HU 899-es és a HU 1439 számú saját üzemeinkben gyártjuk." },
@@ -90,6 +90,28 @@ const productCatalog = {
   ],
 };
 
+
+const retailCatalog = {
+  hu: [
+    { slug: "pitak", title: "Piták", cardLead: "Zsebes és görög piták több méretben, klasszikus és teljes kiőrlésű változatban.", items: [["Pita 70", "10 db/tasak, 100 db/karton", "db"], ["Pita 80", "10 db/tasak, 100 db/karton", "db"], ["Pita 90", "10 db/tasak, 100 db/karton", "db"], ["Pita 100", "10 db/tasak, 100 db/karton", "db"], ["Pita 80 teljes kiőrlésű", "10 db/tasak", "db"], ["Görög pita", "10 db/tasak, 120 db/karton", "db"], ["Görög pita teljes kiőrlésű", "10 db/tasak, 120 db/karton", "db"]] },
+    { slug: "tortillak", title: "Tortillák", cardLead: "Dürüm és mexikói tortilla termékek normál, teljes kiőrlésű és gluténmentes változatban.", items: [["Dürüm tortilla 25 cm", "18 db/csomag", "csomag"], ["Dürüm tortilla 30 cm", "18 db/csomag", "csomag"], ["Dürüm tortilla 30 cm tk", "18 db/csomag", "csomag"], ["Mexifoods tortilla - gm, 15 cm", "10 db/csomag", "csomag"]] },
+    { slug: "desszertek", title: "Desszertek", cardLead: "Marlenka és baklava desszertek több ízben, tálcás vagy darabos kiszerelésben.", items: [["Marlenka (csokis, diós)", "", "db"], ["Marlenka (gluténmentes)", "", "db"], ["Baklava (csokis, diós, vegyes)", "24 db/tálca", "tálca"]] },
+    { slug: "kiegeszitok-csomagolas", title: "Kiegészítők, csomagolóanyagok", cardLead: "Falafel, olajbogyó és csomagolóanyagok a teljes kiszolgáláshoz.", items: [["Falafel", "1 kg/tasak", "db"], ["Hutesa olajbogyó fekete szeletelt", "", "db"], ["Hutesa olajbogyó zöld szeletelt", "", "db"], ["Pita tasak papír", "", "tasak"], ["Pita tasak nylon", "", "tasak"]] },
+  ],
+  en: [
+    { slug: "pitas", title: "Pitas", cardLead: "Pocket and Greek pitas in multiple sizes, classic and wholegrain versions.", items: [["Pita 70", "10 pcs/bag, 100 pcs/carton", "pcs"], ["Pita 80", "10 pcs/bag, 100 pcs/carton", "pcs"], ["Pita 90", "10 pcs/bag, 100 pcs/carton", "pcs"], ["Pita 100", "10 pcs/bag, 100 pcs/carton", "pcs"], ["Pita 80 wholegrain", "10 pcs/bag", "pcs"], ["Greek pita", "10 pcs/bag, 120 pcs/carton", "pcs"], ["Greek pita wholegrain", "10 pcs/bag, 120 pcs/carton", "pcs"]] },
+    { slug: "tortillas", title: "Tortillas", cardLead: "Durum and Mexican tortilla products in classic, wholegrain and gluten-free versions.", items: [["Durum tortilla 25 cm", "18 pcs/pack", "pack"], ["Durum tortilla 30 cm", "18 pcs/pack", "pack"], ["Durum tortilla 30 cm wholegrain", "18 pcs/pack", "pack"], ["Mexifoods tortilla - gluten-free, 15 cm", "10 pcs/pack", "pack"]] },
+    { slug: "desserts", title: "Desserts", cardLead: "Marlenka and baklava desserts in multiple flavours.", items: [["Marlenka (chocolate, walnut)", "", "pcs"], ["Marlenka (gluten-free)", "", "pcs"], ["Baklava (chocolate, walnut, mixed)", "24 pcs/tray", "tray"]] },
+    { slug: "extras-packaging", title: "Extras and packaging", cardLead: "Falafel, olives and packaging materials for complete service.", items: [["Falafel", "1 kg/bag", "pcs"], ["Hutesa sliced black olives", "", "pcs"], ["Hutesa sliced green olives", "", "pcs"], ["Pita paper bag", "", "bag"], ["Pita nylon bag", "", "bag"]] },
+  ],
+  de: [
+    { slug: "pitas", title: "Pitas", cardLead: "Taschen- und griechische Pitas in mehreren Größen, klassisch und Vollkorn.", items: [["Pita 70", "10 Stk/Beutel, 100 Stk/Karton", "Stk"], ["Pita 80", "10 Stk/Beutel, 100 Stk/Karton", "Stk"], ["Pita 90", "10 Stk/Beutel, 100 Stk/Karton", "Stk"], ["Pita 100", "10 Stk/Beutel, 100 Stk/Karton", "Stk"], ["Pita 80 Vollkorn", "10 Stk/Beutel", "Stk"], ["Griechische Pita", "10 Stk/Beutel, 120 Stk/Karton", "Stk"], ["Griechische Pita Vollkorn", "10 Stk/Beutel, 120 Stk/Karton", "Stk"]] },
+    { slug: "tortillas", title: "Tortillas", cardLead: "Dürüm- und mexikanische Tortillas in klassischer, Vollkorn- und glutenfreier Variante.", items: [["Dürüm Tortilla 25 cm", "18 Stk/Packung", "Packung"], ["Dürüm Tortilla 30 cm", "18 Stk/Packung", "Packung"], ["Dürüm Tortilla 30 cm Vollkorn", "18 Stk/Packung", "Packung"], ["Mexifoods Tortilla - glutenfrei, 15 cm", "10 Stk/Packung", "Packung"]] },
+    { slug: "desserts", title: "Desserts", cardLead: "Marlenka und Baklava in mehreren Geschmacksrichtungen.", items: [["Marlenka (Schoko, Walnuss)", "", "Stk"], ["Marlenka (glutenfrei)", "", "Stk"], ["Baklava (Schoko, Walnuss, gemischt)", "24 Stk/Tablett", "Tablett"]] },
+    { slug: "extras-verpackung", title: "Extras und Verpackung", cardLead: "Falafel, Oliven und Verpackungsmaterialien für komplette Versorgung.", items: [["Falafel", "1 kg/Beutel", "Stk"], ["Hutesa schwarze Oliven geschnitten", "", "Stk"], ["Hutesa grüne Oliven geschnitten", "", "Stk"], ["Pita Papierbeutel", "", "Beutel"], ["Pita Nylonbeutel", "", "Beutel"]] },
+  ],
+};
+
 const grantItems = {
   hu: [
     { slug: "vp3-4.2.1-4.2.2-2-21", title: "VP3-4.2.1-4.2.2-2-21", image: "/images/141mil.jpg", beneficiary: "HALASI KEBPRO Élelmiszerfeldolgozó és Kereskedelmi Kft.", call: "Élelmiszeripari üzemek komplex fejlesztése; VP3-4.2.1-4.2.2-2-21", project: "A Halasi Kebpro Kft. komplex fejlesztése; 3301640506", amount: "141.447.690 Ft", supportRate: "50%", summary: ["A projekt célja volt, hogy a termékek értéknövelését és a piacra jutást elősegítő, a technológiai fejlesztést, továbbá a környezeti erőforrás-hatékonyságot célzó komplex beruházásokat támogassa.", "A projekt végrehajtása elősegítette a Halasi Kebpro Kft. versenyképességének javítását a legkorszerűbb, innovatív technológiák megvalósításával.", "A projekt műszaki-szakmai előrehaladása a tervezettek szerint alakult.", "Beszerzésre és beüzemelésre került többek között Fiat Ducato teherjármű, légcsere rendszer, szeletelő robot, targonca és csomagológép."], endDate: "2023.08.30." },
@@ -119,137 +141,89 @@ copy.de.home.logisticsStats = [
   { label: "K\u00fchlkette", value: "Kontrolliert", text: "\u00dcberwachte K\u00fchlkette und abgestimmtes Lieferfenster bis zur \u00dcbergabe." },
 ];
 
-copy.hu.home.zipPlaceholder = "Irányítószám...";
-copy.hu.home.zipResult = "Szállítási régiója:";
-copy.hu.home.zipNotFound = "Nem található régió ehhez az irányítószámhoz.";
 
-copy.en.home.zipPlaceholder = "Postal code...";
-copy.en.home.zipResult = "Your delivery region:";
-copy.en.home.zipNotFound = "No region found for this postal code.";
-
-copy.de.home.zipPlaceholder = "Postleitzahl...";
-copy.de.home.zipResult = "Ihre Lieferregion:";
-copy.de.home.zipNotFound = "Keine Region für diese Postleitzahl gefunden.";
-
-copy.hu.home.callbackBtn = "Visszahívást kérek";
-copy.hu.home.callbackTitle = "Visszahívás kérése";
-copy.hu.home.callbackName = "Név";
-copy.hu.home.callbackPhone = "Telefonszám";
-copy.hu.home.callbackTime = "Mikor hívhatjuk?";
-copy.hu.home.callbackTimes = ["Délelőtt (8–12)", "Délután (12–17)", "Bármikor"];
-copy.hu.home.callbackSend = "Visszahívást kérek";
-copy.hu.home.callbackSuccess = "Köszönjük! Hamarosan hívjuk.";
-
-copy.en.home.callbackBtn = "Request callback";
-copy.en.home.callbackTitle = "Request a callback";
-copy.en.home.callbackName = "Name";
-copy.en.home.callbackPhone = "Phone number";
-copy.en.home.callbackTime = "When can we call?";
-copy.en.home.callbackTimes = ["Morning (8–12)", "Afternoon (12–17)", "Anytime"];
-copy.en.home.callbackSend = "Request callback";
-copy.en.home.callbackSuccess = "Thank you! We will call you soon.";
-
-copy.de.home.callbackBtn = "Rückruf anfordern";
-copy.de.home.callbackTitle = "Rückruf anfordern";
-copy.de.home.callbackName = "Name";
-copy.de.home.callbackPhone = "Telefonnummer";
-copy.de.home.callbackTime = "Wann können wir anrufen?";
-copy.de.home.callbackTimes = ["Vormittag (8–12)", "Nachmittag (12–17)", "Jederzeit"];
-copy.de.home.callbackSend = "Rückruf anfordern";
-copy.de.home.callbackSuccess = "Vielen Dank! Wir rufen Sie bald an.";
-
-copy.hu.home.calcTitle = "Mennyiség kalkulátor";
-copy.hu.home.calcLead = "Válasszon terméket és adja meg az adagszámot — kiszámítjuk a becsült mennyiséget.";
-copy.hu.home.calcProduct = "Termék kategória";
-copy.hu.home.calcServings = "Adagszám";
-copy.hu.home.calcResult = "Becsült mennyiség:";
-copy.hu.home.calcCta = "Ajánlatot kérek";
-copy.hu.home.calcProducts = [
-  { name: "Gyros tömb (csirke)", kgPerServing: 0.15 },
-  { name: "Gyros tömb (marha-pulyka)", kgPerServing: 0.15 },
-  { name: "Kebab tömb", kgPerServing: 0.12 },
-  { name: "Csíkozott húsfalatok", kgPerServing: 0.13 },
-  { name: "Fűszerezett húskészítmény", kgPerServing: 0.14 }
+productCatalog.hu = [
+  { slug: "kebab-nyars", title: "Kebab nyárs termékek", cardLead: "Csirke és marha kebab nyársak HORECA partnereknek, 5-50 kg-os kiszerelésben.", items: [["Csirke kebab", "5, 10, 15 ... 50 kg", "kg"], ["Csirke kebab félbőrös", "5, 10, 15 ... 50 kg", "kg"], ["Marha kebab EU", "5, 10, 15 ... 50 kg", "kg"]] },
+  { slug: "saslik", title: "Saslik termékek", cardLead: "Combfiléből és mellfiléből készülő saslik termékek stabil HORECA kiszerelésben.", items: [["Csirke saslik combfiléből", "5 kg/karton", "kg"], ["Csirke saslik combfiléből szalonnával", "5 kg/karton", "kg"], ["Csirke saslik combfiléből trikolor", "5 kg/karton", "kg"], ["Csirke saslik mellfiléből szalonnával", "Rendelhető 20 kg-tól", "kg"]] },
+  { slug: "elosutott", title: "Elősütött termékek", cardLead: "Elősütött és gyorsfagyasztott kebab, marhahúsos kebab és pulled pork termékek.", items: [["E.h. sült csirke comb kebab", "1,5 kg/tasak, 9 kg/karton, 15 nap szavatossági idő", "kg"], ["Gy.f. sült csirke comb kebab", "1 kg/tasak, 10 kg/karton, új gépi csomagolás", "kg"], ["Gy.f. sült csirke comb kebab", "1,5 kg/tasak, 9 kg/karton", "kg"], ["Gy.f. sült marhahúsos kebab", "1 kg/tasak, 8 kg/karton", "kg"], ["Gy.f. pulled pork - tépett sertéshús", "1 kg/tasak, 8 kg/karton", "kg"]] },
+  { slug: "kulonlegessegek", title: "Különlegességek", cardLead: "Speciális húskészítmények egyedi igényekhez és visszatérő partnerrendelésekhez.", items: [["Kakas taraj", "0,5 kg/tasak, 5 kg/karton", "kg"], ["Kakas here", "Érdeklődjön", ""]] },
+  { slug: "joghurtok", title: "Joghurtok", cardLead: "Török és görög joghurtok, illetve ayran italjoghurt partneri kiszerelésben.", items: [["Haydi török joghurt", "10 kg", "db"], ["Paltsidis görög joghurt", "5 kg", "db"], ["Laban joghurt", "10 kg", "db"], ["Haydi ayran ivójoghurt", "20 db/tálca", "tálca"]] },
 ];
+productCatalog.en = productCatalog.hu.map((category) => ({ ...category, title: category.title, cardLead: category.cardLead }));
+productCatalog.de = productCatalog.hu.map((category) => ({ ...category, title: category.title, cardLead: category.cardLead }));
 
-copy.en.home.calcTitle = "Quantity calculator";
-copy.en.home.calcLead = "Choose a product and enter the number of servings — we'll estimate the quantity.";
-copy.en.home.calcProduct = "Product category";
-copy.en.home.calcServings = "Servings";
-copy.en.home.calcResult = "Estimated quantity:";
-copy.en.home.calcCta = "Request a quote";
-copy.en.home.calcProducts = [
-  { name: "Gyros block (chicken)", kgPerServing: 0.15 },
-  { name: "Gyros block (beef-turkey)", kgPerServing: 0.15 },
-  { name: "Kebab block", kgPerServing: 0.12 },
-  { name: "Sliced meat strips", kgPerServing: 0.13 },
-  { name: "Seasoned meat product", kgPerServing: 0.14 }
-];
+// Kebpro 2026 content overrides
+copy.hu.nav.wholesale = "HORECA";
+copy.en.nav.wholesale = "HORECA";
+copy.de.nav.wholesale = "HORECA";
+copy.hu.buttons.viewWholesale = "HORECA kínálat megtekintése";
+copy.en.buttons.viewWholesale = "View HORECA range";
+copy.de.buttons.viewWholesale = "HORECA-Sortiment ansehen";
+copy.hu.home.title = "Gyros- és kebab hús gyártás Kiskunhalason, országos lefedettséggel.";
+copy.en.home.title = "Gyros and kebab meat production in Kiskunhalas with nationwide coverage.";
+copy.de.home.title = "Gyros- und Kebabfleischproduktion in Kiskunhalas mit landesweiter Abdeckung.";
+copy.hu.services.title = "HORECA termékpaletta gyros, kebab és kapcsolódó termékekhez.";
+copy.hu.services.introTitle = "HORECA";
+copy.hu.services.introText = "A kategóriakártyák képes helyőrzőként működnek, így a következő körben egyszerűen a végleges termékfotókra cserélhetők.";
+copy.hu.home.ctaTitle = "Legyen Ön is partnerünk HORECA kiszolgálásban.";
+copy.en.services.title = "HORECA product range for gyros, kebab and related products.";
+copy.en.services.introTitle = "HORECA";
+copy.en.home.ctaTitle = "Become our partner in HORECA supply.";
+copy.de.services.title = "HORECA-Produktsortiment für Gyros, Kebab und ergänzende Artikel.";
+copy.de.services.introTitle = "HORECA";
+copy.de.home.ctaTitle = "Werden Sie unser Partner in der HORECA-Belieferung.";
+copy.hu.retail.soon = "Kiskereskedelmi terméklista";
+copy.hu.retail.text = "A kiskereskedelmi kínálat pitákat, tortillákat, desszerteket, kiegészítőket és csomagolóanyagokat tartalmaz.";
+copy.hu.retail.note = "A kiegészítő és csomagoló anyagok mellett egyéb termékeket is beszerzünk az Attase Kft. (török) és a Hellas-Invest Kft. (görög) termékei közül.";
+copy.en.retail.note = "In addition to complementary and packaging materials, we can also source other products from Attase Kft. (Turkish) and Hellas-Invest Kft. (Greek) ranges.";
+copy.de.retail.note = "Neben Ergänzungs- und Verpackungsmaterialien können wir weitere Produkte aus dem Sortiment der Attase Kft. (türkisch) und Hellas-Invest Kft. (griechisch) beschaffen.";
+copy.hu.forms.headquarters = "Székhely";
+copy.hu.forms.taxNumber = "Adószám";
+copy.hu.forms.addProduct = "További termék hozzáadása";
+copy.hu.forms.removeProduct = "Termék eltávolítása";
+copy.hu.forms.selectProduct = "Válasszon terméket";
+copy.hu.forms.productList = "Rendelt termékek";
+copy.hu.forms.requiredHint = "A csillaggal jelölt mezők kitöltése kötelező.";
+copy.hu.forms.quoteSuccessNote = "Az üzenetet rögzítettük, a csapat hamarosan jelentkezik.";
+copy.hu.forms.orderSuccessNote = "A rendelés rögzítve, a visszaigazolással hamarosan keresünk.";
+copy.en.forms.headquarters = "Registered office";
+copy.en.forms.taxNumber = "Tax number";
+copy.en.forms.addProduct = "Add another product";
+copy.en.forms.removeProduct = "Remove product";
+copy.en.forms.selectProduct = "Select product";
+copy.en.forms.productList = "Ordered products";
+copy.en.forms.requiredHint = "Fields marked with an asterisk are required.";
+copy.en.forms.quoteSuccessNote = "Your message has been recorded, our team will contact you shortly.";
+copy.en.forms.orderSuccessNote = "Your order has been recorded, we will contact you shortly with confirmation.";
+copy.de.forms.headquarters = "Firmensitz";
+copy.de.forms.taxNumber = "Steuernummer";
+copy.de.forms.addProduct = "Weiteres Produkt hinzufügen";
+copy.de.forms.removeProduct = "Produkt entfernen";
+copy.de.forms.selectProduct = "Produkt auswählen";
+copy.de.forms.productList = "Bestellte Produkte";
+copy.de.forms.requiredHint = "Mit Stern markierte Felder sind Pflichtfelder.";
+copy.de.forms.quoteSuccessNote = "Ihre Nachricht wurde erfasst, unser Team meldet sich in Kürze.";
+copy.de.forms.orderSuccessNote = "Ihre Bestellung wurde erfasst, wir melden uns in Kürze mit der Bestätigung.";
+copy.hu.quote.success = "Köszönjük, az ajánlatkérésed megérkezett! Kollégáink hamarosan felveszik veled a kapcsolatot.";
+copy.hu.order.success = "Köszönjük, a megrendelésed megérkezett! Rövidesen visszaigazoljuk a részleteket.";
+copy.en.quote.success = "Thank you, your quote request has arrived! Our team will contact you shortly.";
+copy.en.order.success = "Thank you, your order has arrived! We will confirm the details shortly.";
+copy.de.quote.success = "Vielen Dank, Ihre Anfrage ist eingegangen! Unser Team meldet sich in Kürze.";
+copy.de.order.success = "Vielen Dank, Ihre Bestellung ist eingegangen! Wir bestätigen die Details in Kürze.";
+copy.hu.career.formCv = "Önéletrajz feltöltése";
+copy.en.career.formCv = "Upload CV";
+copy.de.career.formCv = "Lebenslauf hochladen";
 
-copy.de.home.calcTitle = "Mengenrechner";
-copy.de.home.calcLead = "Wählen Sie ein Produkt und geben Sie die Portionszahl ein — wir schätzen die Menge.";
-copy.de.home.calcProduct = "Produktkategorie";
-copy.de.home.calcServings = "Portionen";
-copy.de.home.calcResult = "Geschätzte Menge:";
-copy.de.home.calcCta = "Angebot anfragen";
-copy.de.home.calcProducts = [
-  { name: "Gyros-Block (Hähnchen)", kgPerServing: 0.15 },
-  { name: "Gyros-Block (Rind-Pute)", kgPerServing: 0.15 },
-  { name: "Kebab-Block", kgPerServing: 0.12 },
-  { name: "Fleischstreifen", kgPerServing: 0.13 },
-  { name: "Gewürztes Fleischprodukt", kgPerServing: 0.14 }
-];
-
-copy.hu.home.explorerTitle = "Termékeink egy pillantásra";
-copy.hu.home.explorerLead = "Fedezze fel kínálatunkat — válasszon kategóriát, és tekintse meg a termékeket.";
-copy.hu.home.explorerCta = "Ajánlatot kérek erre →";
-copy.hu.home.explorerMore = "Teljes terméklista →";
-
-copy.en.home.explorerTitle = "Our products at a glance";
-copy.en.home.explorerLead = "Explore our range — select a category and browse the products.";
-copy.en.home.explorerCta = "Request a quote →";
-copy.en.home.explorerMore = "Full product list →";
-
-copy.de.home.explorerTitle = "Unsere Produkte auf einen Blick";
-copy.de.home.explorerLead = "Entdecken Sie unser Sortiment — wählen Sie eine Kategorie und sehen Sie die Produkte.";
-copy.de.home.explorerCta = "Angebot anfragen →";
-copy.de.home.explorerMore = "Vollständige Produktliste →";
-
-copy.hu.home.faqTitle = "Gyakran ismételt kérdések";
-copy.hu.home.faqItems = [
-  { q: "Mekkora a minimális rendelési mennyiség?", a: "Partnereinknek rugalmasan biztosítunk kisebb és nagyobb tételeket egyaránt. Kérjük, vegye fel velünk a kapcsolatot a részletekért." },
-  { q: "Milyen gyakran szállítanak?", a: "Heti rendszerességgel, előre ütemezett útvonalakon szállítunk Magyarország teljes területére. Kiemelt pontokon többszöri fordulóval." },
-  { q: "Hogyan biztosítják a hűtőlánc folytonosságát?", a: "Saját hűtős gépjárműparkunkkal szállítunk, a teljes logisztikai folyamat során ellenőrzött hőmérsékleten tartjuk a termékeket." },
-
-  { q: "Hogyan kérhetek árajánlatot?", a: "Online ajánlatkérő űrlapunkon, telefonon, vagy e-mailben is felkereshet minket. Kollégáink rövid időn belül válaszolnak." }
-];
-copy.hu.home.faqShowMore = "Több kérdés megjelenítése";
-copy.hu.home.faqShowLess = "Kevesebb";
-
-copy.en.home.faqTitle = "Frequently asked questions";
-copy.en.home.faqItems = [
-  { q: "What is the minimum order quantity?", a: "We flexibly serve both small and large orders for our partners. Please contact us for details." },
-  { q: "How often do you deliver?", a: "We deliver weekly on scheduled routes covering all of Hungary, with multiple stops at priority locations." },
-  { q: "How do you ensure cold chain continuity?", a: "We deliver with our own refrigerated fleet, maintaining monitored temperatures throughout the entire logistics process." },
-
-  { q: "How can I request a quote?", a: "You can reach us through our online quote form, by phone, or by email. Our team will respond promptly." }
-];
-copy.en.home.faqShowMore = "Show more questions";
-copy.en.home.faqShowLess = "Show less";
-
-copy.de.home.faqTitle = "Häufig gestellte Fragen";
-copy.de.home.faqItems = [
-  { q: "Was ist die Mindestbestellmenge?", a: "Wir bedienen unsere Partner flexibel mit kleinen und großen Aufträgen. Kontaktieren Sie uns für Details." },
-  { q: "Wie oft liefern Sie?", a: "Wir liefern wöchentlich auf geplanten Routen in ganz Ungarn, mit mehreren Stopps an priorisierten Standorten." },
-  { q: "Wie stellen Sie die Kühlkette sicher?", a: "Wir liefern mit unserer eigenen Kühlflotte und halten die Produkte während des gesamten Logistikprozesses auf kontrollierter Temperatur." },
-
-  { q: "Wie kann ich ein Angebot anfordern?", a: "Sie erreichen uns über unser Online-Formular, per Telefon oder E-Mail. Unser Team antwortet zeitnah." }
-];
-copy.de.home.faqShowMore = "Mehr Fragen anzeigen";
-copy.de.home.faqShowLess = "Weniger";
 function getLang(value) { return supportedLanguages.includes(value) ? value : defaultLanguage; }
 function getTranslations(lang) { return copy[getLang(lang)]; }
 function getWholesaleCatalog(lang) { return productCatalog[getLang(lang)]; }
+function getRetailCatalog(lang) { return retailCatalog[getLang(lang)]; }
+function getOrderProductOptions(lang) {
+  const currentLang = getLang(lang);
+  return [...productCatalog[currentLang], ...retailCatalog[currentLang]].flatMap((category) =>
+    category.items.map((item) => ({ value: item[0], label: `${category.title} - ${item[0]}` }))
+  );
+}
 function getGrantItems(lang) { return grantItems[getLang(lang)]; }
 const logisticsPanelPositions = {
   west: "panel-bottom-right",
@@ -293,5 +267,5 @@ function buildLangUrl(pathname, lang, extraQuery = {}) {
   return queryString ? `${pathname}?${queryString}` : pathname;
 }
 
-module.exports = { supportedLanguages, defaultLanguage, getLang, getTranslations, getWholesaleCatalog, getGrantItems, getLogisticsRegions, buildLangUrl };
+module.exports = { supportedLanguages, defaultLanguage, getLang, getTranslations, getWholesaleCatalog, getRetailCatalog, getOrderProductOptions, getGrantItems, getLogisticsRegions, buildLangUrl };
 
