@@ -22,11 +22,11 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "maps.gstatic.com", "*.googleapis.com"],
       frameSrc: ["'self'", "maps.google.com", "www.google.com"],
       connectSrc: ["'self'"],
-      fontSrc: ["'self'", "fonts.gstatic.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
     },
