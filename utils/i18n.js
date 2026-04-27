@@ -278,9 +278,10 @@ copy.hu.home.faqShowMore = "Tov\u00e1bbi k\u00e9rd\u00e9sek";
 copy.hu.home.faqShowLess = "Kevesebb k\u00e9rd\u00e9s";
 copy.hu.home.faqItems = [
   { q: "Milyen ter\u00fcletre sz\u00e1ll\u00edtanak?", a: "Saj\u00e1t h\u0171t\u0151s j\u00e1rm\u0171veinkkel Magyarorsz\u00e1g teljes ter\u00fclet\u00e9n kiszolg\u00e1ljuk partnereinket." },
-  { q: "Lehet egyedi f\u0171szerez\u00e9st k\u00e9rni?", a: "Igen, partneri ig\u00e9ny eset\u00e9n egyedi recept\u00fara \u00e9s kiszerel\u00e9s egyeztethet\u0151." },
   { q: "Hogyan lehet aj\u00e1nlatot k\u00e9rni?", a: "Az Aj\u00e1nlatk\u00e9r\u00e9s oldalon kiv\u00e1laszthatja az \u00e9rdekl\u0151d\u00e9s term\u00e9keit, koll\u00e9g\u00e1ink pedig felveszik \u00d6nnel a kapcsolatot." },
   { q: "Milyen term\u00e9kek rendelhet\u0151k?", a: "HORECA partnereinknek kebab ny\u00e1rsakat, saslikokat, el\u0151s\u00fct\u00f6tt term\u00e9keket, joghurtokat \u00e9s kieg\u00e9sz\u00edt\u0151ket k\u00edn\u00e1lunk." },
+  { q: "Hogyan biztos\u00edtj\u00e1k a term\u00e9kek frissess\u00e9g\u00e9t?", a: "Az elk\u00e9sz\u00fclt term\u00e9keket sokkol\u00e1sos elj\u00e1r\u00e1ssal fagyasztjuk, majd kontroll\u00e1lt h\u0171t\u0151kamr\u00e1kban t\u00e1roljuk a kisz\u00e1ll\u00edt\u00e1sig." },
+  { q: "Visszak\u00f6vethet\u0151k a gy\u00e1rt\u00e1si t\u00e9telek?", a: "Igen, nyomon k\u00f6vet\u00e9si rendszer\u00fcnk az alapanyag-besz\u00e1ll\u00edt\u00f3t\u00f3l a vev\u0151ig r\u00f6gz\u00edti a kapcsolatokat." },
 ];
 
 copy.en.home.zipPlaceholder = "Postal code";
@@ -291,9 +292,10 @@ copy.en.home.faqShowMore = "More questions";
 copy.en.home.faqShowLess = "Fewer questions";
 copy.en.home.faqItems = [
   { q: "Where do you deliver?", a: "Our own refrigerated vehicles serve partners across Hungary." },
-  { q: "Can we request custom seasoning?", a: "Yes, custom recipes and packaging can be discussed for partner needs." },
   { q: "How can I request a quote?", a: "Use the Request Quote page to select products of interest, and our team will contact you." },
   { q: "Which products are available?", a: "We supply kebab skewers, shashlik, pre-cooked products, yoghurts and complementary products for HORECA partners." },
+  { q: "How do you keep products fresh?", a: "Finished products are shock-frozen and then stored in controlled cold rooms until delivery." },
+  { q: "Are production batches traceable?", a: "Yes, our traceability system records supplier-to-customer links for each product flow." },
 ];
 
 copy.de.home.zipPlaceholder = "Postleitzahl";
@@ -304,9 +306,10 @@ copy.de.home.faqShowMore = "Weitere Fragen";
 copy.de.home.faqShowLess = "Weniger Fragen";
 copy.de.home.faqItems = [
   { q: "Wohin liefern Sie?", a: "Mit unserer eigenen K\u00fchlflotte beliefern wir Partner in ganz Ungarn." },
-  { q: "Ist individuelle W\u00fcrzung m\u00f6glich?", a: "Ja, individuelle Rezepturen und Verpackungen k\u00f6nnen nach Partnerbedarf abgestimmt werden." },
   { q: "Wie kann ich ein Angebot anfordern?", a: "Auf der Angebotsseite k\u00f6nnen Sie Produkte ausw\u00e4hlen, danach kontaktiert Sie unser Team." },
   { q: "Welche Produkte sind verf\u00fcgbar?", a: "Wir liefern Kebabspie\u00dfe, Schaschlik, vorgegarte Produkte, Joghurts und Erg\u00e4nzungsprodukte f\u00fcr HORECA-Partner." },
+  { q: "Wie bleibt die Frische der Produkte erhalten?", a: "Fertige Produkte werden schockgefrostet und bis zur Lieferung in kontrollierten K\u00fchlr\u00e4umen gelagert." },
+  { q: "Sind Produktionschargen r\u00fcckverfolgbar?", a: "Ja, unser R\u00fcckverfolgungssystem dokumentiert die Verbindung vom Rohstofflieferanten bis zum Kunden." },
 ];
 
 function getLang(value) { return supportedLanguages.includes(value) ? value : defaultLanguage; }
