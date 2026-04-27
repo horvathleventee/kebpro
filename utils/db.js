@@ -91,6 +91,8 @@ async function initDb() {
           email TEXT NOT NULL,
           phone TEXT NOT NULL,
           company TEXT NOT NULL,
+          company_headquarters TEXT,
+          tax_number TEXT,
           product TEXT NOT NULL,
           quantity TEXT,
           address TEXT,
@@ -104,6 +106,8 @@ async function initDb() {
         ALTER TABLE submissions
         ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'new'
       `);
+      await pool.query(`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS company_headquarters TEXT`);
+      await pool.query(`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS tax_number TEXT`);
 
       await pool.query(`
         CREATE TABLE IF NOT EXISTS app_settings (
@@ -166,6 +170,8 @@ async function initDb() {
         email TEXT NOT NULL,
         phone TEXT NOT NULL,
         company TEXT NOT NULL,
+        company_headquarters TEXT,
+        tax_number TEXT,
         product TEXT NOT NULL,
         quantity TEXT,
         address TEXT,
@@ -176,6 +182,8 @@ async function initDb() {
     `);
 
     await run(`ALTER TABLE submissions ADD COLUMN status TEXT NOT NULL DEFAULT 'new'`).catch(() => {});
+    await run(`ALTER TABLE submissions ADD COLUMN company_headquarters TEXT`).catch(() => {});
+    await run(`ALTER TABLE submissions ADD COLUMN tax_number TEXT`).catch(() => {});
 
     await run(`
       CREATE TABLE IF NOT EXISTS app_settings (
@@ -242,6 +250,8 @@ async function insertSubmission(payload) {
       email: payload.email,
       phone: payload.phone,
       company: payload.company,
+      company_headquarters: payload.companyHeadquarters || "",
+      tax_number: payload.taxNumber || "",
       product: payload.product,
       quantity: payload.quantity || "",
       address: payload.address || "",
@@ -256,8 +266,8 @@ async function insertSubmission(payload) {
     const result = await pool.query(
       `
         INSERT INTO submissions
-          (type, status, name, email, phone, company, product, quantity, address, requested_date, message)
-        VALUES ($1, 'new', $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          (type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message)
+        VALUES ($1, 'new', $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING id
       `,
       [
@@ -266,6 +276,8 @@ async function insertSubmission(payload) {
         payload.email,
         payload.phone,
         payload.company,
+        payload.companyHeadquarters || "",
+        payload.taxNumber || "",
         payload.product,
         payload.quantity || "",
         payload.address || "",
@@ -280,8 +292,8 @@ async function insertSubmission(payload) {
   const result = await run(
     `
       INSERT INTO submissions
-        (type, status, name, email, phone, company, product, quantity, address, requested_date, message)
-      VALUES (?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message)
+      VALUES (?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
       payload.type,
@@ -289,6 +301,8 @@ async function insertSubmission(payload) {
       payload.email,
       payload.phone,
       payload.company,
+      payload.companyHeadquarters || "",
+      payload.taxNumber || "",
       payload.product,
       payload.quantity || "",
       payload.address || "",
@@ -301,8 +315,18 @@ async function insertSubmission(payload) {
 }
 
 async function listSubmissions(type = "all") {
+  const isCallbackLike = (row) =>
+    row.type === "callback" ||
+    /visszahív|visszahiv|callback|telefon/i.test(`${row.product || ""} ${row.message || ""}`);
+
   if (adapter === "memory") {
     if (type === "all") return submissionsMemory.slice(0, 300);
+    if (type === "callback") return submissionsMemory.filter(isCallbackLike).slice(0, 300);
+    if (type === "quote") {
+      return submissionsMemory
+        .filter((row) => row.type === "quote" && !isCallbackLike(row))
+        .slice(0, 300);
+    }
     return submissionsMemory.filter((row) => row.type === type).slice(0, 300);
   }
 
@@ -310,8 +334,36 @@ async function listSubmissions(type = "all") {
     if (type === "all") {
       const result = await pool.query(
         `
-          SELECT id, type, status, name, email, phone, company, product, quantity, address, requested_date, message, created_at
+          SELECT id, type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message, created_at
           FROM submissions
+          ORDER BY created_at DESC, id DESC
+          LIMIT 300
+        `
+      );
+      return result.rows;
+    }
+
+    if (type === "callback") {
+      const result = await pool.query(
+        `
+          SELECT id, type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message, created_at
+          FROM submissions
+          WHERE type = 'callback'
+             OR CONCAT(COALESCE(product, ''), ' ', COALESCE(message, '')) ~* 'visszahív|visszahiv|callback|telefon'
+          ORDER BY created_at DESC, id DESC
+          LIMIT 300
+        `
+      );
+      return result.rows;
+    }
+
+    if (type === "quote") {
+      const result = await pool.query(
+        `
+          SELECT id, type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message, created_at
+          FROM submissions
+          WHERE type = 'quote'
+            AND CONCAT(COALESCE(product, ''), ' ', COALESCE(message, '')) !~* 'visszahív|visszahiv|callback|telefon'
           ORDER BY created_at DESC, id DESC
           LIMIT 300
         `
@@ -321,7 +373,7 @@ async function listSubmissions(type = "all") {
 
     const result = await pool.query(
       `
-        SELECT id, type, status, name, email, phone, company, product, quantity, address, requested_date, message, created_at
+        SELECT id, type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message, created_at
         FROM submissions
         WHERE type = $1
         ORDER BY created_at DESC, id DESC
@@ -335,14 +387,18 @@ async function listSubmissions(type = "all") {
   const params = [];
   let whereClause = "";
 
-  if (type !== "all") {
+  if (type === "callback") {
+    whereClause = "WHERE type = 'callback' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%visszahív%' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%visszahiv%' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%callback%' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%telefon%'";
+  } else if (type === "quote") {
+    whereClause = "WHERE type = 'quote' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%visszahív%' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%visszahiv%' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%callback%' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%telefon%'";
+  } else if (type !== "all") {
     whereClause = "WHERE type = ?";
     params.push(type);
   }
 
   return all(
     `
-      SELECT id, type, status, name, email, phone, company, product, quantity, address, requested_date, message, created_at
+      SELECT id, type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message, created_at
       FROM submissions
       ${whereClause}
       ORDER BY created_at DESC, id DESC

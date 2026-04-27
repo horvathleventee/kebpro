@@ -65,19 +65,21 @@
       <% } %>
 
       <form method="POST" action="<%= withLang('/karrier') %>" enctype="multipart/form-data" class="contact-form" novalidate>
-        <label for="careerName"><%= t.career.formName %></label>
+        <p class="form-required-hint"><%= t.forms.requiredHint %></p>
+
+        <label for="careerName"><%= t.career.formName %> <span class="required-mark">*</span></label>
         <input id="careerName" name="name" type="text" value="<%= formData.name || '' %>" required />
         <% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %>
 
-        <label for="careerEmail"><%= t.career.formEmail %></label>
+        <label for="careerEmail"><%= t.career.formEmail %> <span class="required-mark">*</span></label>
         <input id="careerEmail" name="email" type="email" value="<%= formData.email || '' %>" required />
         <% if (errors.email) { %><small class="error"><%= errors.email %></small><% } %>
 
-        <label for="careerPhone"><%= t.career.formPhone %></label>
+        <label for="careerPhone"><%= t.career.formPhone %> <span class="required-mark">*</span></label>
         <input id="careerPhone" name="phone" type="tel" value="<%= formData.phone || '' %>" required />
         <% if (errors.phone) { %><small class="error"><%= errors.phone %></small><% } %>
 
-        <label for="careerPosition"><%= t.career.formPosition %></label>
+        <label for="careerPosition"><%= t.career.formPosition %> <span class="required-mark">*</span></label>
         <select id="careerPosition" name="positionId" class="status-select" required>
           <option value="">—</option>
           <% positions.forEach((pos) => { %>
@@ -86,13 +88,14 @@
         </select>
         <% if (errors.positionId) { %><small class="error"><%= errors.positionId %></small><% } %>
 
-        <label for="careerMotivation"><%= t.career.formMotivation %></label>
+        <label for="careerMotivation"><%= t.career.formMotivation %> <span class="required-mark">*</span></label>
         <textarea id="careerMotivation" name="motivation" rows="5"><%= formData.motivation || '' %></textarea>
         <% if (errors.motivation) { %><small class="error"><%= errors.motivation %></small><% } %>
 
-        <label for="careerCv"><%= t.career.formCv %></label>
-        <input id="careerCv" name="cv" type="file" accept=".pdf,.doc,.docx" />
+        <label for="careerCv"><%= t.career.formCv %> <span class="required-mark">*</span></label>
+        <input id="careerCv" name="cv" type="file" accept=".pdf,.doc,.docx" required />
         <small style="color: var(--muted);"><%= t.career.formCvHint %></small>
+        <% if (errors.cv) { %><small class="error"><%= errors.cv %></small><% } %>
 
         <button type="submit" class="btn btn-primary"><%= t.career.formSubmit %></button>
       </form>

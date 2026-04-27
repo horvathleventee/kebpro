@@ -25,7 +25,12 @@
       },
     });
 
-    const typeLabel = payload.type === "order" ? "Új megrendelés" : "Új ajánlatkérés";
+    const typeLabel =
+      payload.type === "order"
+        ? "Új megrendelés"
+        : payload.type === "callback"
+          ? "Új visszahíváskérés"
+          : "Új ajánlatkérés";
     const subject = `${typeLabel} - ${process.env.COMPANY_NAME || "Kebpro"}`;
 
     const text = [
@@ -34,6 +39,8 @@
       `Cég: ${payload.company}`,
       `E-mail: ${payload.email}`,
       `Telefon: ${payload.phone}`,
+      `Székhely: ${payload.companyHeadquarters || "-"}`,
+      `Adószám: ${payload.taxNumber || "-"}`,
       `Termék: ${payload.product}`,
       `Mennyiség: ${payload.quantity || "-"}`,
       `Szállítási cím: ${payload.address || "-"}`,

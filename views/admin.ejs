@@ -36,6 +36,7 @@
       all: 'Összes',
       quote: 'Ajánlatkérés',
       order: 'Megrendelés',
+      callback: 'Visszahívás',
       empty: 'Jelenleg nincs beérkezett adat.',
       id: 'ID',
       type: 'Típus',
@@ -54,6 +55,8 @@
       address: 'Cím',
       requestedDate: 'Dátum',
       note: 'Megjegyzés',
+      headquarters: 'Székhely',
+      taxNumber: 'Adószám',
       positionsTitle: 'Nyitott pozíciók kezelése',
       addPosition: 'Új pozíció hozzáadása',
       posTitle: 'Cím',
@@ -110,6 +113,7 @@
       all: 'All',
       quote: 'Quote request',
       order: 'Order',
+      callback: 'Callback',
       empty: 'There are no incoming records yet.',
       id: 'ID',
       type: 'Type',
@@ -128,6 +132,8 @@
       address: 'Address',
       requestedDate: 'Date',
       note: 'Note',
+      headquarters: 'Registered office',
+      taxNumber: 'Tax number',
       positionsTitle: 'Open positions management',
       addPosition: 'Add new position',
       posTitle: 'Title',
@@ -184,6 +190,7 @@
       all: 'Alle',
       quote: 'Anfrage',
       order: 'Bestellung',
+      callback: 'Rückruf',
       empty: 'Derzeit liegen keine Datensätze vor.',
       id: 'ID',
       type: 'Typ',
@@ -202,6 +209,8 @@
       address: 'Adresse',
       requestedDate: 'Datum',
       note: 'Bemerkung',
+      headquarters: 'Firmensitz',
+      taxNumber: 'Steuernummer',
       positionsTitle: 'Offene Stellen verwalten',
       addPosition: 'Neue Position hinzufügen',
       posTitle: 'Titel',
@@ -285,6 +294,7 @@
         <a href="/admin?type=all" class="btn btn-secondary"><%= a.all %></a>
         <a href="/admin?type=quote" class="btn btn-secondary"><%= a.quote %></a>
         <a href="/admin?type=order" class="btn btn-secondary"><%= a.order %></a>
+        <a href="/admin?type=callback" class="btn btn-secondary"><%= a.callback %></a>
       </div>
 
       <% if (!rows || rows.length === 0) { %>
@@ -307,9 +317,13 @@
           </thead>
           <tbody>
             <% rows.forEach((item) => { %>
+            <%
+              const isCallback = item.type === 'callback' || /visszahív|visszahiv|callback|telefon/i.test(`${item.product || ''} ${item.message || ''}`);
+              const rowTypeLabel = item.type === 'order' ? a.order : isCallback ? a.callback : a.quote;
+            %>
             <tr>
               <td><%= item.id %></td>
-              <td><%= item.type === 'order' ? a.order : a.quote %></td>
+              <td><%= rowTypeLabel %></td>
               <td>
                 <form method="POST" action="/admin/igenyek/<%= item.id %>/status?type=<%= selectedType %>" class="status-form">
                   <span class="status-badge status-<%= item.status || 'new' %>">
@@ -326,11 +340,13 @@
               </td>
               <td><%= item.created_at %></td>
               <td><strong><%= item.name %></strong><br /><%= item.company %></td>
-              <td><%= item.product %></td>
+              <td><%= isCallback ? '-' : item.product %></td>
               <td><%= item.quantity || '-' %></td>
               <td><%= item.email %><br /><%= item.phone %></td>
               <td>
                 <% if (item.address) { %><div><%= a.address %>: <%= item.address %></div><% } %>
+                <% if (item.company_headquarters) { %><div><%= a.headquarters %>: <%= item.company_headquarters %></div><% } %>
+                <% if (item.tax_number) { %><div><%= a.taxNumber %>: <%= item.tax_number %></div><% } %>
                 <% if (item.requested_date) { %><div><%= a.requestedDate %>: <%= item.requested_date %></div><% } %>
                 <% if (item.message) { %><div><%= a.note %>: <%= item.message %></div><% } %>
               </td>

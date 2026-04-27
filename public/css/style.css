@@ -585,7 +585,7 @@ a { color: inherit; text-decoration: none; }
 .contact-quick-card h3 { font-size: 1.1rem; color: var(--primary); }
 .contact-quick-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.55; flex: 1; }
 .contact-quick-card .btn { margin-top: auto; }
-.contact-form input, .contact-form textarea {
+.contact-form input, .contact-form textarea, .contact-form select {
   border: 1.5px solid var(--border);
   border-radius: 12px;
   padding: 0.75rem 0.85rem;
@@ -593,15 +593,92 @@ a { color: inherit; text-decoration: none; }
   background: rgba(251, 253, 255, 0.9);
   transition: all 0.3s var(--ease);
 }
-.contact-form input:focus, .contact-form textarea:focus {
+.contact-form input:focus, .contact-form textarea:focus, .contact-form select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 4px rgba(224, 148, 34, 0.12), 0 4px 16px rgba(16, 36, 63, 0.06);
   background: #fff;
 }
+.required-mark { color: #c77312; font-weight: 900; }
+.form-required-hint { margin: 0 0 0.35rem; color: var(--muted); font-size: 0.9rem; }
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .error { color: #b21f2d; font-size: 0.88rem; }
 .alert { margin: 0.75rem 0 1rem; padding: 0.75rem 0.9rem; border-radius: 12px; font-weight: 600; }
 .alert.success { background: #e8f8ef; border: 1px solid #a8ddbe; color: #1d6e43; }
+.success-toast {
+  position: relative;
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 0.9rem;
+  align-items: center;
+  margin: 0.75rem 0 1.2rem;
+  padding: 1rem 1.1rem 1.15rem;
+  overflow: hidden;
+  border: 1px solid rgba(29, 155, 125, 0.25);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 12% 15%, rgba(29, 155, 125, 0.14), transparent 32%),
+    linear-gradient(135deg, #f2fff7 0%, #ffffff 100%);
+  box-shadow: 0 16px 36px rgba(10, 24, 45, 0.1);
+  animation: successPop 0.45s var(--ease-bounce) both;
+}
+.success-toast-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(29, 155, 125, 0.16);
+  font-size: 1.5rem;
+}
+.success-toast strong { display: block; color: #14532d; line-height: 1.35; }
+.success-toast span { display: block; margin-top: 0.2rem; color: var(--muted); font-size: 0.92rem; }
+.success-toast-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #1d9b7d, var(--accent));
+  transform-origin: left;
+  animation: successProgress 6.5s linear forwards;
+}
+.success-toast.is-hiding { opacity: 0.35; transform: translateY(-2px); transition: all 0.35s var(--ease); }
+@keyframes successPop {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes successProgress {
+  to { transform: scaleX(0); }
+}
+
+.order-products-builder { display: grid; gap: 0.65rem; margin-top: 0.65rem; }
+.order-product-rows { display: grid; gap: 0.65rem; }
+.order-product-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(140px, 0.6fr) 44px;
+  gap: 0.55rem;
+  align-items: center;
+}
+.order-product-select { width: 100%; }
+.order-remove-product {
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.25rem;
+}
+.order-add-product { justify-self: start; }
 
 /* ── About page ── */
 .about-intro-grid { display: grid; grid-template-columns: 1fr 260px; gap: 3rem; align-items: start; }
@@ -1577,6 +1654,9 @@ a { color: inherit; text-decoration: none; }
   .inline-form { align-items: stretch; }
   .inline-form .btn, .compact-form .btn, .status-form .btn { width: 100%; }
   .status-form { gap: 0.45rem; }
+  .order-product-row { grid-template-columns: 1fr; }
+  .order-remove-product, .order-add-product { width: 100%; }
+  .success-toast { grid-template-columns: 1fr; text-align: left; }
 
   .timeline-intro, .timeline-step-card .timeline-content { padding: 1rem; }
   .timeline-item, .timeline-step-card { grid-template-columns: 56px 1fr; gap: 0.8rem; }

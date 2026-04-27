@@ -11,35 +11,68 @@
   <div class="container">
     <div class="panel wide">
       <% if (successMessage) { %>
-      <div class="alert success"><%= successMessage %></div>
+      <div class="success-toast" data-success-toast>
+        <div class="success-toast-icon" aria-hidden="true">📞</div>
+        <div>
+          <strong><%= successMessage %></strong>
+          <span><%= t.forms.orderSuccessNote %></span>
+        </div>
+        <div class="success-toast-progress"></div>
+      </div>
       <% } %>
 
+      <% const initialProducts = formData.products && formData.products.length ? formData.products : [{ product: '', quantity: '' }]; %>
       <form method="POST" action="<%= withLang('/megrendeles') %>" class="contact-form" novalidate>
-        <label for="name"><%= t.forms.contactName %></label>
+        <p class="form-required-hint"><%= t.forms.requiredHint %></p>
+
+        <label for="name"><%= t.forms.contactName %> <span class="required-mark">*</span></label>
         <input id="name" name="name" type="text" value="<%= formData.name || '' %>" />
         <% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %>
 
-        <label for="company"><%= t.forms.company %></label>
+        <label for="company"><%= t.forms.company %> <span class="required-mark">*</span></label>
         <input id="company" name="company" type="text" value="<%= formData.company || '' %>" />
         <% if (errors.company) { %><small class="error"><%= errors.company %></small><% } %>
 
-        <label for="email"><%= t.forms.email %></label>
+        <label for="companyHeadquarters"><%= t.forms.headquarters %></label>
+        <input id="companyHeadquarters" name="companyHeadquarters" type="text" value="<%= formData.companyHeadquarters || '' %>" />
+
+        <label for="taxNumber"><%= t.forms.taxNumber %></label>
+        <input id="taxNumber" name="taxNumber" type="text" value="<%= formData.taxNumber || '' %>" />
+
+        <label for="email"><%= t.forms.email %> <span class="required-mark">*</span></label>
         <input id="email" name="email" type="email" value="<%= formData.email || '' %>" />
         <% if (errors.email) { %><small class="error"><%= errors.email %></small><% } %>
 
-        <label for="phone"><%= t.forms.phone %></label>
+        <label for="phone"><%= t.forms.phone %> <span class="required-mark">*</span></label>
         <input id="phone" name="phone" type="tel" value="<%= formData.phone || '' %>" />
         <% if (errors.phone) { %><small class="error"><%= errors.phone %></small><% } %>
 
-        <label for="product"><%= t.forms.orderedProduct %></label>
-        <input id="product" name="product" type="text" value="<%= formData.product || '' %>" />
+        <div class="order-products-builder" data-order-products>
+          <label><%= t.forms.productList %> <span class="required-mark">*</span></label>
+          <div class="order-product-rows" data-order-product-rows>
+            <% initialProducts.forEach((initialProduct) => { %>
+            <div class="order-product-row">
+              <select name="products" class="status-select order-product-select">
+                <option value=""><%= t.forms.selectProduct %></option>
+                <% (productOptions || []).forEach((option) => { %>
+                <option value="<%= option.value %>" <%= initialProduct.product === option.value ? 'selected' : '' %>><%= option.label %></option>
+                <% }) %>
+              </select>
+              <input name="productQuantities" type="text" placeholder="<%= t.forms.quantity %>" value="<%= initialProduct.quantity || '' %>" />
+              <button type="button" class="btn btn-secondary order-remove-product" aria-label="<%= t.forms.removeProduct %>">×</button>
+            </div>
+            <% }) %>
+          </div>
+          <button type="button" class="btn btn-secondary order-add-product" data-add-order-product><%= t.forms.addProduct %></button>
+        </div>
+        <input id="product" name="product" type="hidden" value="<%= formData.product || '' %>" />
         <% if (errors.product) { %><small class="error"><%= errors.product %></small><% } %>
 
-        <label for="quantity"><%= t.forms.quantity %></label>
-        <input id="quantity" name="quantity" type="text" value="<%= formData.quantity || '' %>" />
+        <label for="quantity" class="visually-hidden"><%= t.forms.quantity %> <span class="required-mark">*</span></label>
+        <input id="quantity" name="quantity" type="hidden" value="<%= formData.quantity || '' %>" />
         <% if (errors.quantity) { %><small class="error"><%= errors.quantity %></small><% } %>
 
-        <label for="address"><%= t.forms.address %></label>
+        <label for="address"><%= t.forms.address %> <span class="required-mark">*</span></label>
         <input id="address" name="address" type="text" value="<%= formData.address || '' %>" />
         <% if (errors.address) { %><small class="error"><%= errors.address %></small><% } %>
 

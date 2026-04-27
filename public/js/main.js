@@ -275,3 +275,67 @@ if (faqToggle && faqList) {
     faqToggle.textContent = expanded ? faqToggle.dataset.hide : faqToggle.dataset.show;
   });
 }
+
+document.querySelectorAll("[data-success-toast]").forEach((toast) => {
+  window.setTimeout(() => {
+    toast.classList.add("is-hiding");
+  }, 6500);
+});
+
+const orderBuilder = document.querySelector("[data-order-products]");
+if (orderBuilder) {
+  const rows = orderBuilder.querySelector("[data-order-product-rows]");
+  const addButton = orderBuilder.querySelector("[data-add-order-product]");
+
+  const syncOrderSummary = () => {
+    const productInput = document.getElementById("product");
+    const quantityInput = document.getElementById("quantity");
+    if (!productInput || !quantityInput) return;
+
+    const selected = [...rows.querySelectorAll(".order-product-row")]
+      .map((row) => {
+        const product = row.querySelector("select")?.value.trim() || "";
+        const quantity = row.querySelector("input")?.value.trim() || "";
+        return { product, quantity };
+      })
+      .filter((item) => item.product);
+
+    productInput.value = selected
+      .map((item) => `${item.product}${item.quantity ? ` - ${item.quantity}` : ""}`)
+      .join("\n");
+    quantityInput.value = selected.map((item) => item.quantity).filter(Boolean).join("; ");
+  };
+
+  const bindRow = (row) => {
+    row.querySelectorAll("select, input").forEach((field) => {
+      field.addEventListener("change", syncOrderSummary);
+      field.addEventListener("input", syncOrderSummary);
+    });
+
+    row.querySelector(".order-remove-product")?.addEventListener("click", () => {
+      if (rows.querySelectorAll(".order-product-row").length === 1) {
+        row.querySelector("select").value = "";
+        row.querySelector("input").value = "";
+      } else {
+        row.remove();
+      }
+      syncOrderSummary();
+    });
+  };
+
+  rows.querySelectorAll(".order-product-row").forEach(bindRow);
+
+  addButton?.addEventListener("click", () => {
+    const firstRow = rows.querySelector(".order-product-row");
+    if (!firstRow) return;
+    const clone = firstRow.cloneNode(true);
+    clone.querySelector("select").value = "";
+    clone.querySelector("input").value = "";
+    rows.appendChild(clone);
+    bindRow(clone);
+    clone.querySelector("select")?.focus();
+    syncOrderSummary();
+  });
+
+  syncOrderSummary();
+}

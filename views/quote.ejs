@@ -11,27 +11,36 @@
   <div class="container">
     <div class="panel wide">
       <% if (successMessage) { %>
-      <div class="alert success"><%= successMessage %></div>
+      <div class="success-toast" data-success-toast>
+        <div class="success-toast-icon" aria-hidden="true">🤝</div>
+        <div>
+          <strong><%= successMessage %></strong>
+          <span><%= t.forms.quoteSuccessNote %></span>
+        </div>
+        <div class="success-toast-progress"></div>
+      </div>
       <% } %>
 
       <form method="POST" action="<%= withLang('/ajanlatkeres') %>" class="contact-form" novalidate>
-        <label for="name"><%= t.forms.name %></label>
+        <p class="form-required-hint"><%= t.forms.requiredHint %></p>
+
+        <label for="name"><%= t.forms.name %> <span class="required-mark">*</span></label>
         <input id="name" name="name" type="text" value="<%= formData.name || '' %>" />
         <% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %>
 
-        <label for="company"><%= t.forms.company %></label>
+        <label for="company"><%= t.forms.company %> <span class="required-mark">*</span></label>
         <input id="company" name="company" type="text" value="<%= formData.company || '' %>" />
         <% if (errors.company) { %><small class="error"><%= errors.company %></small><% } %>
 
-        <label for="email"><%= t.forms.email %></label>
+        <label for="email"><%= t.forms.email %> <span class="required-mark">*</span></label>
         <input id="email" name="email" type="email" value="<%= formData.email || '' %>" />
         <% if (errors.email) { %><small class="error"><%= errors.email %></small><% } %>
 
-        <label for="phone"><%= t.forms.phone %></label>
+        <label for="phone"><%= t.forms.phone %> <span class="required-mark">*</span></label>
         <input id="phone" name="phone" type="tel" value="<%= formData.phone || '' %>" />
         <% if (errors.phone) { %><small class="error"><%= errors.phone %></small><% } %>
 
-        <label for="product"><%= t.forms.productInterest %></label>
+        <label for="product"><%= t.forms.productInterest %> <span class="required-mark">*</span></label>
         <input id="product" name="product" type="text" value="<%= formData.product || '' %>" />
         <% if (errors.product) { %><small class="error"><%= errors.product %></small><% } %>
 

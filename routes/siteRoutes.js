@@ -24,6 +24,8 @@ const { sendNotificationEmail, sendCareerNotificationEmail } = require("../utils
 const {
   getGrantItems,
   getWholesaleCatalog,
+  getRetailCatalog,
+  getOrderProductOptions,
   getLogisticsRegions,
 } = require("../utils/i18n");
 
@@ -131,6 +133,7 @@ function getValidationMessages(lang) {
       email: "A valid email address is required.",
       phone: "A valid phone number is required.",
       product: "Product is required.",
+      cv: "CV upload is required.",
       message: "Please provide at least 10 characters.",
       quantity: "Quantity is required.",
       address: "Delivery address is required.",
@@ -144,6 +147,7 @@ function getValidationMessages(lang) {
       email: "Eine gültige E-Mail-Adresse ist erforderlich.",
       phone: "Eine gültige Telefonnummer ist erforderlich.",
       product: "Produkt ist erforderlich.",
+      cv: "Lebenslauf ist erforderlich.",
       message: "Bitte geben Sie mindestens 10 Zeichen an.",
       quantity: "Menge ist erforderlich.",
       address: "Lieferadresse ist erforderlich.",
@@ -156,6 +160,7 @@ function getValidationMessages(lang) {
     email: "Érvényes e-mail cím szükséges.",
     phone: "Érvényes telefonszám szükséges.",
     product: "A termék megadása kötelező.",
+    cv: "Az önéletrajz feltöltése kötelező.",
     message: "Az igény rövid leírása legalább 10 karakter legyen.",
     quantity: "A mennyiség megadása kötelező.",
     address: "A szállítási cím megadása kötelező.",
@@ -170,6 +175,8 @@ function validateCommon(body, lang) {
     email: (body.email || "").trim(),
     phone: (body.phone || "").trim(),
     company: (body.company || "").trim(),
+    companyHeadquarters: (body.companyHeadquarters || "").trim(),
+    taxNumber: (body.taxNumber || "").trim(),
     product: (body.product || "").trim(),
     quantity: (body.quantity || "").trim(),
     address: (body.address || "").trim(),
@@ -277,7 +284,7 @@ router.get("/admin/logout", (req, res) => {
 });
 
 // alias - backward compat
-const ALLOWED_TYPES = new Set(["all", "quote", "order"]);
+const ALLOWED_TYPES = new Set(["all", "quote", "order", "callback"]);
 function safeType(raw) { return ALLOWED_TYPES.has(raw) ? raw : null; }
 
 router.get("/admin/igenyek", requireAdminSession, (req, res) => {
@@ -328,6 +335,7 @@ router.get("/termekek/kiskereskedelem", (req, res) => {
   res.render("retail", {
     title: `${res.locals.t.nav.products} - ${res.locals.t.nav.retail}`,
     seo: buildPageSeo("retail", res.locals.lang, "/termekek/kiskereskedelem"),
+    categories: getRetailCatalog(res.locals.lang),
   });
 });
 
@@ -385,10 +393,6 @@ router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
   try {
     const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
 
-    if (data.message.length < 10) {
-      errors.message = messages.message;
-    }
-
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("quote", {
         title: res.locals.t.nav.quote,
@@ -399,7 +403,13 @@ router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
       });
     }
 
-    const payload = { ...data, type: "quote", lang: res.locals.lang };
+    const isCallbackRequest = /visszah[íi]v|callback|telefon/i.test(`${data.product} ${data.message}`);
+    const payload = {
+      ...data,
+      type: isCallbackRequest ? "callback" : "quote",
+      product: isCallbackRequest ? "" : data.product,
+      lang: res.locals.lang,
+    };
 
     await insertSubmission(payload);
     const settings = await getNotificationSettings();
@@ -426,6 +436,7 @@ router.get("/megrendeles", (req, res) => {
   res.render("order", {
     title: res.locals.t.nav.order,
     seo: buildPageSeo("order", res.locals.lang, "/megrendeles"),
+    productOptions: getOrderProductOptions(res.locals.lang),
     errors: {},
     formData: {},
     successMessage: null,
@@ -439,6 +450,30 @@ router.get("/megrendelesek", (req, res) => {
 router.post("/megrendeles", formLimiter, async (req, res, next) => {
   try {
     const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
+    const products = Array.isArray(req.body.products)
+      ? req.body.products
+      : req.body.products ? [req.body.products] : [];
+    const quantities = Array.isArray(req.body.productQuantities)
+      ? req.body.productQuantities
+      : req.body.productQuantities ? [req.body.productQuantities] : [];
+    const selectedProducts = products
+      .map((product, index) => ({
+        product: (product || "").trim(),
+        quantity: (quantities[index] || "").trim(),
+      }))
+      .filter((item) => item.product);
+
+    if (selectedProducts.length > 0) {
+      delete errors.product;
+      data.product = selectedProducts
+        .map((item) => `${item.product}${item.quantity ? ` - ${item.quantity}` : ""}`)
+        .join("\n");
+      data.quantity = selectedProducts
+        .map((item) => item.quantity)
+        .filter(Boolean)
+        .join("; ");
+      data.products = selectedProducts;
+    }
 
     if (data.quantity.length < 1) {
       errors.quantity = messages.quantity;
@@ -452,6 +487,7 @@ router.post("/megrendeles", formLimiter, async (req, res, next) => {
       return res.status(400).render("order", {
         title: res.locals.t.nav.order,
         seo: buildPageSeo("order", res.locals.lang, "/megrendeles"),
+        productOptions: getOrderProductOptions(res.locals.lang),
         errors,
         formData: data,
         successMessage: null,
@@ -467,6 +503,7 @@ router.post("/megrendeles", formLimiter, async (req, res, next) => {
     return res.render("order", {
       title: res.locals.t.nav.order,
       seo: buildPageSeo("order", res.locals.lang, "/megrendeles"),
+      productOptions: getOrderProductOptions(res.locals.lang),
       errors: {},
       formData: {},
       successMessage: res.locals.t.order.success,
@@ -509,9 +546,9 @@ router.post("/visszahivas", formLimiter, async (req, res, next) => {
 /* ── Career ── */
 
 function getCareerValidation(lang) {
-  if (lang === "en") return { name: "Name is required.", email: "A valid email is required.", phone: "A valid phone number is required.", motivation: "Please tell us about yourself (min 10 characters).", positionId: "Please select a position." };
-  if (lang === "de") return { name: "Name ist erforderlich.", email: "Eine gültige E-Mail ist erforderlich.", phone: "Eine gültige Telefonnummer ist erforderlich.", motivation: "Bitte erzählen Sie uns von sich (mind. 10 Zeichen).", positionId: "Bitte wählen Sie eine Position." };
-  return { name: "A név megadása kötelező.", email: "Érvényes e-mail cím szükséges.", phone: "Érvényes telefonszám szükséges.", motivation: "Kérjük, írjon magáról (min. 10 karakter).", positionId: "Kérjük, válasszon pozíciót." };
+  if (lang === "en") return { name: "Name is required.", email: "A valid email is required.", phone: "A valid phone number is required.", motivation: "Please tell us about yourself (min 10 characters).", positionId: "Please select a position.", cv: "CV upload is required." };
+  if (lang === "de") return { name: "Name ist erforderlich.", email: "Eine gültige E-Mail ist erforderlich.", phone: "Eine gültige Telefonnummer ist erforderlich.", motivation: "Bitte erzählen Sie uns von sich (mind. 10 Zeichen).", positionId: "Bitte wählen Sie eine Position.", cv: "Lebenslauf ist erforderlich." };
+  return { name: "A név megadása kötelező.", email: "Érvényes e-mail cím szükséges.", phone: "Érvényes telefonszám szükséges.", motivation: "Kérjük, írjon magáról (min. 10 karakter).", positionId: "Kérjük, válasszon pozíciót.", cv: "Az önéletrajz feltöltése kötelező." };
 }
 
 router.get("/karrier", async (req, res, next) => {
@@ -548,6 +585,7 @@ router.post("/karrier", formLimiter, cvUpload.single("cv"), async (req, res, nex
     if (!/^[+()\d\s-]{7,20}$/.test(data.phone)) errors.phone = v.phone;
     if (data.motivation.length < 10) errors.motivation = v.motivation;
     if (!data.positionId) errors.positionId = v.positionId;
+    if (!req.file) errors.cv = v.cv;
 
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("career", {
