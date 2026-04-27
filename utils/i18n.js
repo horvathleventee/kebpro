@@ -239,6 +239,76 @@ copy.hu.career.formCv = "Önéletrajz feltöltése";
 copy.en.career.formCv = "Upload CV";
 copy.de.career.formCv = "Lebenslauf hochladen";
 
+copy.hu.productsHub = {
+  eyebrow: "Term\u00e9kek",
+  title: "V\u00e1lasszon term\u00e9kk\u00f6rt",
+  lead: "A HORECA \u00e9s kiskereskedelmi k\u00edn\u00e1lat k\u00fcl\u00f6n oldalon, \u00e1tl\u00e1that\u00f3 kateg\u00f3ri\u00e1kkal \u00e9rhet\u0151 el.",
+  horecaTitle: "HORECA term\u00e9kek",
+  horecaText: "Kebab ny\u00e1rsak, saslikok, el\u0151s\u00fct\u00f6tt term\u00e9kek, k\u00fcl\u00f6nlegess\u00e9gek \u00e9s joghurtok partnereknek.",
+  retailTitle: "Kiskereskedelmi term\u00e9kek",
+  retailText: "Pit\u00e1k, tortill\u00e1k, desszertek, kieg\u00e9sz\u00edt\u0151k \u00e9s csomagol\u00f3anyagok.",
+  open: "K\u00edn\u00e1lat megnyit\u00e1sa",
+};
+copy.en.productsHub = {
+  eyebrow: "Products",
+  title: "Choose a product range",
+  lead: "The HORECA and retail ranges are available on separate pages with clear categories.",
+  horecaTitle: "HORECA products",
+  horecaText: "Kebab skewers, shashlik, pre-cooked products, specialities and yoghurts for partners.",
+  retailTitle: "Retail products",
+  retailText: "Pitas, tortillas, desserts, extras and packaging materials.",
+  open: "Open range",
+};
+copy.de.productsHub = {
+  eyebrow: "Produkte",
+  title: "Produktsortiment ausw\u00e4hlen",
+  lead: "HORECA- und Einzelhandelssortimente sind auf separaten Seiten mit klaren Kategorien erreichbar.",
+  horecaTitle: "HORECA-Produkte",
+  horecaText: "Kebabspie\u00dfe, Schaschlik, vorgegarte Produkte, Spezialit\u00e4ten und Joghurts f\u00fcr Partner.",
+  retailTitle: "Einzelhandelsprodukte",
+  retailText: "Pitas, Tortillas, Desserts, Erg\u00e4nzungen und Verpackungsmaterialien.",
+  open: "Sortiment \u00f6ffnen",
+};
+
+copy.hu.home.zipPlaceholder = "Ir\u00e1ny\u00edt\u00f3sz\u00e1m";
+copy.hu.home.zipResult = "Ehhez a z\u00f3n\u00e1hoz tartozik";
+copy.hu.home.zipNotFound = "Adjon meg egy 4 jegy\u0171 ir\u00e1ny\u00edt\u00f3sz\u00e1mot";
+copy.hu.home.faqTitle = "Gyakori k\u00e9rd\u00e9sek";
+copy.hu.home.faqShowMore = "Tov\u00e1bbi k\u00e9rd\u00e9sek";
+copy.hu.home.faqShowLess = "Kevesebb k\u00e9rd\u00e9s";
+copy.hu.home.faqItems = [
+  { q: "Milyen ter\u00fcletre sz\u00e1ll\u00edtanak?", a: "Saj\u00e1t h\u0171t\u0151s j\u00e1rm\u0171veinkkel Magyarorsz\u00e1g teljes ter\u00fclet\u00e9n kiszolg\u00e1ljuk partnereinket." },
+  { q: "Lehet egyedi f\u0171szerez\u00e9st k\u00e9rni?", a: "Igen, partneri ig\u00e9ny eset\u00e9n egyedi recept\u00fara \u00e9s kiszerel\u00e9s egyeztethet\u0151." },
+  { q: "Hogyan lehet aj\u00e1nlatot k\u00e9rni?", a: "Az Aj\u00e1nlatk\u00e9r\u00e9s oldalon kiv\u00e1laszthatja az \u00e9rdekl\u0151d\u00e9s term\u00e9keit, koll\u00e9g\u00e1ink pedig felveszik \u00d6nnel a kapcsolatot." },
+  { q: "Milyen term\u00e9kek rendelhet\u0151k?", a: "HORECA partnereinknek kebab ny\u00e1rsakat, saslikokat, el\u0151s\u00fct\u00f6tt term\u00e9keket, joghurtokat \u00e9s kieg\u00e9sz\u00edt\u0151ket k\u00edn\u00e1lunk." },
+];
+
+copy.en.home.zipPlaceholder = "Postal code";
+copy.en.home.zipResult = "Belongs to this zone";
+copy.en.home.zipNotFound = "Enter a 4-digit postal code";
+copy.en.home.faqTitle = "FAQ";
+copy.en.home.faqShowMore = "More questions";
+copy.en.home.faqShowLess = "Fewer questions";
+copy.en.home.faqItems = [
+  { q: "Where do you deliver?", a: "Our own refrigerated vehicles serve partners across Hungary." },
+  { q: "Can we request custom seasoning?", a: "Yes, custom recipes and packaging can be discussed for partner needs." },
+  { q: "How can I request a quote?", a: "Use the Request Quote page to select products of interest, and our team will contact you." },
+  { q: "Which products are available?", a: "We supply kebab skewers, shashlik, pre-cooked products, yoghurts and complementary products for HORECA partners." },
+];
+
+copy.de.home.zipPlaceholder = "Postleitzahl";
+copy.de.home.zipResult = "Geh\u00f6rt zu dieser Zone";
+copy.de.home.zipNotFound = "Geben Sie eine 4-stellige Postleitzahl ein";
+copy.de.home.faqTitle = "H\u00e4ufige Fragen";
+copy.de.home.faqShowMore = "Weitere Fragen";
+copy.de.home.faqShowLess = "Weniger Fragen";
+copy.de.home.faqItems = [
+  { q: "Wohin liefern Sie?", a: "Mit unserer eigenen K\u00fchlflotte beliefern wir Partner in ganz Ungarn." },
+  { q: "Ist individuelle W\u00fcrzung m\u00f6glich?", a: "Ja, individuelle Rezepturen und Verpackungen k\u00f6nnen nach Partnerbedarf abgestimmt werden." },
+  { q: "Wie kann ich ein Angebot anfordern?", a: "Auf der Angebotsseite k\u00f6nnen Sie Produkte ausw\u00e4hlen, danach kontaktiert Sie unser Team." },
+  { q: "Welche Produkte sind verf\u00fcgbar?", a: "Wir liefern Kebabspie\u00dfe, Schaschlik, vorgegarte Produkte, Joghurts und Erg\u00e4nzungsprodukte f\u00fcr HORECA-Partner." },
+];
+
 function getLang(value) { return supportedLanguages.includes(value) ? value : defaultLanguage; }
 function getTranslations(lang) { return copy[getLang(lang)]; }
 function getWholesaleCatalog(lang) { return productCatalog[getLang(lang)]; }

@@ -279,6 +279,7 @@ if (faqToggle && faqList) {
 document.querySelectorAll("[data-success-toast]").forEach((toast) => {
   window.setTimeout(() => {
     toast.classList.add("is-hiding");
+    window.setTimeout(() => toast.remove(), 400);
   }, 6500);
 });
 
@@ -337,5 +338,6 @@ if (orderBuilder) {
     syncOrderSummary();
   });
 
+  orderBuilder.closest("form")?.addEventListener("submit", syncOrderSummary);
   syncOrderSummary();
 }

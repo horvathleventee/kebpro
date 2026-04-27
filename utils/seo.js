@@ -20,6 +20,10 @@ const pageSeo = {
       title: "HORECA termékek - Gyros, kebab, pita és húskészítmények | Halasi Kebpro",
       description: "Gyros- és kebab nyársak, saslik, elősütött termékek, különlegességek és joghurtok HORECA partnereknek. Rendelje online!",
     },
+    products: {
+      title: "Termékek - HORECA és kiskereskedelmi kínálat | Halasi Kebpro",
+      description: "Válasszon a Halasi Kebpro HORECA és kiskereskedelmi termékkínálatából.",
+    },
     retail: {
       title: "Kiskereskedelmi termékek - Halasi Kebpro Kft.",
       description: "Piták, tortillák, desszertek, kiegészítők és csomagolóanyagok a Halasi Kebpro Kft. kínálatából.",
@@ -62,6 +66,10 @@ const pageSeo = {
       title: "HORECA products - Gyros, kebab, pita and specialities | Halasi Kebpro",
       description: "Gyros and kebab skewers, shashlik, pre-cooked products, specialities and yoghurts for HORECA partners. Order online.",
     },
+    products: {
+      title: "Products - HORECA and retail range | Halasi Kebpro",
+      description: "Choose from the Halasi Kebpro HORECA and retail product ranges.",
+    },
     retail: {
       title: "Retail products - Halasi Kebpro Kft.",
       description: "Pitas, tortillas, desserts, extras and packaging materials from Halasi Kebpro Kft.",
@@ -103,6 +111,10 @@ const pageSeo = {
     wholesale: {
       title: "HORECA-Produkte - Gyros, Kebab, Pita und Spezialitäten | Halasi Kebpro",
       description: "Gyros- und Kebabspieße, Schaschlik, vorgegarte Produkte, Spezialitäten und Joghurts für HORECA-Partner. Online bestellen.",
+    },
+    products: {
+      title: "Produkte - HORECA- und Einzelhandelssortiment | Halasi Kebpro",
+      description: "Wählen Sie aus dem HORECA- und Einzelhandelssortiment von Halasi Kebpro.",
     },
     retail: {
       title: "Einzelhandelsprodukte - Halasi Kebpro Kft.",

@@ -83,7 +83,7 @@ const formLimiter = rateLimit({
 const LEGACY_REDIRECTS = {
   "/kezdolap":            "/",
   "/bemutatkozas":        "/rolunk",
-  "/termekek-es-gyartas": "/termekek/nagykereskedelem",
+  "/termekek-es-gyartas": "/termekek/horeca",
   "/logisztika":          "/rolunk",
   "/referencia":          "/rolunk",
   "/elerhetoseg":         "/kapcsolat",
@@ -100,7 +100,7 @@ router.get("/sitemap.xml", (req, res) => {
     { loc: "/",                          priority: "1.0", changefreq: "weekly"  },
     { loc: "/rolunk",                    priority: "0.8", changefreq: "monthly" },
     { loc: "/minoseg",                   priority: "0.8", changefreq: "monthly" },
-    { loc: "/termekek/nagykereskedelem", priority: "0.9", changefreq: "monthly" },
+    { loc: "/termekek/horeca", priority: "0.9", changefreq: "monthly" },
     { loc: "/termekek/kiskereskedelem",  priority: "0.6", changefreq: "monthly" },
     { loc: "/palyazatok",                priority: "0.5", changefreq: "monthly" },
     { loc: "/ajanlatkeres",              priority: "0.9", changefreq: "monthly" },
@@ -196,6 +196,36 @@ function validateCommon(body, lang) {
   if (data.product.length < 2) errors.product = messages.product;
 
   return { errors, data, messages };
+}
+
+function getSelectedProducts(body) {
+  const products = Array.isArray(body.products)
+    ? body.products
+    : body.products ? [body.products] : [];
+  const quantities = Array.isArray(body.productQuantities)
+    ? body.productQuantities
+    : body.productQuantities ? [body.productQuantities] : [];
+
+  return products
+    .map((product, index) => ({
+      product: (product || "").trim(),
+      quantity: (quantities[index] || "").trim(),
+    }))
+    .filter((item) => item.product);
+}
+
+function applySelectedProducts(data, errors, selectedProducts) {
+  if (selectedProducts.length === 0) return;
+
+  delete errors.product;
+  data.product = selectedProducts
+    .map((item) => `${item.product}${item.quantity ? ` - ${item.quantity}` : ""}`)
+    .join("\n");
+  data.quantity = selectedProducts
+    .map((item) => item.quantity)
+    .filter(Boolean)
+    .join("; ");
+  data.products = selectedProducts;
 }
 
 // --- Signed cookie auth (stateless, works on Vercel serverless) ---
@@ -320,13 +350,20 @@ router.get("/minoseg", (req, res) => {
 });
 
 router.get("/termekek", (req, res) => {
-  res.redirect(res.locals.withLang("/termekek/nagykereskedelem"));
+  res.render("products", {
+    title: res.locals.t.nav.products,
+    seo: buildPageSeo("products", res.locals.lang, "/termekek"),
+  });
 });
 
 router.get("/termekek/nagykereskedelem", (req, res) => {
+  res.redirect(301, res.locals.withLang("/termekek/horeca"));
+});
+
+router.get("/termekek/horeca", (req, res) => {
   res.render("services", {
     title: `${res.locals.t.nav.products} - ${res.locals.t.nav.wholesale}`,
-    seo: buildPageSeo("wholesale", res.locals.lang, "/termekek/nagykereskedelem"),
+    seo: buildPageSeo("wholesale", res.locals.lang, "/termekek/horeca"),
     categories: getWholesaleCatalog(res.locals.lang),
   });
 });
@@ -340,7 +377,7 @@ router.get("/termekek/kiskereskedelem", (req, res) => {
 });
 
 router.get("/szolgaltatasok", (req, res) => {
-  res.redirect(res.locals.withLang("/termekek/nagykereskedelem"));
+  res.redirect(res.locals.withLang("/termekek/horeca"));
 });
 
 router.get("/palyazatok", (req, res) => {
@@ -392,31 +429,19 @@ router.get("/ajanlat-keres", (req, res) => {
 
 router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
   try {
-    const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
-    const products = Array.isArray(req.body.products)
-      ? req.body.products
-      : req.body.products ? [req.body.products] : [];
-    const quantities = Array.isArray(req.body.productQuantities)
-      ? req.body.productQuantities
-      : req.body.productQuantities ? [req.body.productQuantities] : [];
-    const selectedProducts = products
-      .map((product, index) => ({
-        product: (product || "").trim(),
-        quantity: (quantities[index] || "").trim(),
-      }))
-      .filter((item) => item.product);
+    const selectedProducts = getSelectedProducts(req.body);
+    const derivedProduct = selectedProducts
+      .map((item) => `${item.product}${item.quantity ? ` - ${item.quantity}` : ""}`)
+      .join("\n");
+    const derivedQuantity = selectedProducts.map((item) => item.quantity).filter(Boolean).join("; ");
+    const validationBody = {
+      ...req.body,
+      product: req.body.product || derivedProduct,
+      quantity: req.body.quantity || derivedQuantity,
+    };
+    const { errors, data } = validateCommon(validationBody, res.locals.lang);
 
-    if (selectedProducts.length > 0) {
-      delete errors.product;
-      data.product = selectedProducts
-        .map((item) => `${item.product}${item.quantity ? ` - ${item.quantity}` : ""}`)
-        .join("\n");
-      data.quantity = selectedProducts
-        .map((item) => item.quantity)
-        .filter(Boolean)
-        .join("; ");
-      data.products = selectedProducts;
-    }
+    applySelectedProducts(data, errors, selectedProducts);
 
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("quote", {
@@ -429,7 +454,7 @@ router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
       });
     }
 
-    const isCallbackRequest = /visszah[íi]v|callback|telefon/i.test(`${data.product} ${data.message}`);
+    const isCallbackRequest = /visszah(?:í|i)v|callback|telefon/i.test(`${data.product} ${data.message}`);
     const payload = {
       ...data,
       type: isCallbackRequest ? "callback" : "quote",
@@ -477,30 +502,8 @@ router.get("/megrendelesek", (req, res) => {
 router.post("/megrendeles", formLimiter, async (req, res, next) => {
   try {
     const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
-    const products = Array.isArray(req.body.products)
-      ? req.body.products
-      : req.body.products ? [req.body.products] : [];
-    const quantities = Array.isArray(req.body.productQuantities)
-      ? req.body.productQuantities
-      : req.body.productQuantities ? [req.body.productQuantities] : [];
-    const selectedProducts = products
-      .map((product, index) => ({
-        product: (product || "").trim(),
-        quantity: (quantities[index] || "").trim(),
-      }))
-      .filter((item) => item.product);
-
-    if (selectedProducts.length > 0) {
-      delete errors.product;
-      data.product = selectedProducts
-        .map((item) => `${item.product}${item.quantity ? ` - ${item.quantity}` : ""}`)
-        .join("\n");
-      data.quantity = selectedProducts
-        .map((item) => item.quantity)
-        .filter(Boolean)
-        .join("; ");
-      data.products = selectedProducts;
-    }
+    const selectedProducts = getSelectedProducts(req.body);
+    applySelectedProducts(data, errors, selectedProducts);
 
     if (data.quantity.length < 1) {
       errors.quantity = messages.quantity;
@@ -555,10 +558,10 @@ router.post("/visszahivas", formLimiter, async (req, res, next) => {
       name: name.trim().slice(0, 120),
       phone: phone.trim().slice(0, 40),
       message: `Visszahívás kérés — idősáv: ${(timeslot || "").slice(0, 60)}`,
-      type: "quote",
+      type: "callback",
       email: "",
       company: "",
-      product: "Visszahívás / Callback",
+      product: "",
       lang: res.locals.lang,
     };
     await insertSubmission(payload);
