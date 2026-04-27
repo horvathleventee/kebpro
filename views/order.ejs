@@ -23,6 +23,9 @@
 
       <% const initialProducts = formData.products && formData.products.length ? formData.products : [{ product: '', quantity: '' }]; %>
       <form method="POST" action="<%= withLang('/megrendeles') %>" class="contact-form" novalidate>
+        <div class="form-brand" aria-hidden="true">
+          <img src="/images/logo.png" alt="" loading="lazy" decoding="async" />
+        </div>
         <p class="form-required-hint"><%= t.forms.requiredHint %></p>
 
         <label for="name"><%= t.forms.contactName %> <span class="required-mark">*</span></label>

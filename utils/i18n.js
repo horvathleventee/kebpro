@@ -277,7 +277,7 @@ copy.hu.home.faqTitle = "Gyakori k\u00e9rd\u00e9sek";
 copy.hu.home.faqShowMore = "Tov\u00e1bbi k\u00e9rd\u00e9sek";
 copy.hu.home.faqShowLess = "Kevesebb k\u00e9rd\u00e9s";
 copy.hu.home.faqItems = [
-  { q: "Milyen ter\u00fcletre sz\u00e1ll\u00edtanak?", a: "Saj\u00e1t h\u0171t\u0151s j\u00e1rm\u0171veinkkel Magyarorsz\u00e1g teljes ter\u00fclet\u00e9n kiszolg\u00e1ljuk partnereinket." },
+  { q: "Hova sz\u00e1ll\u00edtanak?", a: "Saj\u00e1t h\u0171t\u0151s j\u00e1rm\u0171veinkkel Magyarorsz\u00e1g teljes ter\u00fclet\u00e9n kiszolg\u00e1ljuk partnereinket." },
   { q: "Hogyan lehet aj\u00e1nlatot k\u00e9rni?", a: "Az Aj\u00e1nlatk\u00e9r\u00e9s oldalon kiv\u00e1laszthatja az \u00e9rdekl\u0151d\u00e9s term\u00e9keit, koll\u00e9g\u00e1ink pedig felveszik \u00d6nnel a kapcsolatot." },
   { q: "Milyen term\u00e9kek rendelhet\u0151k?", a: "HORECA partnereinknek kebab ny\u00e1rsakat, saslikokat, el\u0151s\u00fct\u00f6tt term\u00e9keket, joghurtokat \u00e9s kieg\u00e9sz\u00edt\u0151ket k\u00edn\u00e1lunk." },
   { q: "Hogyan biztos\u00edtj\u00e1k a term\u00e9kek frissess\u00e9g\u00e9t?", a: "Az elk\u00e9sz\u00fclt term\u00e9keket sokkol\u00e1sos elj\u00e1r\u00e1ssal fagyasztjuk, majd kontroll\u00e1lt h\u0171t\u0151kamr\u00e1kban t\u00e1roljuk a kisz\u00e1ll\u00edt\u00e1sig." },

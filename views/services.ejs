@@ -22,7 +22,7 @@
       <div class="product-card-grid reveal-grid">
         <% categories.forEach((category) => { %>
         <a href="#<%= category.slug %>" class="product-card panel product-card-link" data-stagger>
-          <div class="product-image-slot">
+          <div class="product-image-slot product-image-slot-<%= category.slug %>">
             <img
               src="<%= category.image || `/images/products/${category.slug}.jpg` %>"
               alt="<%= category.title %>"
