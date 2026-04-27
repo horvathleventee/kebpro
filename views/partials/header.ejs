@@ -1,23 +1,30 @@
 ﻿<!DOCTYPE html>
 <html lang="<%= lang %>">
   <head>
+    <% 
+      const pageSeo = typeof seo !== 'undefined' ? seo : null;
+      const companyName = company?.name || 'Halasi Kebpro Kft.';
+      const pageTitle = pageSeo?.title ? pageSeo.title : `${title} | ${companyName}`;
+      const pageDescription = pageSeo?.description ? pageSeo.description : companyName;
+      const pageOgImage = pageSeo?.ogImage ? pageSeo.ogImage : '/images/og-default.jpg';
+    %>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary SEO -->
-    <title><%= seo && seo.title ? seo.title : (title + ' | ' + company.name) %></title>
-    <meta name="description" content="<%= seo && seo.description ? seo.description : company.name %>" />
-    <% if (seo && seo.canonical) { %>
-    <link rel="canonical" href="<%= seo.canonical %>" />
+    <title><%= pageTitle %></title>
+    <meta name="description" content="<%= pageDescription %>" />
+    <% if (pageSeo && pageSeo.canonical) { %>
+    <link rel="canonical" href="<%= pageSeo.canonical %>" />
     <% } %>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="<%= company.name %>" />
-    <meta property="og:title" content="<%= seo && seo.title ? seo.title : (title + ' | ' + company.name) %>" />
-    <meta property="og:description" content="<%= seo && seo.description ? seo.description : company.name %>" />
-    <% if (seo && seo.canonical) { %><meta property="og:url" content="<%= seo.canonical %>" /><% } %>
-    <meta property="og:image" content="<%= seo && seo.ogImage ? seo.ogImage : '/images/og-default.jpg' %>" />
+    <meta property="og:site_name" content="<%= companyName %>" />
+    <meta property="og:title" content="<%= pageTitle %>" />
+    <meta property="og:description" content="<%= pageDescription %>" />
+    <% if (pageSeo && pageSeo.canonical) { %><meta property="og:url" content="<%= pageSeo.canonical %>" /><% } %>
+    <meta property="og:image" content="<%= pageOgImage %>" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/images/favicon.png" />
