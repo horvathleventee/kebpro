@@ -1229,7 +1229,6 @@ a { color: inherit; text-decoration: none; }
 }
 .dashboard-map {
   position: relative;
-  min-height: 430px;
   border-radius: 20px;
   overflow: hidden;
   border: 1px solid rgba(220, 231, 242, 0.7);
@@ -1239,13 +1238,16 @@ a { color: inherit; text-decoration: none; }
 .dashboard-glow { position: absolute; border-radius: 999px; filter: blur(50px); opacity: 0.35; }
 .dashboard-glow-a { width: 180px; height: 180px; background: rgba(29, 155, 125, 0.22); top: 28px; left: 38px; }
 .dashboard-glow-b { width: 200px; height: 200px; background: rgba(224, 148, 34, 0.18); right: 20px; bottom: 45px; }
-.hungary-map-shell { position: relative; width: 100%; height: 100%; min-height: 330px; }
-.hungary-map-image { width: 100%; height: 100%; object-fit: contain; display: block; filter: drop-shadow(0 18px 35px rgba(15, 39, 71, 0.16)); opacity: 0.96; }
+.hungary-map-shell { position: relative; width: 100%; aspect-ratio: 16 / 9; }
+.hungary-map-image { width: 100%; height: 100%; object-fit: cover; display: block; filter: drop-shadow(0 18px 35px rgba(15, 39, 71, 0.16)); opacity: 0.96; }
 .hungary-route-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .hungary-route { fill: none; stroke: rgba(29, 155, 125, 0.58); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 12 12; }
 .strong-route { stroke: rgba(29, 155, 125, 0.78); stroke-width: 8; }
 .map-node {
   position: absolute;
+  z-index: 2;
+  padding: 0;
+  appearance: none;
   width: 18px;
   height: 18px;
   border-radius: 999px;
@@ -1254,25 +1256,20 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 8px 18px rgba(15, 39, 71, 0.18);
   transform: translate(-50%, -50%);
   transition: all 0.3s var(--ease);
-}
-.map-node-hub {
-  width: 14px;
-  height: 14px;
-  background: rgba(29, 155, 125, 0.9);
-  border-width: 3px;
-  box-shadow: 0 0 0 8px rgba(29, 155, 125, 0.12), 0 10px 20px rgba(15, 39, 71, 0.16);
+  cursor: pointer;
 }
 .map-node.is-active { background: var(--accent); }
 .map-node.emphasis {
-  transform: translate(-50%, -50%) scale(1.28);
+  transform: translate(-50%, -50%) scale(1.16);
   background: var(--accent);
-  box-shadow: 0 12px 24px rgba(224, 148, 34, 0.3);
+  box-shadow: 0 0 0 5px rgba(224, 148, 34, 0.14), 0 10px 20px rgba(224, 148, 34, 0.22);
 }
 .dashboard-attribution { display: none !important; }
 .region-overlay { display: none; }
 
 .dashboard-panel {
   position: absolute;
+  z-index: 3;
   right: 0.9rem;
   bottom: 0.9rem;
   width: min(260px, calc(100% - 1.8rem));
@@ -1733,7 +1730,7 @@ a { color: inherit; text-decoration: none; }
   .logistics-stats, .logistics-dashboard, .product-card-grid,
   .admin-diagnostics-grid, .quality-timeline-grid { grid-template-columns: 1fr; }
   .cta-strip-inner { flex-direction: column; align-items: flex-start; }
-  .dashboard-map { min-height: 360px; }
+  .dashboard-map { min-height: 0; }
   .dashboard-panel { position: static; width: 100%; margin: 0.8rem; }
   .szechenyi-floating { width: min(180px, 34vw); }
   .timeline-intro { position: static; }
@@ -1787,9 +1784,9 @@ a { color: inherit; text-decoration: none; }
   .logistics-badges { gap: 0.55rem; }
   .logistics-badge { width: 100%; justify-content: flex-start; padding: 0.65rem 0.85rem; font-size: 0.95rem; }
 
-  .dashboard-map { min-height: 0; padding: 0.75rem; display: grid; align-content: start; }
-  .hungary-map-shell { min-height: 0; height: auto; aspect-ratio: auto; }
-  .hungary-map-image { width: 100%; height: auto; object-fit: contain; }
+  .dashboard-map { min-height: 0; padding: 0.75rem; display: block; }
+  .hungary-map-shell { min-height: 0; height: auto; aspect-ratio: 16 / 9; }
+  .hungary-map-image { width: 100%; height: 100%; object-fit: cover; }
   .dashboard-panel { margin: 0.75rem 0 0; padding: 0.9rem; border-radius: 16px; }
   .dashboard-panel h3 { font-size: 1.45rem; line-height: 1.05; }
   .dashboard-panel p { font-size: 0.95rem; line-height: 1.5; }
@@ -1799,7 +1796,6 @@ a { color: inherit; text-decoration: none; }
   .region-card-copy strong { font-size: 0.98rem; }
   .region-card-copy small { font-size: 0.88rem; line-height: 1.45; }
   .map-node { width: 16px; height: 16px; border-width: 3px; }
-  .map-node-origin { width: 18px; height: 18px; }
   .service-item { grid-template-columns: 1fr; }
   .service-icon { width: 48px; height: 48px; }
 
@@ -1844,7 +1840,7 @@ a { color: inherit; text-decoration: none; }
   .stat-card, .product-card { border-radius: 16px; }
   .logistics-dashboard { padding: 0.75rem; }
   .dashboard-map { padding: 0.55rem; border-radius: 18px; }
-  .hungary-map-shell { height: auto; aspect-ratio: auto; }
+  .hungary-map-shell { height: auto; aspect-ratio: 16 / 9; }
   .dashboard-panel h3 { font-size: 1.25rem; }
   .dashboard-panel p, .stat-card p, .region-card-copy small { font-size: 0.92rem; }
   .contact-form input, .contact-form textarea, .status-select { font-size: 16px; }

@@ -81,7 +81,10 @@ const regionOverlays = {
 };
 
 if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
+  const findRegionChip = (regionKey) => document.querySelector(`.region-chip[data-region-key="${regionKey}"]`);
+
   const updateRegionPanel = (chip) => {
+    if (!chip) return;
     regionChips.forEach((item) => item.classList.remove("active"));
     chip.classList.add("active");
     logisticsPanelTitle.textContent = chip.dataset.regionTitle || "";
@@ -112,8 +115,15 @@ if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
   };
 
   regionChips.forEach((chip) => {
-    ["mouseenter", "focus", "click"].forEach((eventName) => {
+    ["mouseenter", "pointerenter", "focus", "click"].forEach((eventName) => {
       chip.addEventListener(eventName, () => updateRegionPanel(chip));
+    });
+  });
+
+  Object.values(mapNodes).forEach((node) => {
+    if (!node) return;
+    ["mouseenter", "pointerenter", "focus", "click"].forEach((eventName) => {
+      node.addEventListener(eventName, () => updateRegionPanel(findRegionChip(node.dataset.regionKey)));
     });
   });
 

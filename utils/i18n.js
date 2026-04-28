@@ -346,31 +346,31 @@ copy.de.home.faqItems.push(
 );
 
 logisticsRegions.hu = [
-  { key: "northHungary", title: "\u00c9szak-Magyarorsz\u00e1g", schedule: "Cs\u00fct\u00f6rt\u00f6k\u00f6nk\u00e9nt", text: "El\u0151re tervezhet\u0151, h\u0171t\u00f6tt kisz\u00e1ll\u00edt\u00e1st biztos\u00edtunk az \u00e9szaki partnereknek, stabil heti ritmusban." },
-  { key: "northAlfold", title: "\u00c9szak-Alf\u00f6ld", schedule: "P\u00e9ntekenk\u00e9nt", text: "Nagykereskedelmi partnereinket kisz\u00e1m\u00edthat\u00f3 fordul\u00f3kkal \u00e9s folyamatos h\u0171t\u0151l\u00e1nccal szolg\u00e1ljuk ki." },
-  { key: "southAlfold", title: "D\u00e9l-Alf\u00f6ld", schedule: "H\u00e9tf\u0151nk\u00e9nt", text: "Kiskunhalashoz k\u00f6zeli z\u00f3nak\u00e9nt gyors egyeztet\u00e9ssel \u00e9s rugalmas partnerkiszolg\u00e1l\u00e1ssal m\u0171k\u00f6dik." },
-  { key: "centralWestDunantul", title: "K\u00f6z\u00e9p-Nyugat-Dun\u00e1nt\u00fal", schedule: "Szerd\u00e1nk\u00e9nt", text: "A dun\u00e1nt\u00fali \u00fatvonal a k\u00f6z\u00e9ps\u0151 \u00e9s nyugati partnerek kiszolg\u00e1l\u00e1s\u00e1t fogja \u00f6ssze egy tervezett fordul\u00f3ban." },
-  { key: "southDunantul", title: "D\u00e9l-Dun\u00e1nt\u00fal", schedule: "Szerd\u00e1nk\u00e9nt", text: "A d\u00e9li dun\u00e1nt\u00fali partnerek heti ritmusban, kisz\u00e1m\u00edthat\u00f3an rendelhetnek \u00e9s fogadhatj\u00e1k az \u00e1rut." },
-  { key: "centralHungary", title: "K\u00f6z\u00e9p-Magyarorsz\u00e1g", schedule: "Keddenk\u00e9nt, p\u00e9ntekenk\u00e9nt", text: "S\u0171r\u0171 partnerh\u00e1l\u00f3val \u00e9s kiemelt HORECA f\u00f3kusszal m\u0171k\u00f6d\u0151 z\u00f3na, t\u00f6bb heti kisz\u00e1ll\u00edt\u00e1si ablakkal." },
-  { key: "balaton", title: "Balaton t\u00e9rs\u00e9ge", schedule: "H\u00e9tf\u0151nk\u00e9nt, cs\u00fct\u00f6rt\u00f6k\u00f6nk\u00e9nt", text: "Szezonban is kiemelten kezelt, gyors partnerkiszolg\u00e1l\u00e1st biztos\u00edt\u00f3 Balaton k\u00f6rny\u00e9ki \u00fatvonal." },
+  { key: "northHungary", title: "\u00c9szak-Magyarorsz\u00e1g", schedule: "Cs\u00fct\u00f6rt\u00f6k", text: "El\u0151re tervezhet\u0151, h\u0171t\u00f6tt kisz\u00e1ll\u00edt\u00e1st biztos\u00edtunk az \u00e9szaki partnereknek, stabil heti ritmusban." },
+  { key: "northAlfold", title: "\u00c9szak-Alf\u00f6ld", schedule: "P\u00e9ntek", text: "Nagykereskedelmi partnereinket kisz\u00e1m\u00edthat\u00f3 fordul\u00f3kkal \u00e9s folyamatos h\u0171t\u0151l\u00e1nccal szolg\u00e1ljuk ki." },
+  { key: "southAlfold", title: "D\u00e9l-Alf\u00f6ld", schedule: "H\u00e9tf\u0151", text: "Kiskunhalashoz k\u00f6zeli z\u00f3nak\u00e9nt gyors egyeztet\u00e9ssel \u00e9s rugalmas partnerkiszolg\u00e1l\u00e1ssal m\u0171k\u00f6dik." },
+  { key: "centralWestDunantul", title: "K\u00f6z\u00e9p-Nyugat-Dun\u00e1nt\u00fal", schedule: "Szerda", text: "A dun\u00e1nt\u00fali \u00fatvonal a k\u00f6z\u00e9ps\u0151 \u00e9s nyugati partnerek kiszolg\u00e1l\u00e1s\u00e1t fogja \u00f6ssze egy tervezett fordul\u00f3ban." },
+  { key: "southDunantul", title: "D\u00e9l-Dun\u00e1nt\u00fal", schedule: "Szerda", text: "A d\u00e9li dun\u00e1nt\u00fali partnerek heti ritmusban, kisz\u00e1m\u00edthat\u00f3an rendelhetnek \u00e9s fogadhatj\u00e1k az \u00e1rut." },
+  { key: "centralHungary", title: "K\u00f6z\u00e9p-Magyarorsz\u00e1g", schedule: "Kedd, p\u00e9ntek", text: "S\u0171r\u0171 partnerh\u00e1l\u00f3val \u00e9s kiemelt HORECA f\u00f3kusszal m\u0171k\u00f6d\u0151 z\u00f3na, t\u00f6bb heti kisz\u00e1ll\u00edt\u00e1si ablakkal." },
+  { key: "balaton", title: "Balaton t\u00e9rs\u00e9ge", schedule: "H\u00e9tf\u0151, cs\u00fct\u00f6rt\u00f6k", text: "Szezonban is kiemelten kezelt, gyors partnerkiszolg\u00e1l\u00e1st biztos\u00edt\u00f3 Balaton k\u00f6rny\u00e9ki \u00fatvonal." },
 ];
 logisticsRegions.en = [
-  { key: "northHungary", title: "Northern Hungary", schedule: "Thursdays", text: "Predictable refrigerated service for partners in the northern region with a stable weekly rhythm." },
-  { key: "northAlfold", title: "Northern Great Plain", schedule: "Fridays", text: "Scheduled deliveries with a stable cold chain and routes adapted to wholesale partners." },
-  { key: "southAlfold", title: "Southern Great Plain", schedule: "Mondays", text: "Service from the Kiskunhalas area with quick coordination and flexible partner handling." },
-  { key: "centralWestDunantul", title: "Central-West Transdanubia", schedule: "Wednesdays", text: "A planned Transdanubian route connecting central and western partners in one delivery cycle." },
-  { key: "southDunantul", title: "Southern Transdanubia", schedule: "Wednesdays", text: "Weekly refrigerated service for southern Transdanubian partners in a predictable rhythm." },
-  { key: "centralHungary", title: "Central Hungary", schedule: "Tuesdays, Fridays", text: "Dense partner network and strong HORECA focus with multiple delivery windows each week." },
-  { key: "balaton", title: "Lake Balaton area", schedule: "Mondays, Thursdays", text: "Priority route around Lake Balaton with fast partner coverage, especially useful in season." },
+  { key: "northHungary", title: "Northern Hungary", schedule: "Thursday", text: "Predictable refrigerated service for partners in the northern region with a stable weekly rhythm." },
+  { key: "northAlfold", title: "Northern Great Plain", schedule: "Friday", text: "Scheduled deliveries with a stable cold chain and routes adapted to wholesale partners." },
+  { key: "southAlfold", title: "Southern Great Plain", schedule: "Monday", text: "Service from the Kiskunhalas area with quick coordination and flexible partner handling." },
+  { key: "centralWestDunantul", title: "Central-West Transdanubia", schedule: "Wednesday", text: "A planned Transdanubian route connecting central and western partners in one delivery cycle." },
+  { key: "southDunantul", title: "Southern Transdanubia", schedule: "Wednesday", text: "Weekly refrigerated service for southern Transdanubian partners in a predictable rhythm." },
+  { key: "centralHungary", title: "Central Hungary", schedule: "Tuesday, Friday", text: "Dense partner network and strong HORECA focus with multiple delivery windows each week." },
+  { key: "balaton", title: "Lake Balaton area", schedule: "Monday, Thursday", text: "Priority route around Lake Balaton with fast partner coverage, especially useful in season." },
 ];
 logisticsRegions.de = [
-  { key: "northHungary", title: "Nordungarn", schedule: "Donnerstags", text: "Planbare gek\u00fchlte Versorgung der n\u00f6rdlichen Partner in einem stabilen Wochenrhythmus." },
-  { key: "northAlfold", title: "N\u00f6rdliche Tiefebene", schedule: "Freitags", text: "Geplante Auslieferung mit stabiler K\u00fchlkette und auf Gro\u00dfhandelspartner abgestimmten Touren." },
-  { key: "southAlfold", title: "S\u00fcdliche Tiefebene", schedule: "Montags", text: "Zone in der N\u00e4he von Kiskunhalas mit schneller Abstimmung und flexibler Partnerbetreuung." },
-  { key: "centralWestDunantul", title: "Mittel-West-Transdanubien", schedule: "Mittwochs", text: "Geplante Transdanubien-Route f\u00fcr zentrale und westliche Partner in einem festen Lieferrhythmus." },
-  { key: "southDunantul", title: "S\u00fcd-Transdanubien", schedule: "Mittwochs", text: "W\u00f6chentliche und gut planbare Belieferung der s\u00fcdtransdanubischen Partner." },
-  { key: "centralHungary", title: "Mittelungarn", schedule: "Dienstags, freitags", text: "Dichtes Partnernetz und starker HORECA-Fokus mit mehreren Lieferfenstern pro Woche." },
-  { key: "balaton", title: "Balaton-Region", schedule: "Montags, donnerstags", text: "Priorit\u00e4tsroute rund um den Balaton mit schneller Partnerbelieferung, besonders in der Saison." },
+  { key: "northHungary", title: "Nordungarn", schedule: "Donnerstag", text: "Planbare gek\u00fchlte Versorgung der n\u00f6rdlichen Partner in einem stabilen Wochenrhythmus." },
+  { key: "northAlfold", title: "N\u00f6rdliche Tiefebene", schedule: "Freitag", text: "Geplante Auslieferung mit stabiler K\u00fchlkette und auf Gro\u00dfhandelspartner abgestimmten Touren." },
+  { key: "southAlfold", title: "S\u00fcdliche Tiefebene", schedule: "Montag", text: "Zone in der N\u00e4he von Kiskunhalas mit schneller Abstimmung und flexibler Partnerbetreuung." },
+  { key: "centralWestDunantul", title: "Mittel-West-Transdanubien", schedule: "Mittwoch", text: "Geplante Transdanubien-Route f\u00fcr zentrale und westliche Partner in einem festen Lieferrhythmus." },
+  { key: "southDunantul", title: "S\u00fcd-Transdanubien", schedule: "Mittwoch", text: "W\u00f6chentliche und gut planbare Belieferung der s\u00fcdtransdanubischen Partner." },
+  { key: "centralHungary", title: "Mittelungarn", schedule: "Dienstag, Freitag", text: "Dichtes Partnernetz und starker HORECA-Fokus mit mehreren Lieferfenstern pro Woche." },
+  { key: "balaton", title: "Balaton-Region", schedule: "Montag, Donnerstag", text: "Priorit\u00e4tsroute rund um den Balaton mit schneller Partnerbelieferung, besonders in der Saison." },
 ];
 
 function getLang(value) { return supportedLanguages.includes(value) ? value : defaultLanguage; }
