@@ -147,9 +147,16 @@
         >
           <span class="region-chip-index">0<%= index + 1 %></span>
           <span class="region-card-copy">
-            <strong><%= region.title %></strong>
             <% if (region.schedule) { %>
-            <span class="region-card-schedule"><%= region.schedule %></span>
+            <span class="region-card-head">
+              <strong><%= region.title %></strong>
+              <span class="region-card-schedule-wrap">
+                <span class="region-card-schedule-label">szállítási nap:</span>
+                <span class="region-card-schedule"><%= region.schedule %></span>
+              </span>
+            </span>
+            <% } else { %>
+            <strong><%= region.title %></strong>
             <% } %>
             <small><%= region.text %></small>
           </span>

@@ -66,7 +66,8 @@ const mapNodes = {
   northHungary: document.querySelector(".map-node-north-hungary"),
   northAlfold: document.querySelector(".map-node-north-alfold"),
   southAlfold: document.querySelector(".map-node-south-alfold"),
-  centralWestDunantul: document.querySelector(".map-node-central-west-dunantul"),
+  centralDunantul: document.querySelector(".map-node-central-dunantul"),
+  westDunantul: document.querySelector(".map-node-west-dunantul"),
   southDunantul: document.querySelector(".map-node-south-dunantul"),
   centralHungary: document.querySelector(".map-node-central-hungary"),
   balaton: document.querySelector(".map-node-balaton"),
@@ -183,7 +184,7 @@ if (zipInput && zipResult && zipLabels) {
     "10": "centralHungary", "11": "centralHungary", "12": "centralHungary", "13": "centralHungary", "14": "centralHungary",
     "15": "centralHungary", "16": "centralHungary", "17": "centralHungary", "18": "centralHungary", "19": "centralHungary",
     "20": "centralHungary", "21": "centralHungary", "22": "centralHungary", "23": "centralHungary",
-    "24": "centralWestDunantul", "25": "centralWestDunantul", "26": "centralHungary", "27": "centralHungary", "28": "centralWestDunantul", "29": "centralHungary",
+    "24": "centralDunantul", "25": "centralDunantul", "26": "centralHungary", "27": "centralHungary", "28": "centralDunantul", "29": "centralHungary",
     "30": "northHungary", "31": "northHungary", "32": "northHungary", "33": "northHungary", "34": "northHungary",
     "35": "northHungary", "36": "northHungary", "37": "northHungary", "38": "northHungary", "39": "northHungary",
     "40": "northAlfold", "41": "northAlfold", "42": "northAlfold", "43": "northAlfold", "44": "northAlfold",
@@ -194,11 +195,11 @@ if (zipInput && zipResult && zipLabels) {
     "65": "southAlfold", "66": "southAlfold", "67": "southAlfold", "68": "southAlfold", "69": "southAlfold",
     "70": "southDunantul", "71": "southDunantul", "72": "southDunantul", "73": "southDunantul", "74": "southDunantul",
     "75": "southDunantul", "76": "southDunantul", "77": "southDunantul",
-    "80": "centralWestDunantul", "81": "centralWestDunantul",
+    "80": "centralDunantul", "81": "centralDunantul",
     "82": "balaton", "83": "balaton", "84": "balaton",
     "85": "balaton", "86": "balaton", "87": "balaton", "88": "balaton", "89": "balaton",
-    "90": "centralWestDunantul", "91": "centralWestDunantul", "92": "centralWestDunantul", "93": "centralWestDunantul", "94": "centralWestDunantul",
-    "95": "centralWestDunantul", "96": "centralWestDunantul", "97": "centralWestDunantul", "98": "centralWestDunantul", "99": "centralWestDunantul",
+    "90": "westDunantul", "91": "westDunantul", "92": "westDunantul", "93": "westDunantul", "94": "westDunantul",
+    "95": "westDunantul", "96": "westDunantul", "97": "westDunantul", "98": "westDunantul", "99": "westDunantul",
   };
   const resultText = zipLabels.dataset.zipResult;
   const notFoundText = zipLabels.dataset.zipNotFound;
@@ -210,6 +211,15 @@ if (zipInput && zipResult && zipLabels) {
       zipResult.textContent = "";
       zipResult.className = "zip-result";
       return;
+    }
+    if (val === "6000") {
+      const chip = document.querySelector('.region-chip[data-region-key="centralHungary"]');
+      if (chip) {
+        chip.click();
+        zipResult.textContent = resultText + " " + chip.dataset.regionTitle;
+        zipResult.className = "zip-result";
+        return;
+      }
     }
     const prefix2 = val.substring(0, 2);
     const regionKey = zipMap2[prefix2];
