@@ -608,7 +608,8 @@ a { color: inherit; text-decoration: none; }
   margin: -0.15rem 0 0.35rem;
 }
 .form-brand img {
-  width: 46px;
+  width: 46px !important;
+  max-width: 46px !important;
   height: auto;
   display: block;
   filter: drop-shadow(0 8px 14px rgba(16, 36, 63, 0.1));

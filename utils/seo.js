@@ -151,7 +151,8 @@ const pageSeo = {
  * @returns {{ title, description, canonical, ogImage }}
  */
 function buildPageSeo(pageKey, lang, canonicalPath) {
-  const siteUrl = (process.env.SITE_URL || "https://csirkegyros.hu").replace(/\/$/, "");
+  const configuredUrl = process.env.SITE_URL || process.env.BASE_URL || "";
+  const siteUrl = (/kebpro\.hu/i.test(configuredUrl) ? "https://csirkegyros.hu" : configuredUrl || "https://csirkegyros.hu").replace(/\/$/, "");
   const langData = pageSeo[lang] || pageSeo.hu;
   const data = langData[pageKey] || pageSeo.hu[pageKey] || {};
   return {

@@ -9,12 +9,47 @@ const { getLang, getTranslations, buildLangUrl, supportedLanguages } = require("
 
 const app = express();
 const dbReady = initDb();
+const PRIMARY_ORIGIN = "https://csirkegyros.hu";
+
+const DOMAIN_REDIRECTS = {
+  "/rolunk/bemutatkozas": "/rolunk",
+  "/rolunk/filozofia": "/rolunk",
+  "/rolunk/logisztika": "/rolunk",
+  "/minoseg": "/minoseg",
+  "/termekek/kebup": "/termekek/kiskereskedelem",
+  "/termekek/kebpro": "/termekek/horeca",
+  "/palyazat-1": "/palyazatok",
+  "/palyazat-2": "/palyazatok",
+  "/kapcsolat/elerhetoseg": "/kapcsolat",
+  "/kapcsolat/ajanlatkeres": "/ajanlatkeres",
+  "/kapcsolat/megrendeles": "/megrendeles",
+};
 
 // Trust Vercel / reverse-proxy headers (needed for correct IP in rate limiting)
 app.set("trust proxy", 1);
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+
+app.use((req, res, next) => {
+  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "")
+    .split(",")[0]
+    .trim()
+    .toLowerCase()
+    .replace(/:\d+$/, "");
+
+  const shouldRedirect =
+    host === "kebpro.hu" ||
+    host === "www.kebpro.hu" ||
+    host === "www.csirkegyros.hu";
+
+  if (!shouldRedirect) return next();
+
+  const cleanPath = req.path.replace(/\/+$/, "") || "/";
+  const targetPath = DOMAIN_REDIRECTS[cleanPath] || cleanPath;
+  const query = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+  return res.redirect(301, `${PRIMARY_ORIGIN}${targetPath}${query}`);
+});
 
 // Security headers
 app.use(helmet({
@@ -71,6 +106,11 @@ app.use(async (req, res, next) => {
     res.locals.buildLangUrl = (pathname, targetLang, extraQuery = {}) =>
       buildLangUrl(pathname, targetLang, extraQuery);
     res.locals.currentPath = req.path;
+    res.locals.assetVersion =
+      process.env.ASSET_VERSION ||
+      process.env.VERCEL_GIT_COMMIT_SHA ||
+      process.env.RAILWAY_GIT_COMMIT_SHA ||
+      "local";
     res.locals.company = {
       name: process.env.COMPANY_NAME || "Halasi Kebpro Kft.",
       phone: process.env.COMPANY_PHONE || "+36 70 451 5003",

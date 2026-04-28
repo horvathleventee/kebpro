@@ -24,7 +24,7 @@
       <% const initialProducts = formData.products && formData.products.length ? formData.products : [{ product: formData.product || '', quantity: formData.quantity || '' }]; %>
       <form method="POST" action="<%= withLang('/ajanlatkeres') %>" class="contact-form" novalidate>
         <div class="form-brand" aria-hidden="true">
-          <img src="/images/logo.png" alt="" loading="lazy" decoding="async" />
+          <img src="/images/logo.png" alt="" width="46" style="width:46px;max-width:46px;height:auto;" loading="lazy" decoding="async" />
         </div>
         <p class="form-required-hint"><%= t.forms.requiredHint %></p>
 

@@ -94,7 +94,8 @@ Object.entries(LEGACY_REDIRECTS).forEach(([from, to]) => {
 
 // ── Sitemap ──────────────────────────────────────────────────────────────────
 router.get("/sitemap.xml", (req, res) => {
-  const siteUrl = (process.env.SITE_URL || "https://csirkegyros.hu").replace(/\/$/, "");
+  const configuredUrl = process.env.SITE_URL || process.env.BASE_URL || "";
+  const siteUrl = (/kebpro\.hu/i.test(configuredUrl) ? "https://csirkegyros.hu" : configuredUrl || "https://csirkegyros.hu").replace(/\/$/, "");
   const today = new Date().toISOString().split("T")[0];
   const urls = [
     { loc: "/",                          priority: "1.0", changefreq: "weekly"  },
