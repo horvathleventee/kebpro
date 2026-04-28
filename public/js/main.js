@@ -61,6 +61,7 @@ if (sections.length > 0) {
 const regionChips = document.querySelectorAll(".region-chip");
 const logisticsPanelTitle = document.getElementById("logisticsPanelTitle");
 const logisticsPanelText = document.getElementById("logisticsPanelText");
+const logisticsPanelSchedule = document.getElementById("logisticsPanelSchedule");
 const mapNodes = {
   northHungary: document.querySelector(".map-node-north-hungary"),
   northAlfold: document.querySelector(".map-node-north-alfold"),
@@ -85,6 +86,10 @@ if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
     chip.classList.add("active");
     logisticsPanelTitle.textContent = chip.dataset.regionTitle || "";
     logisticsPanelText.textContent = chip.dataset.regionText || "";
+    if (logisticsPanelSchedule) {
+      logisticsPanelSchedule.textContent = chip.dataset.regionSchedule || "";
+      logisticsPanelSchedule.style.display = chip.dataset.regionSchedule ? "inline-flex" : "none";
+    }
 
     if (logisticsPanelTitle.parentElement) {
       logisticsPanelTitle.parentElement.classList.remove("panel-top-left", "panel-top-right", "panel-bottom-left", "panel-bottom-right");
@@ -111,6 +116,8 @@ if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
       chip.addEventListener(eventName, () => updateRegionPanel(chip));
     });
   });
+
+  updateRegionPanel(document.querySelector(".region-chip.active") || regionChips[0]);
 }
 
 /* ── Count-up animation ── */

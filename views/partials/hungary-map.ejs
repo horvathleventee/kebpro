@@ -1,14 +1,15 @@
 ﻿<div class="hungary-map-shell">
   <img
-    src="/images/hungary-logistics-map.png"
+    src="/images/hungary-logistics-map.png?v=<%= assetVersion || 'local' %>"
     alt="Magyarország logisztikai térképe"
     class="hungary-map-image"
     loading="lazy"
   />
 
+  <span class="map-node map-node-hub" style="left: 49%; top: 65%;"></span>
   <span class="map-node map-node-north-hungary" style="left: 63%; top: 32%;"></span>
   <span class="map-node map-node-north-alfold" style="left: 72%; top: 50%;"></span>
-  <span class="map-node map-node-south-alfold is-active map-node-origin" style="left: 50%; top: 66%;"></span>
+  <span class="map-node map-node-south-alfold" style="left: 50%; top: 66%;"></span>
   <span class="map-node map-node-central-west-dunantul" style="left: 18%; top: 49%;"></span>
   <span class="map-node map-node-south-dunantul" style="left: 27%; top: 65%;"></span>
   <span class="map-node map-node-central-hungary" style="left: 48%; top: 45%;"></span>

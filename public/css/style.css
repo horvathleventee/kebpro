@@ -1255,7 +1255,13 @@ a { color: inherit; text-decoration: none; }
   transform: translate(-50%, -50%);
   transition: all 0.3s var(--ease);
 }
-.map-node-origin { width: 20px; height: 20px; box-shadow: 0 0 0 6px rgba(29, 155, 125, 0.10), 0 12px 22px rgba(15, 39, 71, 0.18); }
+.map-node-hub {
+  width: 14px;
+  height: 14px;
+  background: rgba(29, 155, 125, 0.9);
+  border-width: 3px;
+  box-shadow: 0 0 0 8px rgba(29, 155, 125, 0.12), 0 10px 20px rgba(15, 39, 71, 0.16);
+}
 .map-node.is-active { background: var(--accent); }
 .map-node.emphasis {
   transform: translate(-50%, -50%) scale(1.28);
@@ -1281,6 +1287,19 @@ a { color: inherit; text-decoration: none; }
 }
 .dashboard-panel h3 { margin: 0 0 0.35rem; font-size: 1.05rem; line-height: 1.08; }
 .dashboard-panel p:last-child { margin-bottom: 0; color: var(--muted); font-size: 0.95rem; line-height: 1.5; }
+.logistics-schedule {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.65rem;
+  padding: 0.42rem 0.72rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(224, 148, 34, 0.16), rgba(224, 148, 34, 0.24));
+  color: #9a5d00;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
 
 .dashboard-panel.panel-top-left { left: 0.9rem; right: auto; top: 0.9rem; bottom: auto; }
 .dashboard-panel.panel-top-right { right: 0.9rem; left: auto; top: 0.9rem; bottom: auto; }
@@ -1326,6 +1345,19 @@ a { color: inherit; text-decoration: none; }
 }
 .region-card-copy { display: grid; gap: 0.3rem; }
 .region-card-copy strong { font-size: 1rem; }
+.region-card-schedule {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 0.25rem 0.56rem;
+  border-radius: 999px;
+  background: rgba(224, 148, 34, 0.14);
+  color: #a86600;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
 .region-card-copy small { color: var(--muted); line-height: 1.55; font-size: 0.9rem; }
 
 /* ── Products ── */

@@ -113,6 +113,11 @@
         <%- include('partials/hungary-map') %>
         <div class="dashboard-panel <%= activeRegion.panelPosition || 'panel-bottom-right' %>" id="logisticsPanel">
           <p class="logistics-panel-label"><%= t.home.logisticsPanelTitle %></p>
+          <% if (activeRegion.schedule) { %>
+          <p class="logistics-schedule" id="logisticsPanelSchedule"><%= activeRegion.schedule %></p>
+          <% } else { %>
+          <p class="logistics-schedule" id="logisticsPanelSchedule"></p>
+          <% } %>
           <h3 id="logisticsPanelTitle"><%= activeRegion.title %></h3>
           <p id="logisticsPanelText"><%= activeRegion.text %></p>
         </div>
@@ -124,6 +129,7 @@
           class="region-chip region-card <%= index === 0 ? 'active' : '' %>"
           data-region-title="<%= region.title %>"
           data-region-text="<%= region.text %>"
+          data-region-schedule="<%= region.schedule || '' %>"
           data-region-key="<%= region.key %>"
           data-panel-position="<%= region.panelPosition || 'panel-bottom-right' %>"
           data-stagger
@@ -131,6 +137,9 @@
           <span class="region-chip-index">0<%= index + 1 %></span>
           <span class="region-card-copy">
             <strong><%= region.title %></strong>
+            <% if (region.schedule) { %>
+            <span class="region-card-schedule"><%= region.schedule %></span>
+            <% } %>
             <small><%= region.text %></small>
           </span>
         </button>
