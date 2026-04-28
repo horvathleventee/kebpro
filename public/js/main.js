@@ -62,11 +62,12 @@ const regionChips = document.querySelectorAll(".region-chip");
 const logisticsPanelTitle = document.getElementById("logisticsPanelTitle");
 const logisticsPanelText = document.getElementById("logisticsPanelText");
 const mapNodes = {
-  west: document.querySelector(".map-node-west"),
-  central: document.querySelector(".map-node-central"),
-  north: document.querySelector(".map-node-north"),
-  east: document.querySelector(".map-node-east"),
-  south: document.querySelector(".map-node-south"),
+  northHungary: document.querySelector(".map-node-north-hungary"),
+  northAlfold: document.querySelector(".map-node-north-alfold"),
+  southAlfold: document.querySelector(".map-node-south-alfold"),
+  centralWestDunantul: document.querySelector(".map-node-central-west-dunantul"),
+  southDunantul: document.querySelector(".map-node-south-dunantul"),
+  centralHungary: document.querySelector(".map-node-central-hungary"),
   balaton: document.querySelector(".map-node-balaton"),
 };
 
@@ -160,36 +161,27 @@ const zipResult = document.getElementById("zipResult");
 const zipLabels = document.querySelector(".zip-labels");
 
 if (zipInput && zipResult && zipLabels) {
-  // Hungarian postal code → delivery region (2-digit prefix mapping)
-  // 1xxx Budapest, 2xxx Pest → central
-  // 3xxx Észak-Magyarország → north
-  // 4xxx Hajdú-Bihar, Szabolcs, Jász → east
-  // 50-52xx Szolnok area → east, 53-59xx Békés → south
-  // 60-64xx Bács-Kiskun → south, 65-69xx Csongrád → south
-  // 70-72xx Baranya → west, 73-74xx Tolna → west, 75-77xx Somogy → west
-  // 80-81xx Székesfehérvár/Fejér → central, 82-84xx Veszprém → balaton
-  // 85-87xx Zala → balaton, 88-89xx Veszprém/Balaton → balaton
-  // 90-96xx Győr-Moson-Sopron → west, 97-99xx Vas → west
+  // Hungarian postal code -> delivery region (2-digit prefix mapping)
   const zipMap2 = {
-    "10": "central", "11": "central", "12": "central", "13": "central", "14": "central",
-    "15": "central", "16": "central", "17": "central", "18": "central", "19": "central",
-    "20": "central", "21": "central", "22": "central", "23": "central", "24": "central",
-    "25": "central", "26": "central", "27": "central", "28": "central", "29": "central",
-    "30": "north", "31": "north", "32": "north", "33": "north", "34": "north",
-    "35": "north", "36": "north", "37": "north", "38": "north", "39": "north",
-    "40": "east", "41": "east", "42": "east", "43": "east", "44": "east",
-    "45": "east", "46": "east", "47": "east", "48": "east", "49": "east",
-    "50": "east", "51": "east", "52": "east",
-    "53": "south", "54": "south", "55": "south", "56": "south", "57": "south", "58": "south", "59": "south",
-    "60": "south", "61": "south", "62": "south", "63": "south", "64": "south",
-    "65": "south", "66": "south", "67": "south", "68": "south", "69": "south",
-    "70": "west", "71": "west", "72": "west", "73": "west", "74": "west",
-    "75": "west", "76": "west", "77": "west",
-    "80": "central", "81": "central",
+    "10": "centralHungary", "11": "centralHungary", "12": "centralHungary", "13": "centralHungary", "14": "centralHungary",
+    "15": "centralHungary", "16": "centralHungary", "17": "centralHungary", "18": "centralHungary", "19": "centralHungary",
+    "20": "centralHungary", "21": "centralHungary", "22": "centralHungary", "23": "centralHungary",
+    "24": "centralWestDunantul", "25": "centralWestDunantul", "26": "centralHungary", "27": "centralHungary", "28": "centralWestDunantul", "29": "centralHungary",
+    "30": "northHungary", "31": "northHungary", "32": "northHungary", "33": "northHungary", "34": "northHungary",
+    "35": "northHungary", "36": "northHungary", "37": "northHungary", "38": "northHungary", "39": "northHungary",
+    "40": "northAlfold", "41": "northAlfold", "42": "northAlfold", "43": "northAlfold", "44": "northAlfold",
+    "45": "northAlfold", "46": "northAlfold", "47": "northAlfold", "48": "northAlfold", "49": "northAlfold",
+    "50": "northAlfold", "51": "northAlfold", "52": "northAlfold",
+    "53": "southAlfold", "54": "southAlfold", "55": "southAlfold", "56": "southAlfold", "57": "southAlfold", "58": "southAlfold", "59": "southAlfold",
+    "60": "southAlfold", "61": "southAlfold", "62": "southAlfold", "63": "southAlfold", "64": "southAlfold",
+    "65": "southAlfold", "66": "southAlfold", "67": "southAlfold", "68": "southAlfold", "69": "southAlfold",
+    "70": "southDunantul", "71": "southDunantul", "72": "southDunantul", "73": "southDunantul", "74": "southDunantul",
+    "75": "southDunantul", "76": "southDunantul", "77": "southDunantul",
+    "80": "centralWestDunantul", "81": "centralWestDunantul",
     "82": "balaton", "83": "balaton", "84": "balaton",
     "85": "balaton", "86": "balaton", "87": "balaton", "88": "balaton", "89": "balaton",
-    "90": "west", "91": "west", "92": "west", "93": "west", "94": "west",
-    "95": "west", "96": "west", "97": "west", "98": "west", "99": "west",
+    "90": "centralWestDunantul", "91": "centralWestDunantul", "92": "centralWestDunantul", "93": "centralWestDunantul", "94": "centralWestDunantul",
+    "95": "centralWestDunantul", "96": "centralWestDunantul", "97": "centralWestDunantul", "98": "centralWestDunantul", "99": "centralWestDunantul",
   };
   const resultText = zipLabels.dataset.zipResult;
   const notFoundText = zipLabels.dataset.zipNotFound;

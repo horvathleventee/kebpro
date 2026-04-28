@@ -329,6 +329,50 @@ copy.de.home.faqItems = [
   { q: "Sind Produktionschargen r\u00fcckverfolgbar?", a: "Ja, unser R\u00fcckverfolgungssystem dokumentiert die Verbindung vom Rohstofflieferanten bis zum Kunden." },
 ];
 
+copy.hu.home.faqItems.push(
+  { q: "Mi a minim\u00e1lisan rendelhet\u0151 mennyis\u00e9g?", a: "Ahhoz, hogy a term\u00e9keket kisz\u00e1ll\u00edtsuk, legal\u00e1bb 20 kg / k\u00e9t karton h\u00fast kell rendelni." },
+  { q: "Mag\u00e1nszem\u00e9lyeket is kiszolg\u00e1lnak?", a: "Sajnos egyel\u0151re nem, k\u00e9rj\u00fck, \u00e9rdekl\u0151dj\u00f6n nagyker partnereinkn\u00e9l!" },
+  { q: "Csak eg\u00e9sz kartonnal lehet rendelni?", a: "Igen, a legt\u00f6bb term\u00e9k\u00fcnkb\u0151l csak eg\u00e9sz kartonnal lehet rendelni: s\u00fclt h\u00fasok, t\u00e9pett h\u00fas, pita, saslik, stb." }
+);
+copy.en.home.faqItems.push(
+  { q: "What is the minimum order quantity?", a: "For delivery, at least 20 kg / two cartons of meat must be ordered." },
+  { q: "Do you serve private individuals?", a: "Unfortunately not at the moment. Please contact our wholesale partners." },
+  { q: "Can products be ordered only by full carton?", a: "Yes, most products are available by full carton only, including roasted meats, pulled meat, pita and shashlik." }
+);
+copy.de.home.faqItems.push(
+  { q: "Was ist die Mindestbestellmenge?", a: "F\u00fcr die Lieferung m\u00fcssen mindestens 20 kg / zwei Kartons Fleisch bestellt werden." },
+  { q: "Beliefern Sie auch Privatpersonen?", a: "Derzeit leider nicht. Bitte wenden Sie sich an unsere Gro\u00dfhandelspartner." },
+  { q: "Kann man nur ganze Kartons bestellen?", a: "Ja, die meisten Produkte sind nur kartonweise erh\u00e4ltlich, darunter gebratenes Fleisch, Pulled Meat, Pita und Schaschlik." }
+);
+
+logisticsRegions.hu = [
+  { key: "northHungary", title: "\u00c9szak-Magyarorsz\u00e1g", text: "Cs\u00fct\u00f6rt\u00f6k\u00f6nk\u00e9nt indul\u00f3 j\u00e1ratainkkal el\u0151re tervezhet\u0151, h\u0171t\u00f6tt kisz\u00e1ll\u00edt\u00e1st biztos\u00edtunk az \u00e9szaki partnereknek." },
+  { key: "northAlfold", title: "\u00c9szak-Alf\u00f6ld", text: "P\u00e9ntekenk\u00e9nt \u00fctemezett sz\u00e1ll\u00edt\u00e1s, stabil h\u0171t\u0151l\u00e1nccal \u00e9s nagykereskedelmi partnerekhez igaz\u00edtott fordul\u00f3kkal." },
+  { key: "southAlfold", title: "D\u00e9l-Alf\u00f6ld", text: "H\u00e9tf\u0151nk\u00e9nt kiszolg\u00e1lt, Kiskunhalashoz k\u00f6zeli z\u00f3na, gyors egyeztet\u00e9ssel \u00e9s rugalmas partnerkiszolg\u00e1l\u00e1ssal." },
+  { key: "centralWestDunantul", title: "K\u00f6z\u00e9p-Nyugat-Dun\u00e1nt\u00fal", text: "Szerd\u00e1nk\u00e9nt tervezett dun\u00e1nt\u00fali \u00fatvonal, amely a k\u00f6z\u00e9ps\u0151 \u00e9s nyugati partnerek kiszolg\u00e1l\u00e1s\u00e1t fogja \u00f6ssze." },
+  { key: "southDunantul", title: "D\u00e9l-Dun\u00e1nt\u00fal", text: "Szerdai fordul\u00f3val \u00e9rhet\u0151 el, \u00edgy a d\u00e9li dun\u00e1nt\u00fali partnerek heti ritmusban, kisz\u00e1m\u00edthat\u00f3an rendelhetnek." },
+  { key: "centralHungary", title: "K\u00f6z\u00e9p-Magyarorsz\u00e1g", text: "Keddenk\u00e9nt \u00e9s p\u00e9ntekenk\u00e9nt is kiszolg\u00e1lt, s\u0171r\u0171 partnerh\u00e1l\u00f3val \u00e9s kiemelt HORECA f\u00f3kusszal m\u0171k\u00f6d\u0151 z\u00f3na." },
+  { key: "balaton", title: "Balaton t\u00e9rs\u00e9ge", text: "H\u00e9tf\u0151nk\u00e9nt \u00e9s cs\u00fct\u00f6rt\u00f6k\u00f6nk\u00e9nt kiszolg\u00e1lt, szezonban is kiemelten kezelt Balaton k\u00f6rny\u00e9ki \u00fatvonal." },
+];
+logisticsRegions.en = [
+  { key: "northHungary", title: "Northern Hungary", text: "Thursday deliveries provide predictable refrigerated service for partners in the northern region." },
+  { key: "northAlfold", title: "Northern Great Plain", text: "Friday scheduled deliveries with a stable cold chain and routes adapted to wholesale partners." },
+  { key: "southAlfold", title: "Southern Great Plain", text: "Monday service from the Kiskunhalas area, supporting quick coordination and flexible partner handling." },
+  { key: "centralWestDunantul", title: "Central-West Transdanubia", text: "Wednesday Transdanubian route connecting central and western partners in one planned delivery rhythm." },
+  { key: "southDunantul", title: "Southern Transdanubia", text: "Wednesday route for southern Transdanubian partners with predictable weekly refrigerated delivery." },
+  { key: "centralHungary", title: "Central Hungary", text: "Tuesday and Friday service with a dense partner network and a strong HORECA focus." },
+  { key: "balaton", title: "Lake Balaton area", text: "Monday and Thursday deliveries on a priority Balaton route, especially useful during the season." },
+];
+logisticsRegions.de = [
+  { key: "northHungary", title: "Nordungarn", text: "Donnerstags geplante Lieferungen sichern eine gut planbare gek\u00fchlte Versorgung der n\u00f6rdlichen Partner." },
+  { key: "northAlfold", title: "N\u00f6rdliche Tiefebene", text: "Freitags geplante Auslieferung mit stabiler K\u00fchlkette und auf Gro\u00dfhandelspartner abgestimmten Touren." },
+  { key: "southAlfold", title: "S\u00fcdliche Tiefebene", text: "Montags bediente Zone in der N\u00e4he von Kiskunhalas mit schneller Abstimmung und flexibler Betreuung." },
+  { key: "centralWestDunantul", title: "Mittel-West-Transdanubien", text: "Mittwochs geplante Transdanubien-Route f\u00fcr zentrale und westliche Partner in einem festen Lieferrhythmus." },
+  { key: "southDunantul", title: "S\u00fcd-Transdanubien", text: "Mittwochs erreichbar, damit s\u00fcdtransdanubische Partner w\u00f6chentlich und planbar beliefert werden." },
+  { key: "centralHungary", title: "Mittelungarn", text: "Dienstags und freitags bediente Zone mit dichtem Partnernetz und starkem HORECA-Fokus." },
+  { key: "balaton", title: "Balaton-Region", text: "Montags und donnerstags bediente Priorit\u00e4tsroute rund um den Balaton, besonders wichtig in der Saison." },
+];
+
 function getLang(value) { return supportedLanguages.includes(value) ? value : defaultLanguage; }
 function getTranslations(lang) { return copy[getLang(lang)]; }
 function getWholesaleCatalog(lang) { return productCatalog[getLang(lang)]; }
@@ -341,24 +385,19 @@ function getOrderProductOptions(lang) {
 }
 function getGrantItems(lang) { return grantItems[getLang(lang)]; }
 const logisticsPanelPositions = {
-  west: "panel-bottom-right",
-  central: "panel-top-right",
-  north: "panel-bottom-left",
-  east: "panel-top-left",
-  south: "panel-top-right",
+  northHungary: "panel-bottom-left",
+  northAlfold: "panel-bottom-left",
+  southAlfold: "panel-top-right",
+  centralWestDunantul: "panel-bottom-right",
+  southDunantul: "panel-top-right",
+  centralHungary: "panel-bottom-left",
   balaton: "panel-bottom-right",
 };
 
 const logisticsRegionExtras = {
-  hu: [
-    { key: "balaton", title: "Balaton \u00e9s t\u00e9rs\u00e9ge", text: "Kiemelt szezon\u00e1lis \u00e9s \u00e1lland\u00f3 \u00fatvonal, gyors partnerkiszolg\u00e1l\u00e1ssal a Balaton k\u00f6rnyezet\u00e9ben." },
-  ],
-  en: [
-    { key: "balaton", title: "Lake Balaton area", text: "Priority seasonal and permanent route with fast partner coverage around Lake Balaton." },
-  ],
-  de: [
-    { key: "balaton", title: "Balaton-Region", text: "Bevorzugte saisonale und dauerhafte Route mit schneller Partnerbelieferung rund um den Balaton." },
-  ],
+  hu: [],
+  en: [],
+  de: [],
 };
 
 function getLogisticsRegions(lang) {
