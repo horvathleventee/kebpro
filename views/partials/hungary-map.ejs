@@ -1,9 +1,14 @@
 ﻿<div class="hungary-map-shell">
   <img
-    src="/images/hungary-logistics-map.png?v=<%= assetVersion || 'local' %>"
+    src="/images/optimized/hungary-logistics-map-768.jpg?v=<%= assetVersion || 'local' %>"
+    srcset="/images/optimized/hungary-logistics-map-768.jpg?v=<%= assetVersion || 'local' %> 768w, /images/optimized/hungary-logistics-map-1100.jpg?v=<%= assetVersion || 'local' %> 1100w"
+    sizes="(max-width: 768px) calc(100vw - 3rem), 594px"
     alt="Magyarország logisztikai térképe"
     class="hungary-map-image"
+    width="768"
+    height="512"
     loading="lazy"
+    decoding="async"
   />
 
   <button type="button" class="map-node map-node-north-hungary" data-region-key="northHungary" style="left: 63%; top: 32%;" aria-label="Észak-Magyarország"></button>

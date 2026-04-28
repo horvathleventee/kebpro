@@ -12,9 +12,20 @@
       </div>
     </div>
     <div class="hero-visual-wrap section-animate floating-visual">
-      <img src="/images/gyrosnyars.png" alt="Gyros ny&aacute;rs term&eacute;kbemutat&oacute;" class="hero-image" />
+      <img
+        src="/images/optimized/gyrosnyars-640.jpg?v=<%= assetVersion || 'local' %>"
+        srcset="/images/optimized/gyrosnyars-640.jpg?v=<%= assetVersion || 'local' %> 640w, /images/optimized/gyrosnyars-960.jpg?v=<%= assetVersion || 'local' %> 960w"
+        sizes="(max-width: 768px) calc(100vw - 2rem), 490px"
+        alt="Gyros ny&aacute;rs term&eacute;kbemutat&oacute;"
+        class="hero-image"
+        width="640"
+        height="960"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
       <div class="hero-card hero-logo-card">
-        <img src="/images/logo.png" alt="Halasi Kebpro Kft. log&oacute;" class="hero-mini-logo" />
+        <img src="/images/optimized/logo-170.png?v=<%= assetVersion || 'local' %>" alt="Halasi Kebpro Kft. log&oacute;" class="hero-mini-logo" width="170" height="79" loading="lazy" decoding="async" />
         <div>
           <h3><%= t.home.advantages %></h3>
           <ul>

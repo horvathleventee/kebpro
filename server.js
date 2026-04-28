@@ -71,10 +71,13 @@ app.use(helmet({
 
 app.use(express.static(path.join(__dirname, "public"), {
   etag: true,
-  maxAge: process.env.NODE_ENV === "production" ? "7d" : 0,
+  immutable: process.env.NODE_ENV === "production",
+  maxAge: process.env.NODE_ENV === "production" ? "1y" : 0,
   setHeaders(res, filePath) {
     if (/\.(?:png|jpe?g|gif|webp|svg|ico)$/i.test(filePath)) {
-      res.setHeader("Cache-Control", "public, max-age=2592000, stale-while-revalidate=604800");
+      res.setHeader("Cache-Control", process.env.NODE_ENV === "production"
+        ? "public, max-age=31536000, immutable"
+        : "public, max-age=0");
     }
   },
 }));

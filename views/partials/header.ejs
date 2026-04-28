@@ -28,11 +28,23 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <% if (typeof currentPath !== 'undefined' && currentPath === '/') { %>
+    <link
+      rel="preload"
+      as="image"
+      href="/images/optimized/gyrosnyars-640.jpg?v=<%= assetVersion || 'local' %>"
+      imagesrcset="/images/optimized/gyrosnyars-640.jpg?v=<%= assetVersion || 'local' %> 640w, /images/optimized/gyrosnyars-960.jpg?v=<%= assetVersion || 'local' %> 960w"
+      imagesizes="(max-width: 768px) calc(100vw - 2rem), 490px"
+      fetchpriority="high"
+    />
+    <% } %>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" /></noscript>
     <link rel="stylesheet" href="/css/style.css?v=<%= assetVersion || 'local' %>" />
   </head>
   <body>
@@ -41,7 +53,7 @@
       <div class="container header-shell">
         <div class="header-main">
           <a href="<%= withLang('/') %>" class="brand">
-            <img src="/images/logo.png" alt="Kebpro logó" class="brand-logo" />
+            <img src="/images/optimized/logo-170.png?v=<%= assetVersion || 'local' %>" alt="Kebpro logó" class="brand-logo" width="170" height="79" decoding="async" />
             <span>Halasi Kebpro Kft.</span>
           </a>
 
