@@ -24,7 +24,7 @@
         <a href="#<%= category.slug %>" class="product-card panel product-card-link" data-stagger>
           <div class="product-image-slot product-image-slot-<%= category.slug %>">
             <img
-              src="<%= category.image || `/images/products/${category.slug}.jpg` %>"
+              src="<%= (category.image || `/images/products/${category.slug}.jpg`) + '?v=' + (assetVersion || 'local') %>"
               alt="<%= category.title %>"
               class="product-slot-image"
               loading="lazy"
