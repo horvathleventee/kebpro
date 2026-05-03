@@ -1,5 +1,66 @@
-﻿const menuToggle = document.getElementById("menuToggle");
+const menuToggle = document.getElementById("menuToggle");
 const mainNav = document.getElementById("mainNav");
+
+const deleteForms = document.querySelectorAll("form[data-confirm-delete]");
+if (deleteForms.length > 0) {
+  const modal = document.createElement("div");
+  modal.className = "confirm-modal";
+  modal.setAttribute("aria-hidden", "true");
+  modal.innerHTML = `
+    <div class="confirm-modal-backdrop" data-confirm-cancel></div>
+    <div class="confirm-modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+      <div class="confirm-modal-body">
+        <div class="confirm-modal-icon" aria-hidden="true">!</div>
+        <div>
+          <h2 class="confirm-modal-title" id="confirmModalTitle">Törlés megerősítése</h2>
+          <p class="confirm-modal-text">Biztosan törölni szeretnéd ezt a bejegyzést? Ez a művelet nem vonható vissza.</p>
+        </div>
+      </div>
+      <div class="confirm-modal-actions">
+        <button type="button" class="btn btn-secondary" data-confirm-cancel>Mégse</button>
+        <button type="button" class="btn confirm-modal-danger" data-confirm-accept>Törlés</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  let pendingDeleteForm = null;
+  const acceptButton = modal.querySelector("[data-confirm-accept]");
+  const cancelButtons = modal.querySelectorAll("[data-confirm-cancel]");
+
+  const closeConfirmModal = () => {
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    pendingDeleteForm = null;
+  };
+
+  const openConfirmModal = (form) => {
+    pendingDeleteForm = form;
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    acceptButton?.focus();
+  };
+
+  deleteForms.forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      openConfirmModal(form);
+    });
+  });
+
+  acceptButton?.addEventListener("click", () => {
+    if (!pendingDeleteForm) return;
+    HTMLFormElement.prototype.submit.call(pendingDeleteForm);
+  });
+
+  cancelButtons.forEach((button) => button.addEventListener("click", closeConfirmModal));
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && modal.classList.contains("is-open")) {
+      closeConfirmModal();
+    }
+  });
+}
 
 if (menuToggle && mainNav) {
   menuToggle.addEventListener("click", () => {
@@ -131,7 +192,7 @@ if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
   updateRegionPanel(document.querySelector(".region-chip.active") || regionChips[0]);
 }
 
-/* ── Count-up animation ── */
+/* Count-up animation */
 const countUpElements = document.querySelectorAll(".count-up[data-target]");
 if (countUpElements.length > 0) {
   const countObserver = new IntersectionObserver(
@@ -161,7 +222,7 @@ if (countUpElements.length > 0) {
   countUpElements.forEach((el) => countObserver.observe(el));
 }
 
-/* ── Scroll progress bar ── */
+/* Scroll progress bar */
 const scrollBar = document.querySelector(".scroll-progress");
 if (scrollBar) {
   const updateProgress = () => {
@@ -173,7 +234,7 @@ if (scrollBar) {
   updateProgress();
 }
 
-/* ── Postal code → delivery region checker ── */
+/* Postal code to delivery region checker */
 const zipInput = document.getElementById("zipInput");
 const zipResult = document.getElementById("zipResult");
 const zipLabels = document.querySelector(".zip-labels");
@@ -237,7 +298,7 @@ if (zipInput && zipResult && zipLabels) {
   });
 }
 
-/* ── Callback widget toggle + submit ── */
+/* Callback widget toggle + submit */
 const callbackToggle = document.getElementById("callbackToggle");
 const callbackWidget = document.getElementById("callbackWidget");
 const callbackForm = document.getElementById("callbackForm");
@@ -270,7 +331,7 @@ if (callbackForm) {
   });
 }
 
-/* ── Product explorer tab switching ── */
+/* Product explorer tab switching */
 const explorerTabs = document.querySelectorAll(".explorer-tab");
 if (explorerTabs.length > 0) {
   explorerTabs.forEach((tab) => {
@@ -285,7 +346,7 @@ if (explorerTabs.length > 0) {
   });
 }
 
-/* ── FAQ show more / less toggle ── */
+/* FAQ show more / less toggle */
 const faqToggle = document.getElementById("faqToggle");
 const faqList = document.getElementById("faqList");
 if (faqToggle && faqList) {
@@ -360,3 +421,4 @@ if (orderBuilder) {
   orderBuilder.closest("form")?.addEventListener("submit", syncOrderSummary);
   syncOrderSummary();
 }
+

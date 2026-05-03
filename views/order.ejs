@@ -36,11 +36,13 @@
         <input id="company" name="company" type="text" value="<%= formData.company || '' %>" />
         <% if (errors.company) { %><small class="error"><%= errors.company %></small><% } %>
 
-        <label for="companyHeadquarters"><%= t.forms.headquarters %></label>
+        <label for="companyHeadquarters"><%= t.forms.headquarters %> <span class="required-mark">*</span></label>
         <input id="companyHeadquarters" name="companyHeadquarters" type="text" value="<%= formData.companyHeadquarters || '' %>" />
+        <% if (errors.companyHeadquarters) { %><small class="error"><%= errors.companyHeadquarters %></small><% } %>
 
-        <label for="taxNumber"><%= t.forms.taxNumber %></label>
+        <label for="taxNumber"><%= t.forms.taxNumber %> <span class="required-mark">*</span></label>
         <input id="taxNumber" name="taxNumber" type="text" value="<%= formData.taxNumber || '' %>" />
+        <% if (errors.taxNumber) { %><small class="error"><%= errors.taxNumber %></small><% } %>
 
         <label for="email"><%= t.forms.email %> <span class="required-mark">*</span></label>
         <input id="email" name="email" type="email" value="<%= formData.email || '' %>" />

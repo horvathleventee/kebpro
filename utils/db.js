@@ -22,6 +22,7 @@ let db;
 let Pool;
 let pool;
 let dbInitError = null;
+let sqliteDbPath = null;
 let submissionsMemory = [];
 let positionsMemory = [];
 let careerApplicationsMemory = [];
@@ -41,6 +42,7 @@ function shouldUseMemoryFallback() {
 if (adapter === "sqlite") {
   sqlite = require("sqlite3").verbose();
   const dbPath = process.env.DB_PATH || path.join(__dirname, "..", "data", "kebpro.sqlite");
+  sqliteDbPath = dbPath;
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   db = new sqlite.Database(dbPath);
 }
@@ -517,6 +519,103 @@ async function updateSubmissionStatus(id, status) {
   await run("UPDATE submissions SET status = ? WHERE id = ?", [status, id]);
 }
 
+async function deleteSubmission(id) {
+  if (shouldUseMemoryFallback()) {
+    submissionsMemory = submissionsMemory.filter((row) => Number(row.id) !== Number(id));
+    return;
+  }
+
+  if (adapter === "postgres") {
+    await pool.query("DELETE FROM submissions WHERE id = $1", [id]);
+    return;
+  }
+
+  await run("DELETE FROM submissions WHERE id = ?", [id]);
+}
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) return null;
+  const units = ["B", "KB", "MB", "GB"];
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  return `${value.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+function getStorageLimitBytes() {
+  const rawLimit =
+    cleanEnv(process.env.DB_STORAGE_LIMIT_MB) ||
+    cleanEnv(process.env.NEON_STORAGE_LIMIT_MB) ||
+    "500";
+  const limitMb = Number(rawLimit);
+  return (Number.isFinite(limitMb) && limitMb > 0 ? limitMb : 500) * 1024 * 1024;
+}
+
+function getMemoryUsageBytes() {
+  return Buffer.byteLength(
+    JSON.stringify({
+      submissions: submissionsMemory,
+      positions: positionsMemory,
+      applications: careerApplicationsMemory.map((item) => ({
+        ...item,
+        cv_filename: item.cv_filename ? "[file-reference]" : null,
+      })),
+      settings: settingsMemory,
+    }),
+    "utf8"
+  );
+}
+
+async function getDatabaseUsage() {
+  const limitBytes = getStorageLimitBytes();
+  const base = {
+    available: true,
+    adapter: shouldUseMemoryFallback() ? "memory" : adapter,
+    usedBytes: 0,
+    usedLabel: "0 B",
+    limitBytes,
+    limitLabel: formatBytes(limitBytes),
+    freeBytes: limitBytes,
+    freeLabel: formatBytes(limitBytes),
+    percent: 0,
+    note: null,
+  };
+
+  try {
+    let usedBytes = 0;
+
+    if (shouldUseMemoryFallback()) {
+      usedBytes = getMemoryUsageBytes();
+      base.note = "Becsült memóriahasználat, nem tartós Neon tárhely.";
+    } else if (adapter === "postgres") {
+      const result = await pool.query("SELECT pg_database_size(current_database())::bigint AS bytes");
+      usedBytes = Number(result.rows[0]?.bytes || 0);
+    } else if (adapter === "sqlite") {
+      usedBytes = sqliteDbPath && fs.existsSync(sqliteDbPath) ? fs.statSync(sqliteDbPath).size : 0;
+      base.note = "Helyi SQLite fájlméret.";
+    }
+
+    const freeBytes = Math.max(limitBytes - usedBytes, 0);
+    return {
+      ...base,
+      usedBytes,
+      usedLabel: formatBytes(usedBytes),
+      freeBytes,
+      freeLabel: formatBytes(freeBytes),
+      percent: Math.min(Math.round((usedBytes / limitBytes) * 1000) / 10, 100),
+    };
+  } catch (error) {
+    return {
+      ...base,
+      available: false,
+      note: error.message || String(error),
+    };
+  }
+}
+
 async function getDbDiagnostics() {
   const diagnostics = {
     adapter,
@@ -528,6 +627,7 @@ async function getDbDiagnostics() {
       adapter === "postgres" ? "persistent" : adapter === "sqlite" ? "local file" : "memory only",
     submissionCount: 0,
     lastWriteAt: null,
+    storage: await getDatabaseUsage(),
   };
 
   if (shouldUseMemoryFallback()) {
@@ -690,6 +790,26 @@ async function listCareerApplications() {
   );
 }
 
+async function deleteCareerApplication(id) {
+  if (shouldUseMemoryFallback()) {
+    const deleted = careerApplicationsMemory.find((item) => Number(item.id) === Number(id));
+    careerApplicationsMemory = careerApplicationsMemory.filter((item) => Number(item.id) !== Number(id));
+    return deleted?.cv_filename || null;
+  }
+
+  if (adapter === "postgres") {
+    const result = await pool.query(
+      "DELETE FROM career_applications WHERE id = $1 RETURNING cv_filename",
+      [id]
+    );
+    return result.rows[0]?.cv_filename || null;
+  }
+
+  const row = await get("SELECT cv_filename FROM career_applications WHERE id = ?", [id]);
+  await run("DELETE FROM career_applications WHERE id = ?", [id]);
+  return row?.cv_filename || null;
+}
+
 module.exports = {
   initDb,
   insertSubmission,
@@ -700,11 +820,14 @@ module.exports = {
   updateCareerNotificationEmail,
   setCareerEmailEnabled,
   updateSubmissionStatus,
+  deleteSubmission,
   getDbDiagnostics,
+  getDatabaseUsage,
   listPositions,
   addPosition,
   deletePosition,
   insertCareerApplication,
   listCareerApplications,
+  deleteCareerApplication,
   adapter,
 };

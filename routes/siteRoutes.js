@@ -13,12 +13,14 @@ const {
   updateCareerNotificationEmail,
   setCareerEmailEnabled,
   updateSubmissionStatus,
+  deleteSubmission,
   getDbDiagnostics,
   listPositions,
   addPosition,
   deletePosition,
   insertCareerApplication,
   listCareerApplications,
+  deleteCareerApplication,
 } = require("../utils/db");
 const { sendNotificationEmail, sendCareerNotificationEmail } = require("../utils/mailer");
 const {
@@ -138,6 +140,8 @@ function getValidationMessages(lang) {
       message: "Please provide at least 10 characters.",
       quantity: "Quantity is required.",
       address: "Delivery address is required.",
+      companyHeadquarters: "Company registered address is required.",
+      taxNumber: "Tax number is required.",
     };
   }
 
@@ -152,6 +156,8 @@ function getValidationMessages(lang) {
       message: "Bitte geben Sie mindestens 10 Zeichen an.",
       quantity: "Menge ist erforderlich.",
       address: "Lieferadresse ist erforderlich.",
+      companyHeadquarters: "Firmensitz ist erforderlich.",
+      taxNumber: "Steuernummer ist erforderlich.",
     };
   }
 
@@ -165,6 +171,8 @@ function getValidationMessages(lang) {
     message: "Az igény rövid leírása legalább 10 karakter legyen.",
     quantity: "A mennyiség megadása kötelező.",
     address: "A szállítási cím megadása kötelező.",
+    companyHeadquarters: "A székhely megadása kötelező.",
+    taxNumber: "Az adószám megadása kötelező.",
   };
 }
 
@@ -527,6 +535,14 @@ router.post("/megrendeles", formLimiter, async (req, res, next) => {
       errors.address = messages.address;
     }
 
+    if (data.companyHeadquarters.length < 3) {
+      errors.companyHeadquarters = messages.companyHeadquarters;
+    }
+
+    if (data.taxNumber.length < 3) {
+      errors.taxNumber = messages.taxNumber;
+    }
+
     if (Object.keys(errors).length > 0) {
       return res.status(400).render("order", {
         title: res.locals.t.nav.order,
@@ -763,6 +779,16 @@ router.post("/admin/igenyek/:id/status", requireAdminSession, async (req, res, n
   }
 });
 
+router.post("/admin/igenyek/:id/delete", requireAdminSession, async (req, res, next) => {
+  try {
+    await deleteSubmission(req.params.id);
+    const t = safeType(req.query.type);
+    return res.redirect(`/admin${t ? `?type=${t}` : ""}`);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.post("/admin/positions/add", requireAdminSession, async (req, res, next) => {
   try {
     const title = (req.body.title || "").trim();
@@ -790,6 +816,22 @@ router.post("/admin/positions/:id/delete", requireAdminSession, async (req, res,
 });
 
 // Authenticated CV download — files stored outside public/
+router.post("/admin/career-applications/:id/delete", requireAdminSession, async (req, res, next) => {
+  try {
+    const cvFilename = await deleteCareerApplication(req.params.id);
+    if (cvFilename) {
+      const safeFilename = path.basename(cvFilename);
+      const filePath = path.join(uploadsDir, safeFilename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+    return res.redirect("/admin");
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.get("/admin/cv/:filename", requireAdminSession, (req, res) => {
   const filename = path.basename(req.params.filename); // strip any path traversal
   const filePath = path.join(uploadsDir, filename);

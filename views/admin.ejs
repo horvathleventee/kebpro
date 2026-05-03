@@ -79,6 +79,14 @@
       careerCv: 'Önéletrajz',
       careerDate: 'Dátum',
       downloadCv: 'Letöltés'
+      ,
+      actions: 'Művelet',
+      delete: 'Törlés',
+      storageTitle: 'Tárhelyhasználat',
+      storageUsed: 'Használt',
+      storageFree: 'Szabad',
+      storageLimit: 'Limit',
+      storageUnavailable: 'Nem elérhető'
     },
     en: {
       eyebrow: 'Admin',
@@ -158,6 +166,14 @@
       careerCv: 'CV',
       careerDate: 'Date',
       downloadCv: 'Download'
+      ,
+      actions: 'Action',
+      delete: 'Delete',
+      storageTitle: 'Storage usage',
+      storageUsed: 'Used',
+      storageFree: 'Free',
+      storageLimit: 'Limit',
+      storageUnavailable: 'Unavailable'
     },
     de: {
       eyebrow: 'Admin',
@@ -237,6 +253,14 @@
       careerCv: 'Lebenslauf',
       careerDate: 'Datum',
       downloadCv: 'Herunterladen'
+      ,
+      actions: 'Aktion',
+      delete: 'Löschen',
+      storageTitle: 'Speichernutzung',
+      storageUsed: 'Belegt',
+      storageFree: 'Frei',
+      storageLimit: 'Limit',
+      storageUnavailable: 'Nicht verfügbar'
     }
   };
   const a = adminCopy[lang] || adminCopy.hu;
@@ -244,6 +268,7 @@
   const connectionDescription = diagnostics.initError || (diagnostics.adapter === 'postgres' ? a.pgConfigured : diagnostics.adapter === 'memory' ? a.memoryConfigured : a.sqliteConfigured);
   const currentState = settings.emailEnabled ? a.enabled : a.disabled;
   const currentCareerState = settings.careerEmailEnabled ? a.careerEmailEnabled : a.careerEmailDisabled;
+  const storage = diagnostics.storage || {};
 %>
 
 <section class="page-hero section-animate">
@@ -258,7 +283,6 @@
 
 <section class="section section-animate">
   <div class="container admin-overview-grid">
-
     <div class="panel wide">
       <h2><%= a.emailTitle %></h2>
       <form method="POST" action="/admin/email-settings/update" class="contact-form compact-form">
@@ -308,7 +332,7 @@
       <% if (!rows || rows.length === 0) { %>
       <p><%= a.empty %></p>
       <% } else { %>
-      <div class="table-wrap">
+      <div class="table-wrap admin-table-scroll admin-submissions-scroll">
         <table class="admin-table">
           <thead>
             <tr>
@@ -321,6 +345,7 @@
               <th><%= a.quantity %></th>
               <th><%= a.contact %></th>
               <th><%= a.details %></th>
+              <th><%= a.actions %></th>
             </tr>
           </thead>
           <tbody>
@@ -357,6 +382,11 @@
                 <% if (item.tax_number) { %><div><%= a.taxNumber %>: <%= item.tax_number %></div><% } %>
                 <% if (item.requested_date) { %><div><%= a.requestedDate %>: <%= item.requested_date %></div><% } %>
                 <% if (item.message) { %><div><%= a.note %>: <%= item.message %></div><% } %>
+              </td>
+              <td>
+                <form method="POST" action="/admin/igenyek/<%= item.id %>/delete?type=<%= selectedType %>" data-confirm-delete>
+                  <button type="submit" class="btn btn-secondary admin-mini-btn admin-danger-btn"><%= a.delete %></button>
+                </form>
               </td>
             </tr>
             <% }) %>
@@ -417,8 +447,8 @@
               <td><%= pos.type || '-' %></td>
               <td><span class="status-badge <%= pos.active ? 'status-active' : 'status-inactive' %>"><%= pos.active ? '✓' : '✗' %></span></td>
               <td>
-                <form method="POST" action="/admin/positions/<%= pos.id %>/delete" style="display:inline;">
-                  <button type="submit" class="btn btn-secondary admin-mini-btn" onclick="return confirm('?')"><%= a.posDelete %></button>
+                <form method="POST" action="/admin/positions/<%= pos.id %>/delete" style="display:inline;" data-confirm-delete>
+                  <button type="submit" class="btn btn-secondary admin-mini-btn"><%= a.posDelete %></button>
                 </form>
               </td>
             </tr>
@@ -440,7 +470,7 @@
       <% if (!careerApplications || careerApplications.length === 0) { %>
       <p><%= a.careerEmpty %></p>
       <% } else { %>
-      <div class="table-wrap">
+      <div class="table-wrap admin-table-scroll admin-applications-scroll">
         <table class="admin-table">
           <thead>
             <tr>
@@ -452,6 +482,7 @@
               <th><%= a.careerPosition %></th>
               <th><%= a.careerMotivation %></th>
               <th><%= a.careerCv %></th>
+              <th><%= a.actions %></th>
             </tr>
           </thead>
           <tbody>
@@ -469,6 +500,11 @@
                 <a href="/admin/cv/<%= app.cv_filename %>" target="_blank" class="btn btn-secondary admin-mini-btn"><%= a.downloadCv %></a>
                 <% } else { %>-<% } %>
               </td>
+              <td>
+                <form method="POST" action="/admin/career-applications/<%= app.id %>/delete" data-confirm-delete>
+                  <button type="submit" class="btn btn-secondary admin-mini-btn admin-danger-btn"><%= a.delete %></button>
+                </form>
+              </td>
             </tr>
             <% }) %>
           </tbody>
@@ -479,17 +515,55 @@
   </div>
 </section>
 
-<div class="container admin-db-footer">
-  <span class="admin-db-item">
-    <span class="admin-db-label"><%= a.adapter %>:</span> <strong><%= diagnostics.adapter %></strong>
-  </span>
-  <span class="admin-db-item">
-    <span class="admin-db-label"><%= a.submissions %>:</span> <strong><%= diagnostics.submissionCount %></strong>
-  </span>
-  <span class="admin-db-item <%= diagnostics.initError ? 'admin-db-error' : 'admin-db-ok' %>">
-    <span class="admin-db-label"><%= a.connection %>:</span> <strong><%= diagnostics.initError ? a.statusError : a.statusOk %></strong>
-  </span>
-</div>
+<section class="section section-animate admin-db-status-section">
+  <div class="container">
+    <div class="panel wide admin-db-compact">
+      <div class="admin-db-compact-head">
+        <div>
+          <p class="eyebrow"><%= a.dbTitle %></p>
+          <h2><%= diagnostics.adapter %> · <%= diagnostics.initError ? a.statusError : a.statusOk %></h2>
+        </div>
+        <% if (storage.available !== false) { %>
+          <div class="admin-db-compact-meter">
+            <strong><%= storage.percent || 0 %>%</strong>
+            <span><%= a.storageUsed %>: <%= storage.usedLabel %> / <%= storage.limitLabel %></span>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="admin-db-cards">
+        <div class="admin-db-card">
+          <span><%= a.adapter %></span>
+          <strong><%= diagnostics.adapter %></strong>
+          <small><%= adapterDescription %></small>
+        </div>
+        <div class="admin-db-card">
+          <span><%= a.submissions %></span>
+          <strong><%= diagnostics.submissionCount %></strong>
+          <small><%= diagnostics.lastWriteAt ? `${a.lastWrite}: ${diagnostics.lastWriteAt}` : a.noSaved %></small>
+        </div>
+        <div class="admin-db-card">
+          <span><%= a.connection %></span>
+          <strong><%= diagnostics.initError ? a.statusError : a.statusOk %></strong>
+          <small><%= connectionDescription %></small>
+        </div>
+        <div class="admin-db-card admin-storage-card">
+          <span><%= a.storageTitle %></span>
+          <strong><%= storage.available === false ? a.storageUnavailable : `${storage.percent || 0}%` %></strong>
+          <% if (storage.available !== false) { %>
+            <div class="admin-storage-bar" aria-hidden="true">
+              <span style="width: <%= Math.min(storage.percent || 0, 100) %>%"></span>
+            </div>
+            <small><%= a.storageFree %>: <%= storage.freeLabel %> · <%= a.storageLimit %>: <%= storage.limitLabel %></small>
+          <% } else { %>
+            <small><%= storage.note || a.storageUnavailable %></small>
+          <% } %>
+          <% if (storage.note && storage.available !== false) { %><small><%= storage.note %></small><% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <%- include('partials/footer') %>
 
