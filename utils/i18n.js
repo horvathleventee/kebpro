@@ -184,7 +184,7 @@ copy.de.nav.wholesale = "HORECA";
 copy.hu.buttons.viewWholesale = "HORECA kínálat megtekintése";
 copy.en.buttons.viewWholesale = "View HORECA range";
 copy.de.buttons.viewWholesale = "HORECA-Sortiment ansehen";
-copy.hu.home.title = "Gyros- és kebab hús gyártás Kiskunhalason, országos lefedettséggel.";
+copy.hu.home.title = "Nyers és elősütött gyros / kebab hús gyártása Kiskunhalason, több mint 20 éve, országos lefedettséggel.";
 copy.en.home.title = "Gyros and kebab meat production in Kiskunhalas with nationwide coverage.";
 copy.de.home.title = "Gyros- und Kebabfleischproduktion in Kiskunhalas mit landesweiter Abdeckung.";
 copy.hu.services.title = "HORECA termékpaletta gyros, kebab és kapcsolódó termékekhez.";
@@ -403,6 +403,92 @@ const logisticsRegionExtras = {
   en: [],
   de: [],
 };
+
+// Client copy corrections - May 2026
+copy.hu.home.title = "Nyers és elősütött gyros / kebab hús gyártása Kiskunhalason, több mint 20 éve, országos lefedettséggel.";
+copy.en.home.title = "Raw and grilled kebab production in Hungary with more than 20 years of experience.";
+copy.en.home.lead = "Halasi Kebpro Kft. manufactures and distributes frozen raw and grilled kebab products, seasoned meat products and complementary items for business partners inside and outside of Hungary.";
+copy.de.home.title = "Produktion von rohem und gebratenem Kebabfleisch in Ungarn mit mehr als 20 Jahren Erfahrung.";
+copy.de.home.lead = "Die Halasi Kebpro Kft. produziert und vertreibt tiefgekühlte rohe und gebratene Kebabprodukte, gewürzte Fleischprodukte sowie ergänzende Artikel für Geschäftspartner innerhalb und außerhalb Ungarns.";
+
+copy.hu.about.introText[1] = "Cégünk 2005-től teljes mértékben magyar, családi vállalkozásként működik. Folyamatosan növekvő forgalmunk 2008-ra tette elkerülhetetlenné, hogy az addigi bérelt üzemünket egy nagyobb, saját üzemre cseréljük. Jelenlegi kapacitásunk heti 14-15 tonna kebab nyárs és heti 25-30 tonna sült kebab gyártását teszi lehetővé, tárolókapacitásunk mintegy 100 tonna.";
+copy.hu.about.introText[3] = "A Halasi Kebpro Kft.-nek exportjoga van, amely folyamatos állatorvosi ellenőrzést is garantál. A kebab/gyros-hús tömbökön kívül csíkozott húst, saslikot, májjal töltött combfilét és egyéb termékeket is gyártunk.";
+copy.hu.about.stats = [
+  { value: "2004", label: "Alapítás éve" },
+  { value: "14-15 t", label: "Heti kapacitás: kebab nyárs" },
+  { value: "25-30 t", label: "Heti kapacitás: sült kebab" },
+  { value: "100 t", label: "Tároló kapacitás" },
+  { value: "80+", label: "Alkalmazott" },
+];
+copy.hu.about.philosophyItems[0].title = "Ár-érték arány";
+copy.hu.about.philosophyItems[0].text = "A termékek széles skáláját kínáljuk különböző variációkban, ízesítésben és méretben, a legjobb ár-érték arány mellett.";
+
+copy.en.about.introText[1] = "Since 2005, the company has operated as a fully Hungarian family business. Growing demand led us in 2008 to replace our leased facility with a larger, modern plant of our own. Our current capacity allows weekly production of 14–15 tonnes of kebab skewers and 25–30 tonnes of grilled kebab, with storage capacity of approximately 100 tonnes.";
+copy.en.about.stats = [
+  { value: "2004", label: "Year founded" },
+  { value: "14–15 t", label: "Weekly capacity: kebab skewers" },
+  { value: "25–30 t", label: "Weekly capacity: grilled kebab" },
+  { value: "100 t", label: "Storage capacity" },
+  { value: "80+", label: "Employees" },
+];
+copy.en.about.philosophyItems[0].title = "Value for money";
+copy.en.about.philosophyItems[0].text = "We offer a wide range of products in various combinations, flavours and sizes with the best price-to-quality ratio.";
+
+copy.de.about.introText[1] = "Seit 2005 ist das Unternehmen ein vollständig ungarisches Familienunternehmen. Das kontinuierliche Wachstum machte es 2008 notwendig, unsere gemietete Produktionsstätte durch eine größere, eigene Anlage zu ersetzen. Unsere heutige Kapazität ermöglicht die wöchentliche Herstellung von 14–15 Tonnen Kebabspießen und 25–30 Tonnen gebratenem Kebab, mit einer Lagerkapazität von rund 100 Tonnen.";
+copy.de.about.stats = [
+  { value: "2004", label: "Gründungsjahr" },
+  { value: "14–15 t", label: "Wochenkapazität: Kebabspieße" },
+  { value: "25–30 t", label: "Wochenkapazität: gebratener Kebab" },
+  { value: "100 t", label: "Lagerkapazität" },
+  { value: "80+", label: "Mitarbeitende" },
+];
+copy.de.about.philosophyItems[0].title = "Preis-Leistungs-Verhältnis";
+copy.de.about.philosophyItems[0].text = "Wir bieten eine breite Produktpalette in verschiedenen Variationen, Geschmacksrichtungen und Größen mit dem besten Preis-Leistungs-Verhältnis an.";
+
+copy.hu.quality.sections.raw.paragraphs[0] = "A termékeinkhez felhasznált húst ellenőrzött, főként magyar beszállítóktól szerezzük be.";
+copy.hu.quality.sections.process.steps.push("Az így elkészített nyársak egy részét készre sütjük, és lecsomagoljuk.");
+copy.en.quality.sections.raw.paragraphs[0] = "We source the meat used in our products mainly from controlled Hungarian suppliers.";
+copy.en.quality.sections.process.steps.push("Part of the prepared skewers is fully grilled and packed.");
+copy.de.quality.sections.raw.paragraphs[0] = "Das verwendete Fleisch beziehen wir überwiegend von kontrollierten ungarischen Lieferanten.";
+copy.de.quality.sections.process.steps.push("Ein Teil der vorbereiteten Spieße wird fertig gegart und verpackt.");
+
+copy.hu.services.introText = "HORECA partnereinknek összeállított termékkínálatunk nyers és elősütött kebab húsokat, saslikokat, joghurtokat, pitákat, tortillákat, desszerteket és kiegészítőket tartalmaz.";
+copy.en.services.introText = "Our HORECA range includes raw and grilled kebab meats, shashlik, yoghurts, pitas, tortillas, desserts and complementary products for business partners.";
+copy.de.services.introText = "Unser HORECA-Sortiment umfasst rohe und gebratene Kebabfleischprodukte, Schaschlik, Joghurts, Pitas, Tortillas, Desserts und ergänzende Produkte für Geschäftspartner.";
+copy.hu.services.customText = "A felsorolt termékek mellett egyéb kiegészítő és csomagolóanyagokat is beszerzünk partnereink számára az Attase Kft. (török) és a Hellas-Invest Kft. (görög) termékei közül.";
+copy.en.services.customText = "In addition to the listed products, we can also source complementary and packaging materials for partners from Attase Kft. (Turkish) and Hellas-Invest Kft. (Greek) ranges.";
+copy.de.services.customText = "Zusätzlich zu den aufgeführten Produkten können wir für Partner auch ergänzende Produkte und Verpackungsmaterialien aus dem Sortiment der Attase Kft. (türkisch) und der Hellas-Invest Kft. (griechisch) beschaffen.";
+
+copy.hu.retail.soon = "Hamarosan";
+copy.hu.retail.text = "Keresd hamarosan a hentesüzletekben, boltokban!";
+copy.hu.retail.note = "";
+copy.en.retail.soon = "Coming soon";
+copy.en.retail.text = "Look for our products soon in butcher shops and stores!";
+copy.en.retail.note = "";
+copy.de.retail.soon = "Demnächst";
+copy.de.retail.text = "Bald in Fleischereien und Geschäften erhältlich!";
+copy.de.retail.note = "";
+
+productCatalog.hu.find((category) => category.slug === "elosutott").cardLead = "Elősütött és gyorsfagyasztott csirke kebab, marhahúsos kebab és pulled pork termékek.";
+productCatalog.en.find((category) => category.slug === "elosutott").cardLead = "Pre-cooked and frozen chicken kebab, beef kebab and pulled pork products.";
+productCatalog.de.find((category) => category.slug === "elosutott").cardLead = "Vorgegarte und tiefgekühlte Hähnchen-Kebab-, Rindfleisch-Kebab- und Pulled-Pork-Produkte.";
+
+productCatalog.hu = [...productCatalog.hu, ...retailCatalog.hu];
+productCatalog.en = [...productCatalog.en, ...retailCatalog.en];
+productCatalog.de = [...productCatalog.de, ...retailCatalog.de];
+retailCatalog.hu = [];
+retailCatalog.en = [];
+retailCatalog.de = [];
+
+copy.hu.productsHub.lead = "A HORECA kínálat részletes kategóriákkal érhető el, a kiskereskedelmi megjelenés pedig hamarosan indul.";
+copy.hu.productsHub.horecaText = "Kebab nyársak, saslikok, elősütött termékek, joghurtok, piták, tortillák, desszertek és kiegészítők partnereknek.";
+copy.hu.productsHub.retailText = "Hamarosan hentesüzletekben és boltokban is kereshető termékek.";
+copy.en.productsHub.lead = "The HORECA range is available in detailed categories, while retail availability is coming soon.";
+copy.en.productsHub.horecaText = "Kebab skewers, shashlik, grilled products, yoghurts, pitas, tortillas, desserts and extras for partners.";
+copy.en.productsHub.retailText = "Products coming soon to butcher shops and stores.";
+copy.de.productsHub.lead = "Das HORECA-Sortiment ist in klaren Kategorien verfügbar, der Einzelhandelsstart folgt demnächst.";
+copy.de.productsHub.horecaText = "Kebabspieße, Schaschlik, gegarte Produkte, Joghurts, Pitas, Tortillas, Desserts und Ergänzungen für Partner.";
+copy.de.productsHub.retailText = "Produkte bald in Fleischereien und Geschäften erhältlich.";
 
 function getLogisticsRegions(lang) {
   const currentLang = getLang(lang);

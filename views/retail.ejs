@@ -1,4 +1,4 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="page-hero section-animate">
   <div class="container">
@@ -9,74 +9,25 @@
 
 <section class="section section-animate">
   <div class="container">
-    <article class="panel wide">
-      <h2><%= t.retail.soon %></h2>
-      <p><%= t.retail.text %></p>
-
-      <div class="product-category-nav">
-        <% categories.forEach((category) => { %>
-        <a href="#<%= category.slug %>" class="btn btn-secondary"><%= category.title %></a>
-        <% }) %>
+    <article class="panel wide retail-coming-panel">
+      <div class="retail-coming-copy">
+        <span class="timeline-intro-kicker"><%= t.retail.soon %></span>
+        <h2><%= t.retail.text %></h2>
       </div>
-
-      <div class="product-card-grid reveal-grid">
-        <% categories.forEach((category) => { %>
-        <a href="#<%= category.slug %>" class="product-card panel product-card-link" data-stagger>
-          <div class="product-image-slot product-image-slot-<%= category.slug %>">
-            <img
-              src="<%= (category.image || `/images/products/${category.slug}.jpg`) + '?v=' + (assetVersion || 'local') %>"
-              alt="<%= category.title %>"
-              class="product-slot-image"
-              loading="lazy"
-              decoding="async"
-              onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';"
-            />
-            <div class="product-placeholder product-placeholder-fallback">
-              <span><%= t.services.placeholderLabel %></span>
-              <strong><%= category.title %></strong>
-            </div>
-          </div>
-          <h3><%= category.title %></h3>
-          <p><%= category.cardLead %></p>
-          <span class="text-link"><%= t.services.categoryJump %></span>
-        </a>
-        <% }) %>
-      </div>
-
-      <% categories.forEach((category) => { %>
-      <section id="<%= category.slug %>" class="product-category-block">
-        <h3><%= category.title %></h3>
-        <div class="table-wrap">
-          <table class="product-table">
-            <thead>
-              <tr>
-                <th><%= t.services.tableProduct %></th>
-                <th><%= t.services.tablePack %></th>
-                <th><%= t.services.tableUnit %></th>
-                <th><%= t.services.tablePrice %></th>
-              </tr>
-            </thead>
-            <tbody>
-              <% category.items.forEach((item) => { %>
-              <tr>
-                <td><%= item[0] %></td>
-                <td><%= item[1] || '-' %></td>
-                <td><%= item[2] || '-' %></td>
-                <td><%= t.services.priceCustom %></td>
-              </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <% }) %>
-
-      <% if (t.retail.note) { %>
-      <p class="products-intro-text"><%= t.retail.note %></p>
-      <% } %>
+      <figure class="retail-coming-image">
+        <img
+          src="/images/optimized/products/kiskereskedelem-640.jpg?v=<%= assetVersion || 'local' %>"
+          srcset="/images/optimized/products/kiskereskedelem-640.jpg?v=<%= assetVersion || 'local' %> 640w, /images/optimized/products/kiskereskedelem-960.jpg?v=<%= assetVersion || 'local' %> 960w"
+          sizes="(max-width: 720px) 92vw, 420px"
+          alt="<%= t.retail.title %>"
+          width="740"
+          height="440"
+          loading="lazy"
+          decoding="async"
+        />
+      </figure>
     </article>
   </div>
 </section>
 
 <%- include('partials/footer') %>
-
