@@ -98,27 +98,6 @@ app.use(express.urlencoded({
 }));
 app.use(express.json({ limit: "20kb" }));
 
-app.use((req, res, next) => {
-  if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) return next();
-
-  const source = req.get("origin") || req.get("referer");
-  if (!source) return next();
-
-  try {
-    const normalizeHost = (value) => String(value || "")
-      .split(",")[0]
-      .trim()
-      .toLowerCase();
-    const sourceHost = normalizeHost(new URL(source).host);
-    const requestHost = normalizeHost(req.get("x-forwarded-host") || req.get("host"));
-    if (sourceHost === requestHost) return next();
-  } catch (_) {
-    return res.status(403).send("Érvénytelen kérés.");
-  }
-
-  return res.status(403).send("Érvénytelen kérés.");
-});
-
 // Lightweight cookie parser — no extra package needed
 app.use((req, res, next) => {
   req.cookies = Object.fromEntries(
