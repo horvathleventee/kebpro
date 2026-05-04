@@ -367,6 +367,12 @@ const orderBuilder = document.querySelector("[data-order-products]");
 if (orderBuilder) {
   const rows = orderBuilder.querySelector("[data-order-product-rows]");
   const addButton = orderBuilder.querySelector("[data-add-order-product]");
+  const maxProductRows = 20;
+
+  const updateAddButtonState = () => {
+    if (!addButton) return;
+    addButton.disabled = rows.querySelectorAll(".order-product-row").length >= maxProductRows;
+  };
 
   const syncOrderSummary = () => {
     const productInput = document.getElementById("product");
@@ -401,12 +407,14 @@ if (orderBuilder) {
         row.remove();
       }
       syncOrderSummary();
+      updateAddButtonState();
     });
   };
 
   rows.querySelectorAll(".order-product-row").forEach(bindRow);
 
   addButton?.addEventListener("click", () => {
+    if (rows.querySelectorAll(".order-product-row").length >= maxProductRows) return;
     const firstRow = rows.querySelector(".order-product-row");
     if (!firstRow) return;
     const clone = firstRow.cloneNode(true);
@@ -416,9 +424,11 @@ if (orderBuilder) {
     bindRow(clone);
     clone.querySelector("select")?.focus();
     syncOrderSummary();
+    updateAddButtonState();
   });
 
   orderBuilder.closest("form")?.addEventListener("submit", syncOrderSummary);
   syncOrderSummary();
+  updateAddButtonState();
 }
 

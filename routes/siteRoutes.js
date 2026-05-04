@@ -64,21 +64,48 @@ const cvUpload = multer({
   },
 });
 
+function createLimiter({ windowMs, limit, message }) {
+  return rateLimit({
+    windowMs,
+    limit,
+    message,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+}
+
+const tooManyRequestsMessage =
+  "Túl sok beküldés érkezett rövid időn belül. Kérjük, próbálja újra később.";
+
 // Rate limiters
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10,
+const loginLimiter = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
   message: "Túl sok bejelentkezési kísérlet. Próbálja újra 15 perc múlva.",
-  standardHeaders: true,
-  legacyHeaders: false,
 });
 
-const formLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20,
-  message: "Túl sok kérés. Próbálja újra később.",
-  standardHeaders: true,
-  legacyHeaders: false,
+const quoteLimiter = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 8,
+  message: tooManyRequestsMessage,
+});
+
+const orderLimiter = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 8,
+  message: tooManyRequestsMessage,
+});
+
+const callbackLimiter = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 4,
+  message: "Túl sok visszahíváskérés érkezett. Kérjük, próbálja újra később.",
+});
+
+const careerLimiter = createLimiter({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  message: tooManyRequestsMessage,
 });
 
 // ── Legacy URL 301 redirects (csirkegyros.hu old URLs) ──────────────────────
@@ -176,21 +203,44 @@ function getValidationMessages(lang) {
   };
 }
 
+const FIELD_LIMITS = {
+  name: 120,
+  email: 160,
+  phone: 40,
+  company: 160,
+  companyHeadquarters: 240,
+  taxNumber: 40,
+  product: 5000,
+  quantity: 500,
+  address: 260,
+  requestedDate: 40,
+  message: 2500,
+  motivation: 3000,
+  position: 180,
+};
+
+function cleanText(value, maxLength = 500) {
+  return String(value || "")
+    .replace(/\0/g, "")
+    .trim()
+    .slice(0, maxLength);
+}
+
 function validateCommon(body, lang) {
   const messages = getValidationMessages(lang);
   const errors = {};
   const data = {
-    name: (body.name || "").trim(),
-    email: (body.email || "").trim(),
-    phone: (body.phone || "").trim(),
-    company: (body.company || "").trim(),
-    companyHeadquarters: (body.companyHeadquarters || "").trim(),
-    taxNumber: (body.taxNumber || "").trim(),
-    product: (body.product || "").trim(),
-    quantity: (body.quantity || "").trim(),
-    address: (body.address || "").trim(),
-    requestedDate: (body.requestedDate || "").trim(),
-    message: (body.message || "").trim(),
+    name: cleanText(body.name, FIELD_LIMITS.name),
+    email: cleanText(body.email, FIELD_LIMITS.email),
+    phone: cleanText(body.phone, FIELD_LIMITS.phone),
+    company: cleanText(body.company, FIELD_LIMITS.company),
+    companyHeadquarters: cleanText(body.companyHeadquarters, FIELD_LIMITS.companyHeadquarters),
+    taxNumber: cleanText(body.taxNumber, FIELD_LIMITS.taxNumber),
+    product: cleanText(body.product, FIELD_LIMITS.product),
+    quantity: cleanText(body.quantity, FIELD_LIMITS.quantity),
+    address: cleanText(body.address, FIELD_LIMITS.address),
+    requestedDate: cleanText(body.requestedDate, FIELD_LIMITS.requestedDate),
+    message: cleanText(body.message, FIELD_LIMITS.message),
   };
 
   if (data.name.length < 2) errors.name = messages.name;
@@ -216,9 +266,10 @@ function getSelectedProducts(body) {
     : body.productQuantities ? [body.productQuantities] : [];
 
   return products
+    .slice(0, 20)
     .map((product, index) => ({
-      product: (product || "").trim(),
-      quantity: (quantities[index] || "").trim(),
+      product: cleanText(product, 180),
+      quantity: cleanText(quantities[index], 80),
     }))
     .filter((item) => item.product);
 }
@@ -253,18 +304,22 @@ function isValidEmailList(value) {
 // --- Signed cookie auth (stateless, works on Vercel serverless) ---
 const COOKIE_NAME = "kbp_admin";
 const COOKIE_MAX_AGE = 8 * 60 * 60; // 8 hours in seconds
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const ADMIN_SECRET =
+  process.env.SESSION_SECRET ||
+  (IS_PRODUCTION ? crypto.randomBytes(32).toString("hex") : "kebpro-admin-secret-2024");
 
 function signToken(secret) {
   return crypto.createHmac("sha256", secret).update("admin:ok").digest("hex");
 }
 
 function setAdminCookie(res, secret) {
-  const token = signToken(secret);
+  const token = signToken(secret || ADMIN_SECRET);
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
     maxAge: COOKIE_MAX_AGE * 1000,
-    secure: process.env.NODE_ENV === "production",
+    secure: IS_PRODUCTION,
     path: "/",
   });
 }
@@ -274,17 +329,16 @@ function clearAdminCookie(res) {
     httpOnly: true,
     sameSite: "lax",
     maxAge: 0,
-    secure: process.env.NODE_ENV === "production",
+    secure: IS_PRODUCTION,
     path: "/",
   });
 }
 
 function isAdminAuthenticated(req) {
-  const secret = process.env.SESSION_SECRET || "kebpro-admin-secret-2024";
   const token = req.cookies && req.cookies[COOKIE_NAME];
   if (!token) return false;
   try {
-    const expected = Buffer.from(signToken(secret));
+    const expected = Buffer.from(signToken(ADMIN_SECRET));
     const actual = Buffer.from(token);
     if (actual.length !== expected.length) return false;
     return crypto.timingSafeEqual(actual, expected);
@@ -310,8 +364,8 @@ router.get("/admin/login", (req, res, next) => {
 router.post("/admin/login", loginLimiter, (req, res) => {
   const username = (req.body.username || "").trim();
   const password = (req.body.password || "").trim();
-  const expectedUser = process.env.ADMIN_USER || "admin";
-  const expectedPass = process.env.ADMIN_PASS || "admin123";
+  const expectedUser = process.env.ADMIN_USER || (IS_PRODUCTION ? "" : "admin");
+  const expectedPass = process.env.ADMIN_PASS || (IS_PRODUCTION ? "" : "admin123");
 
   // Timing-safe comparison to prevent timing attacks
   const userBuf = Buffer.alloc(64); const passBuf = Buffer.alloc(64);
@@ -322,8 +376,7 @@ router.post("/admin/login", loginLimiter, (req, res) => {
   const passMatch = crypto.timingSafeEqual(passBuf, expPassBuf);
 
   if (userMatch && passMatch) {
-    const secret = process.env.SESSION_SECRET || "kebpro-admin-secret-2024";
-    setAdminCookie(res, secret);
+    setAdminCookie(res);
     return res.redirect("/admin");
   }
 
@@ -449,7 +502,7 @@ router.get("/ajanlat-keres", (req, res) => {
   res.redirect(res.locals.withLang("/ajanlatkeres"));
 });
 
-router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
+router.post("/ajanlatkeres", quoteLimiter, async (req, res, next) => {
   try {
     const selectedProducts = getSelectedProducts(req.body);
     const derivedProduct = selectedProducts
@@ -501,7 +554,7 @@ router.post("/ajanlatkeres", formLimiter, async (req, res, next) => {
   }
 });
 
-router.post("/ajanlat-keres", async (req, res, next) => {
+router.post("/ajanlat-keres", quoteLimiter, async (req, res, next) => {
   req.url = `/ajanlatkeres${req.query.lang ? `?lang=${req.query.lang}` : ""}`;
   return router.handle(req, res, next);
 });
@@ -521,7 +574,7 @@ router.get("/megrendelesek", (req, res) => {
   res.redirect(res.locals.withLang("/megrendeles"));
 });
 
-router.post("/megrendeles", formLimiter, async (req, res, next) => {
+router.post("/megrendeles", orderLimiter, async (req, res, next) => {
   try {
     const { errors, data, messages } = validateCommon(req.body, res.locals.lang);
     const selectedProducts = getSelectedProducts(req.body);
@@ -573,21 +626,23 @@ router.post("/megrendeles", formLimiter, async (req, res, next) => {
   }
 });
 
-router.post("/megrendelesek", formLimiter, async (req, res, next) => {
+router.post("/megrendelesek", orderLimiter, async (req, res, next) => {
   req.url = `/megrendeles${req.query.lang ? `?lang=${req.query.lang}` : ""}`;
   return router.handle(req, res, next);
 });
 
 /* ── Callback widget ── */
 
-router.post("/visszahivas", formLimiter, async (req, res, next) => {
+router.post("/visszahivas", callbackLimiter, async (req, res, next) => {
   try {
-    const { name, phone, timeslot } = req.body;
+    const name = cleanText(req.body.name, FIELD_LIMITS.name);
+    const phone = cleanText(req.body.phone, FIELD_LIMITS.phone);
+    const timeslot = cleanText(req.body.timeslot, 60);
     if (!name || !phone) return res.status(400).json({ error: "missing fields" });
     const payload = {
-      name: name.trim().slice(0, 120),
-      phone: phone.trim().slice(0, 40),
-      message: `Visszahívás kérés — idősáv: ${(timeslot || "").slice(0, 60)}`,
+      name,
+      phone,
+      message: `Visszahívás kérés - idősáv: ${timeslot}`,
       type: "callback",
       email: "",
       company: "",
@@ -627,17 +682,17 @@ router.get("/karrier", async (req, res, next) => {
   }
 });
 
-router.post("/karrier", formLimiter, cvUpload.single("cv"), async (req, res, next) => {
+router.post("/karrier", careerLimiter, cvUpload.single("cv"), async (req, res, next) => {
   try {
     const positions = await listPositions(true);
     const v = getCareerValidation(res.locals.lang);
     const errors = {};
     const data = {
-      name: (req.body.name || "").trim(),
-      email: (req.body.email || "").trim(),
-      phone: (req.body.phone || "").trim(),
-      motivation: (req.body.motivation || "").trim(),
-      positionId: (req.body.positionId || "").trim(),
+      name: cleanText(req.body.name, FIELD_LIMITS.name),
+      email: cleanText(req.body.email, FIELD_LIMITS.email),
+      phone: cleanText(req.body.phone, FIELD_LIMITS.phone),
+      motivation: cleanText(req.body.motivation, FIELD_LIMITS.motivation),
+      positionId: cleanText(req.body.positionId, 20),
     };
 
     if (data.name.length < 2) errors.name = v.name;
@@ -791,10 +846,10 @@ router.post("/admin/igenyek/:id/delete", requireAdminSession, async (req, res, n
 
 router.post("/admin/positions/add", requireAdminSession, async (req, res, next) => {
   try {
-    const title = (req.body.title || "").trim();
-    const description = (req.body.description || "").trim();
-    const location = (req.body.location || "").trim();
-    const type = (req.body.type || "").trim();
+    const title = cleanText(req.body.title, FIELD_LIMITS.position);
+    const description = cleanText(req.body.description, 1200);
+    const location = cleanText(req.body.location, 120);
+    const type = cleanText(req.body.type, 80);
 
     if (title.length >= 2) {
       await addPosition({ title, description, location, type });

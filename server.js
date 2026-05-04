@@ -1,8 +1,9 @@
-﻿require("dotenv").config();
+require("dotenv").config();
 
 const express = require("express");
 const path = require("path");
 const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const siteRoutes = require("./routes/siteRoutes");
 const { initDb } = require("./utils/db");
 const { getLang, getTranslations, buildLangUrl, supportedLanguages } = require("./utils/i18n");
@@ -81,7 +82,42 @@ app.use(express.static(path.join(__dirname, "public"), {
     }
   },
 }));
-app.use(express.urlencoded({ extended: true }));
+
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 600,
+  message: "Túl sok kérés rövid időn belül. Kérjük, próbálja újra később.",
+  standardHeaders: true,
+  legacyHeaders: false,
+}));
+
+app.use(express.urlencoded({
+  extended: true,
+  limit: "80kb",
+  parameterLimit: 120,
+}));
+app.use(express.json({ limit: "20kb" }));
+
+app.use((req, res, next) => {
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) return next();
+
+  const source = req.get("origin") || req.get("referer");
+  if (!source) return next();
+
+  try {
+    const normalizeHost = (value) => String(value || "")
+      .split(",")[0]
+      .trim()
+      .toLowerCase();
+    const sourceHost = normalizeHost(new URL(source).host);
+    const requestHost = normalizeHost(req.get("x-forwarded-host") || req.get("host"));
+    if (sourceHost === requestHost) return next();
+  } catch (_) {
+    return res.status(403).send("Érvénytelen kérés.");
+  }
+
+  return res.status(403).send("Érvénytelen kérés.");
+});
 
 // Lightweight cookie parser — no extra package needed
 app.use((req, res, next) => {
@@ -133,10 +169,14 @@ app.use("/", siteRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
-  if (!res.locals.t) {
-    return res.status(500).send("Internal Server Error");
+  const status = err.status || err.statusCode || 500;
+  if (status === 413) {
+    return res.status(413).send("A beküldött adat túl nagy.");
   }
-  return res.status(500).render("500", {
+  if (!res.locals.t) {
+    return res.status(status).send(status === 500 ? "Internal Server Error" : "Request error");
+  }
+  return res.status(status).render(status === 500 ? "500" : "404", {
     title: res.locals.t.errors.serverTitle,
   });
 });
