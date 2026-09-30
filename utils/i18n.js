@@ -531,6 +531,11 @@ function buildLangUrl(pathname, lang, extraQuery = {}) {
   return queryString ? `${pathname}?${queryString}` : pathname;
 }
 
+const environmentCopy = require("./environment");
+supportedLanguages.forEach((language) => {
+  copy[language].environment = environmentCopy[language];
+});
+
 module.exports = { supportedLanguages, defaultLanguage, getLang, getTranslations, getWholesaleCatalog, getRetailCatalog, getOrderProductOptions, getGrantItems, getLogisticsRegions, buildLangUrl };
 
 

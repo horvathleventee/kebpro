@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+
+<section class="environment-page" aria-labelledby="environment-title">
+  <div class="container environment-container">
+    <div class="environment-intro">
+      <div class="environment-symbol" aria-hidden="true">
+        <svg viewBox="0 0 80 80" fill="none" width="80" height="80">
+          <path d="M57 16C38 16 20 24 20 42c0 12 9 20 20 20 19 0 23-25 17-46Z" fill="currentColor" opacity=".12" />
+          <path d="M57 16C38 16 20 24 20 42c0 12 9 20 20 20 19 0 23-25 17-46Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" />
+          <path d="M22 67c5-17 15-31 29-42M31 47l-2-12m10 2 11 1" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+        </svg>
+      </div>
+      <p class="eyebrow"><%= t.environment.eyebrow %></p>
+      <h1 id="environment-title"><%= t.environment.title %></h1>
+      <p class="environment-lead"><%= t.environment.lead %></p>
+    </div>
+    <article class="environment-notice" aria-labelledby="environment-notice-title">
+      <span class="environment-status"><span aria-hidden="true"></span><%= t.environment.status %></span>
+      <h2 id="environment-notice-title"><%= t.environment.heading %></h2>
+      <p><%= t.environment.message %></p>
+      <div class="environment-contact">
+        <p><%= t.environment.help %></p>
+        <a class="btn btn-primary" href="<%= withLang('/kapcsolat') %>"><%= t.environment.contact %><span aria-hidden="true"> →</span></a>
+      </div>
+    </article>
+    <a class="environment-back" href="<%= withLang('/') %>"><span aria-hidden="true">← </span><%= t.environment.home %></a>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

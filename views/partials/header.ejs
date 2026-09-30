@@ -60,6 +60,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" />
     <link rel="stylesheet" href="/css/style.css?v=<%= assetVersion || 'local' %>" />
+    <% if (typeof currentPath !== 'undefined' && currentPath.replace(/\/+$/, '') === '/kornyezet') { %>
+    <link rel="stylesheet" href="/css/environment.css?v=<%= assetVersion || 'local' %>" />
+    <% } %>
   </head>
   <body>
     <div class="scroll-progress" aria-hidden="true"></div>

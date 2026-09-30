@@ -1,0 +1,36 @@
+// Replace this notice with approved packaging information when available.
+module.exports = {
+  hu: {
+    title: "Környezeti tájékoztató",
+    eyebrow: "Csomagolás és környezet",
+    lead: "Információk a Kebpro termék csomagolásáról és annak megfelelő kezeléséről.",
+    status: "Előkészítés alatt",
+    heading: "A részletes tájékoztató hamarosan elérhető.",
+    message: "A termék csomagolásával kapcsolatos környezeti tájékoztató előkészítés alatt áll. A végleges információkat ezen az oldalon tesszük közzé.",
+    help: "Kérdésed van? Munkatársaink szívesen segítenek.",
+    contact: "Kapcsolatfelvétel",
+    home: "Vissza a főoldalra",
+  },
+  en: {
+    title: "Environmental information",
+    eyebrow: "Packaging and the environment",
+    lead: "Information about Kebpro product packaging and how to handle it correctly.",
+    status: "In preparation",
+    heading: "Detailed information will be available soon.",
+    message: "Environmental information about the product packaging is being prepared. The final information will be published on this page.",
+    help: "Have a question? Our team will be happy to help.",
+    contact: "Get in touch",
+    home: "Back to home",
+  },
+  de: {
+    title: "Umweltinformationen",
+    eyebrow: "Verpackung und Umwelt",
+    lead: "Informationen zur Verpackung des Kebpro-Produkts und zum richtigen Umgang damit.",
+    status: "In Vorbereitung",
+    heading: "Ausführliche Informationen folgen in Kürze.",
+    message: "Die Umweltinformationen zur Produktverpackung werden derzeit vorbereitet. Die endgültigen Informationen veröffentlichen wir auf dieser Seite.",
+    help: "Haben Sie Fragen? Unser Team hilft Ihnen gerne weiter.",
+    contact: "Kontakt aufnehmen",
+    home: "Zur Startseite",
+  },
+};

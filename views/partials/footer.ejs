@@ -5,6 +5,7 @@
         <div>
           <h3>Halasi Kebpro Kft.</h3>
           <p><%= t.footer.description %></p>
+          <a href="<%= withLang('/kornyezet') %>"><%= t.environment.title %></a>
         </div>
         <div>
           <h4><%= t.footer.legal %></h4>
@@ -51,6 +52,7 @@
       </div>
     </footer>
 
+    <% if (currentPath.replace(/\/+$/, "") !== "/kornyezet") { %>
     <a href="<%= withLang('/palyazatok') %>" class="szechenyi-floating" aria-label="Széchenyi pályázatok">
       <img src="/images/optimized/szechenyi-220.png?v=<%= assetVersion || 'local' %>" alt="Széchenyi 2020 támogatás" class="szechenyi-floating-logo" width="220" height="154" loading="lazy" decoding="async" />
     </a>
@@ -86,6 +88,8 @@
         <p class="callback-success" id="callbackSuccess"><%= callbackSuccess %></p>
       </div>
     </div>
+
+    <% } %>
 
     <script src="/js/main.js?v=<%= assetVersion || 'local' %>"></script>
   </body>

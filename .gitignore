@@ -6,3 +6,8 @@ npm-debug.log*
 .vscode/
 public/uploads/
 uploads/
+
+# Local installers must never be committed or deployed with the website.
+*.exe
+*.msi
+public/images/scoped_dir*/

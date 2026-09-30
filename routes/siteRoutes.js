@@ -425,6 +425,19 @@ router.get("/rolunk", (req, res) => {
   });
 });
 
+router.get("/kornyezet", (req, res) => {
+  const content = res.locals.t.environment;
+  // Remove noindex when approved packaging information is published.
+  res.setHeader("X-Robots-Tag", "noindex, follow");
+  res.render("environment", {
+    title: content.title,
+    seo: buildPageSeo("environment", res.locals.lang, "/kornyezet", {
+      title: content.title + " | Halasi Kebpro Kft.",
+      description: content.lead,
+    }),
+  });
+});
+
 router.get("/minoseg", (req, res) => {
   res.render("quality", {
     title: res.locals.t.nav.quality,
