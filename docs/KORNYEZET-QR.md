@@ -15,7 +15,7 @@ A kód Q hibajavítási szinttel és négy modulnyi fehér szegéllyel készült
 
 ## Közzététel
 
-Jelenleg előkészítési tájékoztató szerepel az oldalon. A végleges, jóváhagyott tartalom ugyanitt frissíthető. A cím maradjon elérhető a nyomtatott csomagolások teljes használati ideje alatt, későbbi weboldalcsere után is.
+Az oldalon két eredeti, angol nyelvű gyártói nyilatkozat érhető el megnyitás és letöltés gombokkal. A PDF-ek a public/pdf/kornyezet mappában vannak, dátumozott fájlnevekkel. Frissítéskor új fájlnévvel és a utils/environment.js hivatkozásainak módosításával kerülhető el a korábbi PDF gyorsítótárból történő kiszolgálása. Az első dokumentum keltezése 2026-01-21; az eredeti fájlnévben szereplő 2025-11-21 eltér ettől. A végleges, jóváhagyott tartalom ugyanitt frissíthető. A cím maradjon elérhető a nyomtatott csomagolások teljes használati ideje alatt, későbbi weboldalcsere után is.
 
 A végleges tartalom feltöltésekor eltávolítható a /kornyezet útvonal X-Robots-Tag: noindex, follow fejléce, és az oldal hozzáadható a sitemaphez.
 
