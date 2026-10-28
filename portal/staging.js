@@ -20,14 +20,15 @@ function stagingConfig(env = process.env) {
   if (!databaseConfig) return null;
   const username = env.PORTAL_TEST_USER || '';
   const password = env.PORTAL_TEST_PASSWORD || '';
-  if (!/^[a-zA-Z0-9._-]{4,64}$/.test(username) || password.length < 8 || password.length > 128 || password.includes(':')) throw Error('Staging access credentials are missing or invalid');
+  const gateDisabled = env.PORTAL_TEST_GATE === 'disabled';
+  if (!gateDisabled && (!/^[a-zA-Z0-9._-]{4,64}$/.test(username) || password.length < 8 || password.length > 128 || password.includes(':'))) throw Error('Staging access credentials are missing or invalid');
   const supplied = [env.PORTAL_BOOTSTRAP_USER, env.PORTAL_BOOTSTRAP_PASSWORD, env.PORTAL_BOOTSTRAP_EMAIL];
   let adminCredentials;
   if (supplied.some(Boolean)) {
     if (!supplied.every(Boolean) || supplied[1].length < 10) throw Error('All bootstrap credentials are required, with a password of at least 10 characters');
     adminCredentials = {username: auth.username(supplied[0]), password: supplied[1], email: auth.emailAddress(supplied[2])};
   }
-  return { ...databaseConfig, staging: {username, password}, adminCredentials, monitorToken: env.PORTAL_MONITOR_TOKEN };
+  return { ...databaseConfig, staging: {username, password, gateDisabled}, adminCredentials, monitorToken: env.PORTAL_MONITOR_TOKEN };
 }
 
 function createStaging(config, { createApp = require('./app').createPortalApp, mailer = require('./mailer').createPortalMailer() } = {}) {

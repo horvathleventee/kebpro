@@ -44,7 +44,7 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.type('png').sendFile(path.join(__dirname, 'public', filename));
   });
-  if (staging) {
+  if (staging && !staging.gateDisabled) {
     app.use(rateLimit({windowMs: 60000, limit: 120}));
     const expected = hash(staging.username + ':' + staging.password);
     app.use((req,res,next)=>{

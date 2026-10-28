@@ -64,6 +64,21 @@ test('private HTTPS staging requires Basic auth, origin and secure session',asyn
   } finally {await new Promise(r=>server.close(r));await storage.close();}
 });
 
+test('explicitly disabling only the test gate preserves HTTPS, account authentication and CSRF',async()=>{
+  const config=stagingConfig({...cfg,PORTAL_TEST_GATE:'disabled',PORTAL_TEST_USER:'',PORTAL_TEST_PASSWORD:''});
+  const storage=createStore(':memory:',emptyState),portal=createPortalApp({...config,storage,sendEmail:async()=>{}});await portal.ready;
+  const server=portal.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
+  const url='http://127.0.0.1:'+server.address().port, headers={host:'example.invalid','x-forwarded-proto':'https'};
+  try{
+    assert.equal((await request(url+'/partner/login',{headers})).status,200);
+    assert.equal((await request(url+'/partner-admin/login',{headers})).status,200);
+    assert.equal((await request(url+'/partner/api/me',{headers})).status,401);
+    assert.equal((await request(url+'/partner-admin/api/admin',{headers})).status,401);
+    assert.equal((await request(url+'/partner/login',{headers:{...headers,'x-forwarded-proto':'http'}})).status,403);
+    assert.equal((await request(url+'/partner-admin/api/login',{method:'POST',headers:{...headers,origin:'https://evil.invalid','content-type':'application/json'},body:JSON.stringify({username:'stafftest',password:'bootstrap-test-password-123'})})).status,403);
+  }finally{await new Promise(r=>server.close(r));await storage.close();}
+});
+
 test('website routes and isolated portal coexist without mounting path changes',async()=>{
   const config=stagingConfig(cfg),storage=createStore(':memory:',emptyState);
   const portal=createPortalApp({...config,storage,sendEmail:async()=>{}});await portal.ready;
