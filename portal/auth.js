@@ -67,6 +67,7 @@ function review(state, input) {
     state.partners.push(partner); user.partnerId = partner.id;
   }
   user.status = input.status; user.reviewedAt = new Date().toISOString();
+  if (input.status === 'approved') return {email:user.email, username:user.username, company:user.company};
 }
 module.exports = { initialize, register, review, applications, verify, username, emailAddress, validatePassword, passwordHash };
 

@@ -1,6 +1,6 @@
 const crypto=require('node:crypto');
 // Demo texts are frozen snapshots. Replace them only by adding a new version after legal approval.
-const docs=Object.freeze({
+const previousDocs=Object.freeze({
  terms:Object.freeze({version:'draft-2026-10-28',title:'Partnerfelület használati feltételei – tervezet',sections:[
   ['A tervezetről','Ez a helyi bemutatóhoz készült tervezet, nem végleges vagy jogilag jóváhagyott feltétel. A tényleges szolgáltatási és üzleti feltételeket a Halasi Kebpro Kft.-vel kell véglegesíteni.'],
   ['A felület célja','A jóváhagyott üzleti partnerek a felületen keresztül rendelést adhatnak le, kezelhetik a rendeléseiket, híreket olvashatnak, és rendeléshez kapcsolódó bejelentést küldhetnek.'],
@@ -17,8 +17,30 @@ const docs=Object.freeze({
   ['További egyeztetés','Az adatkezelő és elérhetőségei, az egyes célokhoz tartozó jogalapok, adatfeldolgozók és esetleges adattovábbítások, pontos tárolási idők, érintetti jogok, panasztételi lehetőség, valamint a tervezett GPS-kezelés véglegesítésre várnak.']
  ]})
 });
+// The previous snapshots remain available for existing acceptances.
+const company='Halasi Kebpro Kft.; székhely: 6400 Kiskunhalas, Szegedi út 8.; cégjegyzékszám: 03-09-111668; adószám: 13289665-2-03; képviselő: Horváth Anikó; telefon: +36 70 451 5002; e-mail: info@kebpro.hu; honlap: kebpro.hu.';
+const docs=Object.freeze({
+ terms:Object.freeze({version:'draft-2026-10-28-v2',title:'Partnerfelület használati feltételei – tervezet',sections:[
+  ['Tervezet','A dokumentum a weboldal közzétett cégadatai és a partnerfelület működése alapján készült. Az üzleti feltételeket a Halasi Kebpro Kft.-nek és jogi szakértőjének véglegesítenie kell.'],
+  ['Szolgáltató',company],
+  ['A felület használata','A jóváhagyott üzleti partnerek rendelést adhatnak le és módosíthatnak a megjelölt határidőig, tájékoztatásokat olvashatnak, és üzenetet vagy rendeléshez kapcsolódó bejelentést küldhetnek.'],
+  ['Hozzáférés','A regisztrációhoz valós adatok szükségesek, a hozzáférést a vállalkozás hagyja jóvá. A felhasználó köteles a belépési adatait védeni; a hozzáférés felfüggeszthető. A felfüggesztés és megszüntetés részletes feltételeit véglegesíteni kell.'],
+  ['Rendelés és árak','Az alkalmazásban megadott árak nettó árak. A termékek, mértékegységek, esetleges árkedvezmények, a rendelés visszaigazolásának és a számlázásnak részletes üzleti szabályai véglegesítésre várnak.'],
+  ['Értesítések','A böngészős értesítések engedélyhez és az eszköz, valamint a szolgáltatások működéséhez kötöttek; a kézbesítés nem garantálható.'],
+  ['Kapcsolat és panasz','Kapcsolat: info@kebpro.hu, +36 70 451 5002. Rendeléshez kapcsolódó probléma az alkalmazásban is bejelenthető. A cég honlapján panaszkezelési szabályzat található.']
+ ]}),
+ privacy:Object.freeze({version:'draft-2026-10-28-v2',title:'Partneralkalmazás adatkezelési tájékoztatója – tervezet',sections:[
+  ['Tervezet','Ez a honlap adatkezelési tájékoztatója és az alkalmazás működése alapján összeállított tervezet. A partneralkalmazásra vonatkozó adatkezelési döntéseket és a dokumentumot az adatkezelőnek, jogi szakértő segítségével véglegesítenie kell.'],
+  ['Adatkezelő és kapcsolat',company],
+  ['A kezelt adatok','A regisztrációhoz cégnevet, kapcsolattartót, telefonszámot, címet, e-mail-címet, felhasználónevet és jelszólenyomatot kezelünk. Az alkalmazás rendeléseket, mentett listákat, árakat, üzeneteket, bejelentéseket és azok fényképeit, munkatársi műveleteket és értesítési beállításokat is tárolhat.'],
+  ['Értesítések és helyi tárolás','A push értesítéshez a böngésző engedélye és eszközfeliratkozási adatok szükségesek. A rendelési piszkozat és egyes felületi beállítások az eszközön tárolódnak.'],
+  ['Megőrzés és biztonsági mentés','Az alkalmazás a beállításai szerint a régebben archivált, elmúlt kiszállítású rendeléseket törölheti. A honlap tájékoztatója az ottani rendelésekre más megőrzési időt is említ: az alkalmazás, a számlázási adatok, a bejelentések, fényképek és biztonsági mentések tényleges megőrzését külön kell meghatározni.'],
+  ['Érintetti jogok és panasz','Az adatkezeléssel kapcsolatos kérdésekkel a fenti címen lehet a vállalkozáshoz fordulni. A tájékoztató az érintetti jogokat és a hatósági panasz lehetőségét a honlap adatkezelési tájékoztatója alapján részletezi; a végleges alkalmazási változatban ezeket ellenőrizni és pontosítani kell.'],
+  ['Véglegesítendő','Az egyes kezelési célok jogalapjai, adatfeldolgozók, adattovábbítások, a képek és a mentések kezelése, megőrzési idők, címzettek, valamint a ténylegesen használt szolgáltatások adatai egyeztetésre várnak.']
+ ]})
+});
 function hash(doc){return crypto.createHash('sha256').update(JSON.stringify(doc)).digest('hex');}
 function snapshot(kind){const d=docs[kind];return {version:d.version,hash:hash(d)};}
-function resolve(kind,version){return docs[kind]?.version===version?docs[kind]:null;}
+function resolve(kind,version){return docs[kind]?.version===version?docs[kind]:previousDocs[kind]?.version===version?previousDocs[kind]:null;}
 function verifyAcceptance(input){const terms=snapshot('terms'),privacy=snapshot('privacy');const {assert}=require('./domain');assert(input.termsAccepted===true,'A használati feltételek elfogadása szükséges.');assert(input.termsVersion===terms.version&&input.termsHash===terms.hash&&input.privacyVersion===privacy.version&&input.privacyHash===privacy.hash,'A dokumentumok időközben megváltoztak. Frissítsd az oldalt és olvasd el őket újra.',409);return {terms,privacy,termsDocument:JSON.stringify(docs.terms),privacyDocument:JSON.stringify(docs.privacy),acceptedAt:new Date().toISOString()};}
 module.exports={snapshot,resolve,verifyAcceptance};

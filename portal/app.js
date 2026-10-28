@@ -56,7 +56,7 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     });
   }
   const jsonDefault = express.json({ limit: "30kb" });
-  const jsonPhoto = express.json({ limit: "430kb" });
+  const jsonPhoto = express.json({ limit: "850kb" });
   app.use((req,res,next)=>(req.path==='/partner/api/complaints' ? jsonPhoto : jsonDefault)(req,res,next));
   app.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
@@ -255,6 +255,7 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     await store.change(s=>{const p=s.products.find(p=>p.id===req.body.id);domain.assert(p&&typeof req.body.active==='boolean','Érvénytelen termék.');p.active=req.body.active;});res.json({ok:true});
   });
   app.post('/partner-admin/api/prices',requireSession,staff,async(req,res)=>{await store.change(s=>domain.updatePrice(s,req.body));res.json({ok:true});});
+  app.post('/partner-admin/api/promotions',requireSession,staff,async(req,res)=>{await store.change(s=>domain.updatePromotion(s,req.body));res.json({ok:true});});
   app.post('/partner-admin/api/complaints',requireSession,staff,async(req,res)=>{
     const complaint=await store.change(s=>domain.updateComplaint(s,req.body,req.portalSession.userId,now()));res.json({complaint});
   });
@@ -280,7 +281,13 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     res.json({ created });
   });
   app.post("/partner-admin/api/applications", requireSession, staff, async (req,res) => {
-    await store.change(s=>auth.review(s,req.body)); res.json({ok:true});
+    const account=await store.change(s=>auth.review(s,req.body));
+    let emailSent=null;
+    if(account){
+      try { await sendEmail(require('./registration-email').approvalEmail(account,publicOrigin)); emailSent=true; }
+      catch { emailSent=false; }
+    }
+    res.json({ok:true,emailSent});
   });
   app.use((err,req,res,next) => {
     if (!(err instanceof domain.InputError)) {console.error('[partner] Unexpected server error');lastServerErrorAt=Date.now();}

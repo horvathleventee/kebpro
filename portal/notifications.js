@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const webpush = require("web-push");
-const { localTime, addDays, routeFor, validateSubscription } = require("./domain");
+const { localTime, addDays, orderCutoffDate, routeFor, validateSubscription } = require("./domain");
 const terminal = new Set(["sent", "expired", "failed", "cancelled"]);
 const MAX_ATTEMPTS = 5;
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -13,11 +13,13 @@ function eligible(state, message, now) {
   if (!partner || now.getTime() - Date.parse(message.createdAt) >= MAX_AGE_MS) return false;
   if (message.category === "news") return partner.preferences.news;
   if (message.category === "reminder") {
-    const date = message.key.slice("reminder:".length);
+    const match = /^reminder:(\d{4}-\d{2}-\d{2})(?::(evening|morning))?$/.exec(message.key);
+    if (!match) return false;
+    const date=match[1],phase=match[2]||'morning',cutoffDate=orderCutoffDate(date);
     const current = localTime(now);
     const route = routeFor(state,partner,date);
     return partner.preferences.reminders && route &&
-      current.date === addDays(date, -1) && current.time < route.cutoff &&
+      (phase==='evening' ? current.date===addDays(cutoffDate,-1)&&current.time>='17:00' : current.date===cutoffDate&&current.time>='10:00'&&current.time<'14:00') &&
       !state.responses.some(r => r.partnerId === partner.id && r.date === date);
   }
   return message.category === "order";
@@ -57,10 +59,9 @@ async function dispatchNotifications(store, { dryRun = true, subject, send = web
         Object.assign(delivery, { status: "sending", attempts: delivery.attempts + 1, leaseUntil: clock.getTime() + 120000 });
         let ttl = Math.max(1,Math.floor((MAX_AGE_MS-(clock.getTime()-Date.parse(message.createdAt)))/1000));
         if (message.category === "reminder") {
-          const person = state.partners.find(p => p.id === message.partnerId);
-          const route = routeFor(state,person,message.key.slice("reminder:".length));
           const minutes = value => Number(value.slice(0,2))*60+Number(value.slice(3,5));
-          ttl = Math.min(ttl,Math.max(1,(minutes(route.cutoff)-minutes(localTime(clock).time))*60-clock.getUTCSeconds()));
+          const end = message.key.endsWith(':evening') ? 24*60 : 14*60;
+          ttl = Math.min(ttl,Math.max(1,(end-minutes(localTime(clock).time))*60-clock.getUTCSeconds()));
         }
         tasks.push({ id:message.id, key, partnerId:message.partnerId, staffUserId:message.staffUserId, subscription,
           attempt:delivery.attempts, vapid:state.vapid,

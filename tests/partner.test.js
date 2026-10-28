@@ -9,10 +9,10 @@ const { createPortalApp } = require("../portal/app");
 const legal=require('../portal/legal');
 const legalInput=()=>{const t=legal.snapshot('terms'),p=legal.snapshot('privacy');return {termsAccepted:true,termsVersion:t.version,termsHash:t.hash,privacyVersion:p.version,privacyHash:p.hash};};
 const morning = new Date("2026-10-14T08:00:00Z"); // Wednesday 10:00 Budapest
-const payload = state => ({
-  kind:"order",date:"2026-10-15",requestId:d.id(),
+const payload = state => { state.products[0].prices ||= {}; if(state.products[0].prices.kg===undefined) state.products[0].prices.kg=1000; return ({
+  expectedPrices:[state.products[0].prices.kg], kind:"order",date:"2026-10-15",requestId:d.id(),
   items:[{productId:state.products[0].id,quantity:2.5,unit:"kg"}],note:"Kérem külön csomagolni.",
-});
+});};
 
 test("Budapest schedule uses the previous day cutoff and handles DST/weekends",()=>{
   const state=d.seed(), partner=state.partners[0];
@@ -129,6 +129,7 @@ test("HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
     assert.equal((await call("news",one,{title:"Bad"})).status,403);
     assert.equal((await call("preferences",one,{news:true,reminders:true}, "https://evil.example")).status,403);
     assert.equal((await call("preferences",one,{news:true,reminders:true}, base,"bad")).status,403);
+    await store.change(s=>{s.products[0].prices={kg:1000};});
     let state=await store.read();
     const input=payload(state);
     const order=await call("responses",one,input);
@@ -136,7 +137,7 @@ test("HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
     assert.equal((await call("responses",one,input)).status,200);
     assert.equal((await (await call("me",two)).json()).history.length,0);
     const createdOrder=(await order.json()).response;
-    const complaintInput={orderId:createdOrder.id,message:'Hiányzott egy tétel.',requestId:d.id()};
+    const complaintInput={orderId:createdOrder.id,message:'Hiányzott egy tétel.',requestId:d.id(),photo:'data:image/jpeg;base64,/9j/2Q==',labelPhoto:'data:image/jpeg;base64,/9j/2Q=='};
     assert.equal((await call('complaints',two,complaintInput)).status,404);
     assert.equal((await call('complaints',one,complaintInput,base,'bad')).status,403);
     const complaintResult=await call('complaints',one,complaintInput);assert.equal(complaintResult.status,200);
@@ -228,14 +229,14 @@ test("Concurrent push workers claim each device once",async()=>{
 
 
 test('Registration requires approval; staff and partner sessions are separate; PWA scopes differ',async()=>{
- const {app,store,ready}=createPortalApp({filename:':memory:',adminCredentials:{username:'admin',password:'local-admin-test-password'}});
+ const sent=[];const {app,store,ready}=createPortalApp({filename:':memory:',sendEmail:async mail=>sent.push(mail),publicOrigin:'https://kebpro.hu',adminCredentials:{username:'admin',password:'local-admin-test-password'}});
  await ready;const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.on('listening',r));const base='http://127.0.0.1:'+server.address().port;
  const post=(path,body,cookie='',csrf='')=>fetch(base+path,{method:'POST',headers:{Origin:base,'Content-Type':'application/json',Cookie:cookie,'X-CSRF-Token':csrf},body:JSON.stringify(body)});
  const applicant={...legalInput(),email:'newpartner@example.com',username:'newpartner',password:'long-partner-test-password',company:'Teszt üzlet',contact:'Teszt Elek',phone:'123',address:'Teszt cím',role:'staff',status:'approved'};
  try {
   assert.equal((await post('/partner/api/login',{role:'staff'})).status,401);
   const loginPage=await (await fetch(base+'/partner/login')).text();assert.match(loginPage,/name="termsAccepted" required/);assert.match(loginPage,/adatkezelési tájékoztató tervezetét/);
-  const termsDoc=await fetch(base+'/partner/legal/terms/'+applicant.termsVersion);assert.equal(termsDoc.status,200);assert.match(await termsDoc.text(),/helyi bemutató/i);
+  const termsDoc=await fetch(base+'/partner/legal/terms/'+applicant.termsVersion);assert.equal(termsDoc.status,200);assert.match(await termsDoc.text(),/tervezet/i);
   assert.equal((await fetch(base+'/partner/legal/terms/invalid')).status,404);
   const {termsAccepted,...unchecked}=applicant;
   assert.equal((await post('/partner/api/register',unchecked)).status,400);
@@ -251,7 +252,7 @@ test('Registration requires approval; staff and partner sessions are separate; P
   assert.equal((await fetch(base+'/partner/api/me',{headers:{Cookie:cookie}})).status,401);
   const adminData=await (await fetch(base+'/partner-admin/api/admin',{headers:{Cookie:cookie}})).json();assert.equal(JSON.stringify(adminData).includes(user.passwordHash),false);
   assert.equal((await post('/partner-admin/api/applications',{id:user.id,status:'approved',routeId:'fake'},cookie,csrf)).status,400);
-  assert.equal((await post('/partner-admin/api/applications',{id:user.id,status:'approved',routeId:'route-1'},cookie,csrf)).status,200);
+  const approval=await post('/partner-admin/api/applications',{id:user.id,status:'approved',routeId:'route-1'},cookie,csrf);assert.equal(approval.status,200);assert.equal((await approval.json()).emailSent,true);assert.equal(sent.length,2);assert.equal(sent[1].to,applicant.email);assert.match(sent[1].text,/https:\/\/kebpro.hu\/partner\/login/);assert.ok(!sent[1].text.includes(applicant.password));
   assert.equal((await post('/partner-admin/api/applications',{id:user.id,status:'approved',routeId:'route-1'},cookie,csrf)).status,409);
   const partnerLogin=await post('/partner/api/login',applicant);assert.equal(partnerLogin.status,200);const partnerCookie=partnerLogin.headers.get('set-cookie').split(';')[0];
   assert.equal((await fetch(base+'/partner-admin/api/admin',{headers:{Cookie:partnerCookie}})).status,401);
@@ -621,7 +622,7 @@ test('Retention removes only old archived past deliveries after backup, never te
  s.operations={backupAt:now.toISOString()};assert.equal(purge(s,now),1);assert.equal(s.responses.some(r=>r.id==='old'),false);assert.equal(s.responses.length,5);assert.deepEqual(s.partners[0].templates,saved);assert.equal(purge(s,now),0);
 });
 test('Product availability is staff-only, audited and enforced for existing carts',async()=>{
- const portal=createPortalApp({filename:':memory:',now:()=>morning,adminCredentials:{username:'admin',password:'12345678'}});await portal.ready;
+ const portal=createPortalApp({filename:':memory:',now:()=>morning,adminCredentials:{username:'admin',password:'12345678'}});await portal.ready;await portal.store.change(s=>{s.products[0].prices={kg:1000};});
  const server=portal.app.listen(0,'127.0.0.1');await new Promise(r=>server.on('listening',r));const origin='http://127.0.0.1:'+server.address().port;
  const post=(route,body,cookie='',csrf='')=>fetch(origin+route,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie,'X-CSRF-Token':csrf},body:JSON.stringify(body)});
  try{
@@ -676,13 +677,13 @@ test('Partner pricing uses unit-specific overrides, protects historical totals a
  assert.throws(()=>d.updatePrice(state,{productId:product.id,unit:'kg',price:-1}),d.InputError);
  assert.throws(()=>d.updatePrice(state,{productId:product.id,unit:'kg',price:1.2}),d.InputError);
  d.updatePrice(state,{productId:product.id,unit:'kg',price:null});
- assert.throws(()=>d.submitResponse(state,other.id,{...payload(state),expectedPrices:[2000]},morning),/árak megváltoztak/);
+ assert.throws(()=>d.submitResponse(state,other.id,{...input,requestId:d.id(),expectedPrices:[2000]},morning),/nincs megadva ár/);
 });
 
 
 test('Complaint survives removal of the linked archived order and remains private to its partner',()=>{
  const state=d.seed(),order=d.submitResponse(state,'partner-1',payload(state),morning);
- const complaint=d.submitComplaint(state,'partner-1',{orderId:order.id,message:'Kérek segítséget.',requestId:d.id()},morning);
+ const complaint=d.submitComplaint(state,'partner-1',{orderId:order.id,message:'Kérek segítséget.',requestId:d.id(),photo:'data:image/jpeg;base64,/9j/2Q==',labelPhoto:'data:image/jpeg;base64,/9j/2Q=='},morning);
  state.responses=[];
  assert.equal(d.safePartner(state,state.partners[0],morning).complaints[0].id,complaint.id);
  assert.equal((d.safePartner(state,state.partners[1],morning).complaints||[]).length,0);

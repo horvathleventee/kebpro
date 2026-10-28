@@ -2,7 +2,7 @@ const { AsyncLocalStorage } = require('node:async_hooks');
 const crypto = require('node:crypto');
 const context = new AsyncLocalStorage();
 const fields = {
- products:['name','active','prices'], routes:['name','days','reminder','cutoff'], partners:['name','routeId','routeIds','prices'],
+ products:['name','active','prices','promotions'], routes:['name','days','reminder','cutoff'], partners:['name','routeId','routeIds','prices'],
  responses:['status','archivedAt','archivedBy','revision'], news:['title','body','kind'],
  users:['username','role','status','partnerId'], staffInvitations:['email','status','invitedBy']
 };

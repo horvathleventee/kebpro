@@ -32,11 +32,12 @@ function deliveries(state,partner,now=new Date()){
  const current=localTime(now), result=[];
  for(let day=1;day<=14;day++){
   const date=addDays(current.date,day),route=routeFor(state,partner,date);if(!route)continue;
-  const cutoffDate=addDays(date,-1);
-  result.push({date,routeId:route.id,route:route.name,cutoffDate,cutoff:route.cutoff,open:current.date<cutoffDate || (current.date===cutoffDate && current.time<route.cutoff)});
+  const cutoffDate=orderCutoffDate(date),cutoff='14:00';
+  result.push({date,routeId:route.id,route:route.name,cutoffDate,cutoff,open:current.date<cutoffDate || (current.date===cutoffDate && current.time<cutoff)});
  }
  return result;
 }
+function orderCutoffDate(date){return addDays(date,new Date(date+'T12:00:00Z').getUTCDay()===1?-3:-1);}
 function deliveryOn(route, date) {
   return validDate(date) && route.days.includes(new Date(date + "T12:00:00Z").getUTCDay());
 }
@@ -105,7 +106,21 @@ function updatePrice(state,input){
  if(partner){partner.prices ||= {};partner.prices[product.id] ||= {};if(input.price===null)delete partner.prices[product.id][input.unit];else partner.prices[product.id][input.unit]=input.price;if(!Object.keys(partner.prices[product.id]).length)delete partner.prices[product.id];}
  else{product.prices ||= {};if(input.price===null)delete product.prices[input.unit];else product.prices[input.unit]=input.price;}
 }
-function priceFor(product,partner,unit){return partner.prices?.[product.id]?.[unit] ?? product.prices?.[unit] ?? null;}
+function updatePromotion(state,input){
+ const product=state.products.find(p=>p.id===input.productId);
+ assert(product && ['kg','db'].includes(input.unit),'Ismeretlen termék vagy mértékegység.');
+ assert(['none','discount','fixed'].includes(input.kind),'Érvénytelen akciótípus.');
+ product.promotions ||= {};
+ if(input.kind==='none'){delete product.promotions[input.unit];return;}
+ assert(Number.isSafeInteger(input.value)&&input.value>=0&&input.value<=100000000,'Az akció értéke 0 és 100 000 000 közötti egész forint lehet.');
+ product.promotions[input.unit]={kind:input.kind,value:input.value};
+}
+function priceFor(product,partner,unit){
+ const price=partner.prices?.[product.id]?.[unit] ?? product.prices?.[unit] ?? null;
+ if(price===null)return null;
+ const promotion=product.promotions?.[unit];
+ return promotion?.kind==='discount'?Math.max(0,price-promotion.value):promotion?.kind==='fixed'?promotion.value:price;
+}
 function pricedItems(state,partner,items){return items.map(item=>{const price=priceFor(state.products.find(p=>p.id===item.productId),partner,item.unit);return {...item,unitPrice:price,lineTotal:price===null?null:Math.round(price*Math.round(item.quantity*100)/100)};});}
 function submitResponse(state, partnerId, input, now = new Date()) {
   const partner = state.partners.find(p => p.id === partnerId);
@@ -122,7 +137,8 @@ function submitResponse(state, partnerId, input, now = new Date()) {
   assert(!input.responseId || existing?.id===input.responseId,'Ismeretlen saját rendelés.',404);
   assert(typeof input.requestId === "string" && /^[a-f0-9-]{36}$/.test(input.requestId), "Érvénytelen kérésazonosító.");
   const items=input.kind==='order'?pricedItems(state,partner,validateItems(state,input.items)):[];
-  if(input.expectedPrices!==undefined || items.some(i=>i.unitPrice!==null))assert(Array.isArray(input.expectedPrices)&&input.expectedPrices.length===items.length&&items.every((item,i)=>input.expectedPrices[i]===item.unitPrice),'Az árak megváltoztak, vagy még nem erősítetted meg őket. Frissítsd az oldalt és ellenőrizd újra a rendelést.',409);
+  assert(items.every(item=>item.unitPrice!==null),'Az egyik termékhez nincs megadva ár. Kérjük, fordulj az értékesítő kollégákhoz az ár beállításához.',409);
+  if(input.kind==='order')assert(Array.isArray(input.expectedPrices)&&input.expectedPrices.length===items.length&&items.every((item,i)=>input.expectedPrices[i]===item.unitPrice),'Az árak megváltoztak, vagy még nem erősítetted meg őket. Frissítsd az oldalt és ellenőrizd újra a rendelést.',409);
   const total=items.length&&items.every(i=>i.lineTotal!==null)?items.reduce((sum,i)=>sum+i.lineTotal,0):null;
   assert(input.note === undefined || (typeof input.note === "string" && input.note.length <= 1000), "A megjegyzés legfeljebb 1000 karakter lehet.");
   if(existing){
@@ -149,17 +165,20 @@ function submitComplaint(state,partnerId,input,now=new Date()){
  const partner=state.partners.find(p=>p.id===partnerId);assert(partner,'Ismeretlen partner.',403);
  assert(typeof input.requestId==='string' && /^[a-f0-9-]{36}$/.test(input.requestId),'Érvénytelen kérésazonosító.');
  const existing=(partner.complaints||[]).find(c=>c.requestId===input.requestId);if(existing)return existing;
- const order=state.responses.find(r=>r.id===input.orderId&&r.partnerId===partnerId&&r.kind==='order');assert(order,'A rendelés nem található.',404);
+ const general=input.kind==='general';
+ const order=general?null:state.responses.find(r=>r.id===input.orderId&&r.partnerId===partnerId&&r.kind==='order');assert(general||order,'A rendelés nem található.',404);
  const message=text(input.message,2000,'A probléma leírása');
- let photoId;
- if(input.photo!==undefined&&input.photo!==null&&input.photo!==''){
-  assert(typeof input.photo==='string'&&input.photo.length<=410000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(input.photo),'A kép formátuma vagy mérete érvénytelen.');
-  const bytes=Buffer.from(input.photo.slice('data:image/jpeg;base64,'.length),'base64');
+ if(!general)assert(input.photo&&input.labelPhoto,'Reklamációhoz a problémáról és a termékjelölő címkéről is szükséges egy kép.');
+ const photos=[input.photo,input.labelPhoto].map(photo=>{
+  if(photo===undefined||photo===null||photo==='')return null;
+  assert(typeof photo==='string'&&photo.length<=410000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(photo),'A kép formátuma vagy mérete érvénytelen.');
+  const bytes=Buffer.from(photo.slice('data:image/jpeg;base64,'.length),'base64');
   assert(bytes.length<=300000&&bytes.length>=4&&bytes[0]===0xff&&bytes[1]===0xd8&&bytes[bytes.length-2]===0xff&&bytes[bytes.length-1]===0xd9,'Csak tömörített JPEG kép tölthető fel (legfeljebb 300 KB).');
-  photoId=id();(state.complaintPhotos||=[]).push({id:photoId,partnerId,data:bytes.toString('base64'),createdAt:now.toISOString()});
- }
- const complaint={id:id(),requestId:input.requestId,orderId:order.id,orderDate:order.date,partnerId,partnerName:partner.name,message,status:'open',revision:1,createdAt:now.toISOString(),reply:null};
- if(photoId)complaint.photoId=photoId;
+  return bytes;
+ });
+ const ids=photos.map(bytes=>{if(!bytes)return null;const photoId=id();(state.complaintPhotos||=[]).push({id:photoId,partnerId,data:bytes.toString('base64'),createdAt:now.toISOString()});return photoId;});
+ const complaint={id:id(),requestId:input.requestId,kind:general?'general':'complaint',orderId:order?.id||null,orderDate:order?.date||null,partnerId,partnerName:partner.name,message,status:'open',revision:1,createdAt:now.toISOString(),reply:null};
+ if(ids[0])complaint.photoId=ids[0];if(ids[1])complaint.labelPhotoId=ids[1];
  (partner.complaints||=[]).push(complaint);return complaint;
 }
 function updateComplaint(state,input,actorId,now=new Date()){
@@ -184,16 +203,19 @@ function publishNews(state, input) {
 }
 function runReminders(state, now = new Date()) {
   const current = localTime(now);
-  const tomorrow = addDays(current.date, 1);
   let created = 0;
   for (const partner of state.partners) {
-    const route = routeFor(state, partner,tomorrow);
-    if (!route || !partner.preferences.reminders || !deliveryOn(route, tomorrow) ||
-        current.time < route.reminder || current.time >= route.cutoff ||
-        state.responses.some(r => r.partnerId === partner.id && r.date === tomorrow)) continue;
-    if (queueMessage(state, partner.id, "reminder:" + tomorrow, "Holnap szállítunk hozzátok",
-      "Add le a rendelésedet ma " + route.cutoff + "-ig, vagy jelezd, ha most nem kérsz szállítást.",
-      "/partner/#order", "reminder")) created++;
+    if (!partner.preferences.reminders) continue;
+    for (const delivery of deliveries(state,partner,now)) {
+      if (!delivery.open || state.responses.some(r => r.partnerId === partner.id && r.date === delivery.date)) continue;
+      const firstDay=addDays(delivery.cutoffDate,-1);
+      const first=current.date===firstDay && current.time>='17:00';
+      const second=current.date===delivery.cutoffDate && current.time>='10:00' && current.time<'14:00';
+      if (!first && !second) continue;
+      if(second && state.outbox.some(n=>n.partnerId===partner.id && n.key==='reminder:'+delivery.date))continue;
+      const body=first?'A rendelést már most leadhatod, vagy holnap 14:00-ig az alkalmazásban. Ha nem válaszolsz, munkatársaink kereshetnek.':'Add le a rendelésedet ma 14:00-ig, vagy jelezd, ha most nem kérsz szállítást.';
+      if (queueMessage(state, partner.id, 'reminder:'+delivery.date+':'+(first?'evening':'morning'), 'Rendelési emlékeztető · '+delivery.date, body, '/partner/#order', 'reminder')) created++;
+    }
   }
   return created;
 }
@@ -281,5 +303,5 @@ function validateSubscription(subscription) {
     /^[\w-]{22}$/.test(keys.auth) && /^[\w-]{87}$/.test(keys.p256dh), "Érvénytelen push-kulcsok.");
   return { endpoint: url.href, keys: { auth: keys.auth, p256dh: keys.p256dh } };
 }
-module.exports = { InputError, assert, id, seed, text, localTime, addDays, validDate, nextDelivery,
-  partnerRoutes, routeFor, deliveries, updatePrice, priceFor, submitComplaint, updateComplaint, saveTemplate, submitResponse, publishNews, runReminders, updateRoute, updatePartner, archiveOrder, safePartner, adminView, validateSubscription };
+module.exports = { InputError, assert, id, seed, text, localTime, addDays, validDate, nextDelivery, orderCutoffDate,
+  partnerRoutes, routeFor, deliveries, updatePrice, updatePromotion, priceFor, submitComplaint, updateComplaint, saveTemplate, submitResponse, publishNews, runReminders, updateRoute, updatePartner, archiveOrder, safePartner, adminView, validateSubscription };
