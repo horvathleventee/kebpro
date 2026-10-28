@@ -21,6 +21,8 @@ test('staging is opt-in and refuses unsafe or shared configuration',()=>{
   assert.throws(()=>stagingConfig({...cfg,PORTAL_TEST_PASSWORD:'short'}));
   assert.equal(stagingConfig({...cfg,PORTAL_TEST_PASSWORD:'test1234'}).staging.password,'test1234');
   assert.throws(()=>stagingConfig({...cfg,PORTAL_BOOTSTRAP_EMAIL:''}));
+  assert.throws(()=>stagingConfig({...cfg,PORTAL_BOOTSTRAP_PASSWORD:'123456789'}));
+  assert.equal(stagingConfig({...cfg,PORTAL_BOOTSTRAP_PASSWORD:'1234567890'}).adminCredentials.password,'1234567890');
   assert.equal(stagingConfig(cfg).adminCredentials.email,'staff@example.invalid');
 });
 

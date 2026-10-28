@@ -19,7 +19,7 @@ function stagingConfig(env = process.env) {
   const supplied = [env.PORTAL_BOOTSTRAP_USER, env.PORTAL_BOOTSTRAP_PASSWORD, env.PORTAL_BOOTSTRAP_EMAIL];
   let adminCredentials;
   if (supplied.some(Boolean)) {
-    if (!supplied.every(Boolean) || supplied[1].length < 16) throw Error('All bootstrap credentials are required, with a password of at least 16 characters');
+    if (!supplied.every(Boolean) || supplied[1].length < 10) throw Error('All bootstrap credentials are required, with a password of at least 10 characters');
     adminCredentials = {username: auth.username(supplied[0]), password: supplied[1], email: auth.emailAddress(supplied[2])};
   }
   return { databaseUrl: env.PORTAL_DATABASE_URL, publicOrigin: origin.origin, staging: {username, password}, adminCredentials, monitorToken: env.PORTAL_MONITOR_TOKEN };

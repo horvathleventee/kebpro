@@ -21,7 +21,7 @@ Az alábbi változókat a szerveren kell megadni. A jelenlegi weboldal beállít
 | `PORTAL_TEST_USER` | A külön tesztkapu neve, 4–64 ékezet nélküli karakter. |
 | `PORTAL_TEST_PASSWORD` | A tesztkapu külön, legalább 8 karakteres jelszava, kettőspont nélkül. |
 | `PORTAL_BOOTSTRAP_USER` | A legelső tesztadmin felhasználóneve. |
-| `PORTAL_BOOTSTRAP_PASSWORD` | A legelső tesztadmin külön, legalább 16 karakteres jelszava. |
+| `PORTAL_BOOTSTRAP_PASSWORD` | A legelső tesztadmin külön, legalább 10 karakteres jelszava. |
 | `PORTAL_BOOTSTRAP_EMAIL` | A tesztadmin saját e-mail-címe jelszó-visszaállításhoz. |
 
 A bootstrap változók az első fiók létrehozása után eltávolíthatók. Későbbi átírásuk nem módosítja a létrehozott fiókot. A portál meglévő `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` beállításokat használhatja.
