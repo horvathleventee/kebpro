@@ -21,6 +21,7 @@ data/backups/
 
 data/*alert-state.json*
 data/monitor-state.json*
+data/partner-staging-status.json
 .env.portal*
 # Private local TLS key and disposable test output
 .local-tests/

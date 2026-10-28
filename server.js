@@ -64,13 +64,20 @@ app.set("views", path.join(__dirname, "views"));
 // Opt-in private staging: failures are confined to partner routes, not the website.
 let portalStaging = null, portalStagingReady = false;
 let portalDiagnose = () => 'UNKNOWN';
+function recordPortalStagingStatus(code) {
+  try {
+    const directory = path.join(__dirname, 'data');
+    fs.mkdirSync(directory, { recursive: true, mode: 0o700 });
+    fs.writeFileSync(path.join(directory, 'partner-staging-status.json'), JSON.stringify({ status: code, time: new Date().toISOString() }, null, 2), { mode: 0o600 });
+  } catch { console.error('[partner staging] Unable to write private status file.'); }
+}
 if (process.env.PORTAL_STAGING_ENABLED === 'true') {
   try {
     const { stagingConfig, createStaging, diagnoseStagingError } = require('./portal/staging');
     portalDiagnose = diagnoseStagingError;
     portalStaging = createStaging(stagingConfig());
-    portalStaging.ready.then(() => { portalStagingReady = true; }).catch(error => console.error('[partner staging] Startup failed: ' + diagnoseStagingError(error)));
-  } catch (error) { console.error('[partner staging] Invalid configuration: ' + portalDiagnose(error)); }
+    portalStaging.ready.then(() => { portalStagingReady = true; recordPortalStagingStatus('READY'); }).catch(error => { const code = diagnoseStagingError(error); recordPortalStagingStatus(code); console.error('[partner staging] Startup failed: ' + code); });
+  } catch (error) { const code = portalDiagnose(error); recordPortalStagingStatus(code); console.error('[partner staging] Invalid configuration: ' + code); }
 }
 app.use((req, res, next) => {
   if (!/^\/partner(?:-admin)?(?:\/|$)/.test(req.path) || process.env.PORTAL_STAGING_ENABLED !== 'true') return next();
