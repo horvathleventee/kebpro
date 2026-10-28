@@ -5,6 +5,7 @@ const { createPortalApp } = require('../portal/app');
 const { createStore } = require('../portal/store');
 const { emptyState } = require('../portal/postgres/model');
 const http = require('node:http');
+const { spawnSync } = require('node:child_process');
 function request(url,{method='GET',headers={},body}={}) { return new Promise((resolve,reject)=>{const req=http.request(url,{method,headers},res=>{res.resume();res.on('end',()=>resolve({status:res.statusCode,headers:{get:key=>res.headers[key]?.toString()}}));});req.on('error',reject);req.end(body);}); }
 
 const cfg = {
@@ -33,6 +34,12 @@ test('diagnostics use fixed codes and never expose error text',()=>{
   const error=new Error('secret connection string');error.code='ECONNRESET';error.cause=Object.assign(new Error('password'),{code:'42501'});
   assert.deepEqual(stagingErrorDetails(error),[{name:'Error',code:'ECONNRESET'},{name:'Error',code:'42501'}]);
   assert.deepEqual(stagingErrorDetails({name:'secret',code:'secret connection string'}),[{name:'OtherError'}]);
+});
+
+test('loading the PostgreSQL portal does not load the native SQLite addon',()=>{
+  const source = `const Module=require('node:module');const original=Module._load;Module._load=function(name,...args){if(name==='sqlite3')throw Error('SQLite must not load');return original.call(this,name,...args)};require('./portal/staging');require('./portal/app');require('./portal/postgres/store');`;
+  const result=spawnSync(process.execPath,['-e',source],{cwd:require('node:path').join(__dirname,'..'),encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);
 });
 
 test('private HTTPS staging requires Basic auth, origin and secure session',async()=>{

@@ -3,7 +3,6 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const crypto = require("crypto");
 const path = require("path");
-const { createStore } = require("./store");
 const domain = require("./domain");
 const auth = require("./auth");
 const legal = require("./legal");
@@ -11,7 +10,7 @@ const legal = require("./legal");
 const hash = value => crypto.createHash("sha256").update(value).digest("hex");
 function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitorToken, filename, adminCredentials, sendEmail = async()=>{throw new Error("Email not configured");}, publicOrigin = "http://localhost:3002", now = () => new Date(), staging = null } = {}) {
   if (process.env.NODE_ENV === "production" && !staging) throw new Error("The demo portal must not run in production.");
-  const store = storage || (databaseUrl ? require('./postgres/store').createPostgresStore({connectionString:databaseUrl}) : createStore(filename || path.join(__dirname, '../data/partner-demo.sqlite'), domain.seed));
+  const store = storage || (databaseUrl ? require('./postgres/store').createPostgresStore({connectionString:databaseUrl}) : require('./store').createStore(filename || path.join(__dirname, '../data/partner-demo.sqlite'), domain.seed));
   const ready = auth.initialize(store, adminCredentials, {requireExplicit: Boolean(staging)}).then(async credentials=>{await store.change(state=>require("./migrations").migrateDailyRoutes(state,now()));return credentials;});
   const recovery = require("./recovery").createRecovery({store,sendEmail,origin:publicOrigin});
   const invitations = require("./invitations").createInvitations({store,sendEmail,origin:publicOrigin});
