@@ -50,6 +50,11 @@ test('private HTTPS staging requires Basic auth, origin and secure session',asyn
   const headers={host:'example.invalid','x-forwarded-proto':'https',authorization:'Basic '+Buffer.from(config.staging.username+':'+config.staging.password).toString('base64')};
   try {
     let r=await request(url+'/partner/login',{headers:{host:'example.invalid','x-forwarded-proto':'https'}});assert.equal(r.status,401);
+    for (const appPath of ['/partner/apple-touch-icon.png?v=3','/partner-admin/apple-touch-icon.png?v=3']) {
+      r=await request(url+appPath,{headers:{host:'example.invalid','x-forwarded-proto':'https'}});
+      assert.equal(r.status,200);assert.match(r.headers.get('content-type'),/^image\/png/);
+    }
+    r=await request(url+'/partner/assets/portal.js',{headers:{host:'example.invalid','x-forwarded-proto':'https'}});assert.equal(r.status,401);
     r=await request(url+'/partner/login',{headers:{...headers,'x-forwarded-proto':'http'}});assert.equal(r.status,403);
     r=await request(url+'/partner/login',{headers:{...headers,host:'wrong.invalid'}});assert.equal(r.status,403);
     r=await request(url+'/partner-admin/api/login',{method:'POST',headers:{...headers,origin:'https://evil.invalid','content-type':'application/json'},body:JSON.stringify({username:'stafftest',password:'bootstrap-test-password-123'})});assert.equal(r.status,403);

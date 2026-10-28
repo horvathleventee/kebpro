@@ -37,6 +37,13 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     imgSrc: ["'self'", "data:"], connectSrc: ["'self'"], objectSrc: ["'none'"],
   } }, strictTransportSecurity: false }));
   app.use(rateLimit({ windowMs: 60000, limit: testRateLimits?.global || 240 }));
+  // iOS may fetch home-screen artwork without the browser's staging login.
+  // These two fixed, non-sensitive files never expose partner data.
+  app.get(['/partner/apple-touch-icon.png', '/partner-admin/apple-touch-icon.png'], (req, res) => {
+    const filename = req.path.startsWith('/partner-admin/') ? 'admin-v2-180.png' : 'partner-v2-180.png';
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.type('png').sendFile(path.join(__dirname, 'public', filename));
+  });
   if (staging) {
     app.use(rateLimit({windowMs: 60000, limit: 120}));
     const expected = hash(staging.username + ':' + staging.password);

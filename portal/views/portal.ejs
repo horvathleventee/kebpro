@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#10243f"><meta name="csrf-token" content="<%= csrf %>">
   <title>Kebpro · <%= role === 'staff' ? 'Céges kezelőfelület' : 'Partnerfelület' %></title>
-  <link rel="apple-touch-icon" href="/partner/assets/<%= role === 'staff' ? 'admin' : 'partner' %>-v2-180.png"><link rel="manifest" href="<%= role === 'staff' ? '/partner-admin' : '/partner' %>/manifest.webmanifest"><link rel="icon" type="image/png" href="/partner/assets/<%= role === 'staff' ? 'admin' : 'partner' %>-v2-192.png">
+  <meta name="apple-mobile-web-app-title" content="Kebpro <%= role === 'staff' ? 'Admin' : 'Partner' %>"><link rel="apple-touch-icon" sizes="180x180" href="<%= role === 'staff' ? '/partner-admin' : '/partner' %>/apple-touch-icon.png?v=3"><link rel="manifest" href="<%= role === 'staff' ? '/partner-admin' : '/partner' %>/manifest.webmanifest"><link rel="icon" type="image/png" href="/partner/assets/<%= role === 'staff' ? 'admin' : 'partner' %>-v2-192.png">
   <link rel="stylesheet" href="/partner/assets/portal.css"><script src="/partner/assets/drafts.js" defer></script><script src="/partner/assets/portal.js" defer></script><script src="/partner/assets/install.js" defer></script>
 </head>
 <body data-role="<%= role %>">
