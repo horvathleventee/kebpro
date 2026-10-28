@@ -15,7 +15,7 @@ function stagingConfig(env = process.env) {
   if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) throw Error('PORTAL_PUBLIC_ORIGIN must be an HTTPS origin');
   const username = env.PORTAL_TEST_USER || '';
   const password = env.PORTAL_TEST_PASSWORD || '';
-  if (!/^[a-zA-Z0-9._-]{4,64}$/.test(username) || password.length < 24 || password.length > 128 || password.includes(':')) throw Error('Staging access credentials are missing or invalid');
+  if (!/^[a-zA-Z0-9._-]{4,64}$/.test(username) || password.length < 8 || password.length > 128 || password.includes(':')) throw Error('Staging access credentials are missing or invalid');
   const supplied = [env.PORTAL_BOOTSTRAP_USER, env.PORTAL_BOOTSTRAP_PASSWORD, env.PORTAL_BOOTSTRAP_EMAIL];
   let adminCredentials;
   if (supplied.some(Boolean)) {

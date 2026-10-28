@@ -19,7 +19,7 @@ Az alábbi változókat a szerveren kell megadni. A jelenlegi weboldal beállít
 | `PORTAL_DATABASE_URL` | A külön tesztadatbázis PostgreSQL URL-je, a cPanelben megadott teljes névvel és felhasználóval. A jelszó URL-speciális karaktereit kódolni kell. |
 | `PORTAL_PUBLIC_ORIGIN` | Pontos HTTPS eredet, például `https://kebpro.hu`, útvonal nélkül. |
 | `PORTAL_TEST_USER` | A külön tesztkapu neve, 4–64 ékezet nélküli karakter. |
-| `PORTAL_TEST_PASSWORD` | A tesztkapu külön, véletlen, legalább 24 karakteres jelszava, kettőspont nélkül. |
+| `PORTAL_TEST_PASSWORD` | A tesztkapu külön, legalább 8 karakteres jelszava, kettőspont nélkül. |
 | `PORTAL_BOOTSTRAP_USER` | A legelső tesztadmin felhasználóneve. |
 | `PORTAL_BOOTSTRAP_PASSWORD` | A legelső tesztadmin külön, legalább 16 karakteres jelszava. |
 | `PORTAL_BOOTSTRAP_EMAIL` | A tesztadmin saját e-mail-címe jelszó-visszaállításhoz. |

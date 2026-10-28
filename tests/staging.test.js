@@ -19,6 +19,7 @@ test('staging is opt-in and refuses unsafe or shared configuration',()=>{
   assert.throws(()=>stagingConfig({...cfg,PORTAL_DATABASE_URL:'postgresql://other:different@localhost/website'}));
   assert.throws(()=>stagingConfig({...cfg,PORTAL_PUBLIC_ORIGIN:'http://example.invalid'}));
   assert.throws(()=>stagingConfig({...cfg,PORTAL_TEST_PASSWORD:'short'}));
+  assert.equal(stagingConfig({...cfg,PORTAL_TEST_PASSWORD:'test1234'}).staging.password,'test1234');
   assert.throws(()=>stagingConfig({...cfg,PORTAL_BOOTSTRAP_EMAIL:''}));
   assert.equal(stagingConfig(cfg).adminCredentials.email,'staff@example.invalid');
 });
