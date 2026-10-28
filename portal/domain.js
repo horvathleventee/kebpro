@@ -73,13 +73,14 @@ function queueMessage(state, partnerId, key, title, body, url, category) {
     createdAt: new Date().toISOString(), status: state.pushMode === "live" ? "pending" : "simulation", attempts: 0 });
   return true;
 }
-function queueStaffOrder(state,response){
+function queueStaffNotification(state,category,eventId,title,body,url){
  for(const user of (state.users||[]).filter(u=>u.role==='staff'&&u.status==='approved')){
-  const key='staff-order:'+response.id;
+  const key=category+':'+eventId;
   if(state.outbox.some(n=>n.key===key&&n.staffUserId===user.id))continue;
-  state.outbox.push({id:id(),staffUserId:user.id,key,title:'Új rendelés érkezett',body:'Új partneri rendelés vár feldolgozásra.',url:'/partner-admin/#dashboard',category:'staff-order',createdAt:new Date().toISOString(),status:state.pushMode==='live'?'pending':'simulation',attempts:0});
+  state.outbox.push({id:id(),staffUserId:user.id,key,title,body,url,category,createdAt:new Date().toISOString(),status:state.pushMode==='live'?'pending':'simulation',attempts:0});
  }
 }
+function queueStaffOrder(state,response){queueStaffNotification(state,'staff-order',response.id,'Új rendelés érkezett','Új partneri rendelés vár feldolgozásra.','/partner-admin/#dashboard');}
 function validateItems(state,items){
  const input={items};
     assert(Array.isArray(input.items) && input.items.length > 0 && input.items.length <= 50, "Válassz legalább egy terméket (legfeljebb 50 tétel).");
@@ -179,7 +180,9 @@ function submitComplaint(state,partnerId,input,now=new Date()){
  const ids=photos.map(bytes=>{if(!bytes)return null;const photoId=id();(state.complaintPhotos||=[]).push({id:photoId,partnerId,data:bytes.toString('base64'),createdAt:now.toISOString()});return photoId;});
  const complaint={id:id(),requestId:input.requestId,kind:general?'general':'complaint',orderId:order?.id||null,orderDate:order?.date||null,partnerId,partnerName:partner.name,message,status:'open',revision:1,createdAt:now.toISOString(),reply:null};
  if(ids[0])complaint.photoId=ids[0];if(ids[1])complaint.labelPhotoId=ids[1];
- (partner.complaints||=[]).push(complaint);return complaint;
+ (partner.complaints||=[]).push(complaint);
+ queueStaffNotification(state,'staff-complaint',complaint.id,general?'Új partneri visszajelzés':'🚨 Új reklamáció érkezett',general?'Új partneri üzenet vár megtekintésre.':'Egy rendeléshez új reklamáció érkezett.','/partner-admin/#complaints');
+ return complaint;
 }
 function updateComplaint(state,input,actorId,now=new Date()){
  const partner=state.partners.find(p=>(p.complaints||[]).some(c=>c.id===input.id));const complaint=partner?.complaints.find(c=>c.id===input.id);
@@ -304,4 +307,4 @@ function validateSubscription(subscription) {
   return { endpoint: url.href, keys: { auth: keys.auth, p256dh: keys.p256dh } };
 }
 module.exports = { InputError, assert, id, seed, text, localTime, addDays, validDate, nextDelivery, orderCutoffDate,
-  partnerRoutes, routeFor, deliveries, updatePrice, updatePromotion, priceFor, submitComplaint, updateComplaint, saveTemplate, submitResponse, publishNews, runReminders, updateRoute, updatePartner, archiveOrder, safePartner, adminView, validateSubscription };
+  partnerRoutes, routeFor, deliveries, updatePrice, updatePromotion, priceFor, queueStaffNotification, submitComplaint, updateComplaint, saveTemplate, submitResponse, publishNews, runReminders, updateRoute, updatePartner, archiveOrder, safePartner, adminView, validateSubscription };

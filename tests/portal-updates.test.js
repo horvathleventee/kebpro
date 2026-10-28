@@ -75,3 +75,19 @@ test('Both Monday reminders can be dispatched, and an already answered delivery 
  await dispatchNotifications(store,{dryRun:false,subject:'mailto:test@example.invalid',now:()=>now,send:async(s,p)=>sent.push(JSON.parse(p))});assert.equal(sent.length,2);
  }finally{await store.close();}
 });
+
+test('new registrations and complaints queue private, deduplicated push to subscribed active staff',async()=>{
+ const state=d.seed();state.pushMode='live';state.users=[{id:'active',role:'staff',status:'approved'},{id:'disabled',role:'staff',status:'disabled'}];
+ state.subscriptions=[{staffUserId:'active',endpoint:'https://fcm.googleapis.com/fcm/send/staff-active',keys:{auth:'a'.repeat(22),p256dh:'b'.repeat(87)},createdAt:'2020-01-01T00:00:00Z'},{partnerId:'partner-1',endpoint:'https://fcm.googleapis.com/fcm/send/partner-private',keys:{auth:'a'.repeat(22),p256dh:'b'.repeat(87)},createdAt:'2020-01-01T00:00:00Z'}];
+ const store=createStore(':memory:',()=>state);await store.ready;
+ try{
+  await auth.register(store,{username:'newpartner',password:'Password123',email:'test@example.invalid',company:'Bizalmas név',contact:'Teszt',phone:'123',address:'Teszt cím'});
+  await assert.rejects(auth.register(store,{username:'newpartner',password:'Password123',email:'test@example.invalid',company:'Teszt',contact:'Teszt',phone:'123',address:'Teszt cím'}));
+  const input={orderId:'order',message:'Bizalmas panasz',requestId:d.id(),photo:'data:image/jpeg;base64,/9j/2Q==',labelPhoto:'data:image/jpeg;base64,/9j/2Q=='};
+  await store.change(s=>{s.responses.push({id:'order',partnerId:'partner-1',kind:'order',date:'2026-10-15'});d.submitComplaint(s,'partner-1',input);d.submitComplaint(s,'partner-1',input);});
+  let current=await store.read();const messages=current.outbox.filter(m=>['staff-registration','staff-complaint'].includes(m.category));assert.equal(messages.length,2);assert.ok(messages.every(m=>m.staffUserId==='active'));assert.match(messages.find(m=>m.category==='staff-complaint').title,/🚨/);assert.ok(!JSON.stringify(messages).includes('Bizalmas'));
+  const sent=[];await dispatchNotifications(store,{dryRun:false,subject:'mailto:test@example.invalid',send:async(sub,payload)=>sent.push({endpoint:sub.endpoint,payload:JSON.parse(payload)})});
+  assert.equal(sent.length,2);assert.ok(sent.every(x=>x.endpoint.includes('staff-active')));assert.deepEqual(new Set(sent.map(x=>x.payload.url)),new Set(['/partner-admin/#applications','/partner-admin/#complaints']));
+  current=await store.read();assert.ok(current.outbox.filter(m=>['staff-registration','staff-complaint'].includes(m.category)).every(m=>m.status==='complete'));
+ }finally{await store.close();}
+});

@@ -235,9 +235,9 @@ test('Registration requires approval; staff and partner sessions are separate; P
  const applicant={...legalInput(),email:'newpartner@example.com',username:'newpartner',password:'long-partner-test-password',company:'Teszt üzlet',contact:'Teszt Elek',phone:'123',address:'Teszt cím',role:'staff',status:'approved'};
  try {
   assert.equal((await post('/partner/api/login',{role:'staff'})).status,401);
-  const loginPage=await (await fetch(base+'/partner/login')).text();assert.match(loginPage,/name="termsAccepted" required/);assert.match(loginPage,/adatkezelési tájékoztató tervezetét/);
-  const termsDoc=await fetch(base+'/partner/legal/terms/'+applicant.termsVersion);assert.equal(termsDoc.status,200);assert.match(await termsDoc.text(),/tervezet/i);
-  assert.equal((await fetch(base+'/partner/legal/terms/invalid')).status,404);
+  const loginPage=await (await fetch(base+'/partner/login')).text();assert.match(loginPage,/name="termsAccepted" required/);assert.match(loginPage,/adatkezelési tájékoztatót/);
+  const termsDoc=await fetch(base+'/partner/legal/terms/'+applicant.termsVersion);assert.equal(termsDoc.status,200);assert.match(await termsDoc.text(),/Partnerfelület használati feltételei/);
+  assert.equal((await fetch(base+'/partner/legal/terms/invalid')).status,404);for(const version of ['draft-2026-10-28','draft-2026-10-28-v2'])assert.equal((await fetch(base+'/partner/legal/terms/'+version)).status,200);
   const {termsAccepted,...unchecked}=applicant;
   assert.equal((await post('/partner/api/register',unchecked)).status,400);
   assert.equal((await post('/partner/api/register',{...applicant,termsAccepted:'true'})).status,400);

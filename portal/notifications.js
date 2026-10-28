@@ -5,9 +5,10 @@ const terminal = new Set(["sent", "expired", "failed", "cancelled"]);
 const MAX_ATTEMPTS = 5;
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const endpointKey = endpoint => crypto.createHash("sha256").update(endpoint).digest("hex");
+const staffCategory = message => ['staff-order','staff-complaint','staff-registration'].includes(message.category);
 
 function eligible(state, message, now) {
-  if (message.category === 'staff-order') return Boolean(state.users?.some(u=>u.id===message.staffUserId&&u.role==='staff'&&u.status==='approved')) && now.getTime() - Date.parse(message.createdAt) < MAX_AGE_MS;
+  if (staffCategory(message)) return Boolean(state.users?.some(u=>u.id===message.staffUserId&&u.role==='staff'&&u.status==='approved')) && now.getTime() - Date.parse(message.createdAt) < MAX_AGE_MS;
   const partner = state.partners.find(p => p.id === message.partnerId);
   if (state.users?.some(u=>u.partnerId===message.partnerId&&u.status==='disabled'))return false;
   if (!partner || now.getTime() - Date.parse(message.createdAt) >= MAX_AGE_MS) return false;
@@ -41,7 +42,7 @@ async function dispatchNotifications(store, { dryRun = true, subject, send = web
     const tasks = [];
     for (const message of state.outbox.filter(m => m.status === "pending")) {
       if (!eligible(state,message,clock)) { message.status = "cancelled"; continue; }
-      const subscriptions = state.subscriptions.filter(s => (message.category==='staff-order' ? s.staffUserId===message.staffUserId : s.partnerId === message.partnerId) &&
+      const subscriptions = state.subscriptions.filter(s => (staffCategory(message) ? s.staffUserId===message.staffUserId : s.partnerId === message.partnerId) &&
         Date.parse(s.createdAt) <= Date.parse(message.createdAt));
       if (!subscriptions.length) { message.status = "no_devices"; continue; }
       message.deliveries ||= {};
@@ -79,7 +80,7 @@ async function dispatchNotifications(store, { dryRun = true, subject, send = web
     const message = current.outbox.find(m => m.id === task.id);
     let outcome = "sent", code, retryAfter = 0;
     if (!message || !eligible(current,message,now()) ||
-      !current.subscriptions.some(s => (message.category==='staff-order' ? s.staffUserId===task.staffUserId : s.partnerId === task.partnerId) && s.endpoint === task.subscription.endpoint)) outcome = "cancelled";
+      !current.subscriptions.some(s => (staffCategory(message) ? s.staffUserId===task.staffUserId : s.partnerId === task.partnerId) && s.endpoint === task.subscription.endpoint)) outcome = "cancelled";
     else {
       try {
         await send({endpoint:task.subscription.endpoint,keys:task.subscription.keys},task.payload,{

@@ -19,7 +19,7 @@ const previousDocs=Object.freeze({
 });
 // The previous snapshots remain available for existing acceptances.
 const company='Halasi Kebpro Kft.; székhely: 6400 Kiskunhalas, Szegedi út 8.; cégjegyzékszám: 03-09-111668; adószám: 13289665-2-03; képviselő: Horváth Anikó; telefon: +36 70 451 5002; e-mail: info@kebpro.hu; honlap: kebpro.hu.';
-const docs=Object.freeze({
+const previousDocsV2=Object.freeze({
  terms:Object.freeze({version:'draft-2026-10-28-v2',title:'Partnerfelület használati feltételei – tervezet',sections:[
   ['Tervezet','A dokumentum a weboldal közzétett cégadatai és a partnerfelület működése alapján készült. Az üzleti feltételeket a Halasi Kebpro Kft.-nek és jogi szakértőjének véglegesítenie kell.'],
   ['Szolgáltató',company],
@@ -39,8 +39,26 @@ const docs=Object.freeze({
   ['Véglegesítendő','Az egyes kezelési célok jogalapjai, adatfeldolgozók, adattovábbítások, a képek és a mentések kezelése, megőrzési idők, címzettek, valamint a ténylegesen használt szolgáltatások adatai egyeztetésre várnak.']
  ]})
 });
+// New versions do not change the recorded content or hashes of earlier acceptances.
+const docs=Object.freeze({
+ terms:Object.freeze({version:'2026-10-28-v3',title:'Partnerfelület használati feltételei',sections:[
+  ['Szolgáltató',company],
+  ['A partnerfelület használata','A felület üzleti partnerek számára készült. Regisztráció után a hozzáférésről a Halasi Kebpro Kft. munkatársai döntenek. A felhasználó a belépési adatait köteles bizalmasan kezelni.'],
+  ['Rendelések','A partner a megjelenített kiszállítási napokra adhat le rendelést vagy jelezheti, ha nem kér szállítást. A rendelés módosítása a felületen látható határidőig lehetséges. A rendelés beérkezése és feldolgozása a felületen követhető.'],
+  ['Árak','A felületen szereplő árak nettó árak. A partnerhez beállított egyedi ár, ennek hiányában az alapár érvényes. Az általános akciók módosíthatják a megjelenített árat. Hiányzó ár esetén az értékesítő munkatársakkal szükséges egyeztetni.'],
+  ['Értesítések','A böngészős értesítésekhez az eszköz engedélye szükséges, és azok a beállításokban kezelhetők. A kézbesítés függ az eszköz és az értesítési szolgáltatás működésétől.'],
+  ['Kapcsolat és panasz','Kapcsolat: info@kebpro.hu, +36 70 451 5002. A partnerfelületen rendeléshez kapcsolódó reklamáció és általános visszajelzés is küldhető. A társaság panaszkezelési szabályzata a kebpro.hu/panaszkezelesi-szabalyzat oldalon érhető el.']
+ ]}),
+ privacy:Object.freeze({version:'2026-10-28-v3',title:'Partnerfelület adatkezelési tájékoztatója',sections:[
+  ['Adatkezelő',company],
+  ['A partnerfelület adatai','A regisztráció során a felület a cég nevét, a kapcsolattartó nevét, telefonszámát, szállítási címét, e-mail-címét, felhasználónevét és a jelszó védett lenyomatát kezeli. A használat során rendelések, mentett rendelési listák, árak, üzenetek, bejelentések és azokhoz csatolt képek, valamint a hozzáférés és az értesítések beállításai is tárolásra kerülhetnek.'],
+  ['Értesítések és eszköz','Az értesítés küldéséhez a böngésző engedélye és az eszköz push-feliratkozásának adatai szükségesek. A rendelési piszkozat és egyes beállítások a felhasználó eszközén is tárolódhatnak.'],
+  ['Megőrzés','A partnerfelületen a legalább három hónapja archivált, elmúlt kiszállítású rendelések sikeres mentés után törlődhetnek. A kezeletlen rendelések, a mentett listák és a bejelentések nem tartoznak e törlés alá. A rendszer a helyi biztonsági mentésekből legfeljebb 14 példányt tart meg.'],
+  ['Adatkezelési tájékoztató','A Halasi Kebpro Kft. weboldalának adatkezelési tájékoztatója a kebpro.hu/adatkezelesi-tajekoztato oldalon érhető el. Ebben a társaság az érintetti jogokról és a panasztételi lehetőségekről is tájékoztatást ad. Adatvédelmi kérdés esetén keress minket az info@kebpro.hu címen.']
+ ]})
+});
 function hash(doc){return crypto.createHash('sha256').update(JSON.stringify(doc)).digest('hex');}
 function snapshot(kind){const d=docs[kind];return {version:d.version,hash:hash(d)};}
-function resolve(kind,version){return docs[kind]?.version===version?docs[kind]:previousDocs[kind]?.version===version?previousDocs[kind]:null;}
+function resolve(kind,version){return docs[kind]?.version===version?docs[kind]:previousDocsV2[kind]?.version===version?previousDocsV2[kind]:previousDocs[kind]?.version===version?previousDocs[kind]:null;}
 function verifyAcceptance(input){const terms=snapshot('terms'),privacy=snapshot('privacy');const {assert}=require('./domain');assert(input.termsAccepted===true,'A használati feltételek elfogadása szükséges.');assert(input.termsVersion===terms.version&&input.termsHash===terms.hash&&input.privacyVersion===privacy.version&&input.privacyHash===privacy.hash,'A dokumentumok időközben megváltoztak. Frissítsd az oldalt és olvasd el őket újra.',409);return {terms,privacy,termsDocument:JSON.stringify(docs.terms),privacyDocument:JSON.stringify(docs.privacy),acceptedAt:new Date().toISOString()};}
 module.exports={snapshot,resolve,verifyAcceptance};

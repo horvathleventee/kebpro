@@ -50,7 +50,9 @@ async function register(store, input, termsAcceptance) {
   await store.change(s => {
     assert(!s.users.some(u => u.username === name), 'Ez a felhasználónév már foglalt.', 409);
     assert(!s.users.some(u=>u.email===email && u.role==='partner'), 'Ehhez az e-mail-címhez már tartozik regisztráció.', 409);
-    s.users.push({ id:id(), email, username:name, passwordHash:digest, role:'partner', status:'pending', ...fields, ...(termsAcceptance?{termsAcceptance}:{}), createdAt:new Date().toISOString() });
+    const user={ id:id(), email, username:name, passwordHash:digest, role:'partner', status:'pending', ...fields, ...(termsAcceptance?{termsAcceptance}:{}), createdAt:new Date().toISOString() };
+    s.users.push(user);
+    require('./domain').queueStaffNotification(s,'staff-registration',user.id,'Új partnerregisztráció','Új partnerregisztráció vár jóváhagyásra.','/partner-admin/#applications');
   });
   return { email, username:name, company:fields.company, contact:fields.contact, address:fields.address, phone:fields.phone };
 }
