@@ -20,7 +20,7 @@ function createRecovery({store, sendEmail, origin, clock=()=>Date.now()}) {
   if(record){
    const url=new URL((role==='staff'?'/partner-admin':'/partner')+'/reset-password',site.origin);
    url.hash=token;
-   try{await sendEmail({to:email,subject:'Kebpro · Jelszó visszaállítása',text:'Jelszó-visszaállítást kértek a Kebpro fiókodhoz.\n\nÚj jelszó megadása: '+url.href+'\n\nA link 30 percig, egyszer használható. A korábbi jelszavadat is megadhatod. Ha nem te kérted, hagyd figyelmen kívül ezt a levelet; a jelszavad nem változik meg.\n\nA helyi bemutató localhost linkje csak a bemutatót futtató számítógépen működik.'});}
+   try{await sendEmail({to:email,subject:'Kebpro · Jelszó visszaállítása',text:'Jelszó-visszaállítást kértek a Kebpro fiókodhoz.\n\nÚj jelszó megadása: '+url.href+'\n\nA link 30 percig, egyszer használható. A korábbi jelszavadat is megadhatod. Ha nem te kérted, hagyd figyelmen kívül ezt a levelet; a jelszavad nem változik meg.'+(['localhost','127.0.0.1'].includes(site.hostname)?'\n\nA helyi bemutató localhost linkje csak a bemutatót futtató számítógépen működik.':'')});}
    catch(error){await store.change(s=>{s.passwordResets=s.passwordResets.filter(r=>r.hash!==record.hash);});console.error('[partner mail] Password reset delivery failed.');}
   }
   return {message:generic};

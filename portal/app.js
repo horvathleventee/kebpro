@@ -9,10 +9,10 @@ const auth = require("./auth");
 const legal = require("./legal");
 
 const hash = value => crypto.createHash("sha256").update(value).digest("hex");
-function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitorToken, filename, adminCredentials, sendEmail = async()=>{throw new Error("Email not configured");}, publicOrigin = "http://localhost:3002", now = () => new Date() } = {}) {
-  if (process.env.NODE_ENV === "production") throw new Error("The demo portal must not run in production.");
+function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitorToken, filename, adminCredentials, sendEmail = async()=>{throw new Error("Email not configured");}, publicOrigin = "http://localhost:3002", now = () => new Date(), staging = null } = {}) {
+  if (process.env.NODE_ENV === "production" && !staging) throw new Error("The demo portal must not run in production.");
   const store = storage || (databaseUrl ? require('./postgres/store').createPostgresStore({connectionString:databaseUrl}) : createStore(filename || path.join(__dirname, '../data/partner-demo.sqlite'), domain.seed));
-  const ready = auth.initialize(store, adminCredentials).then(async credentials=>{await store.change(state=>require("./migrations").migrateDailyRoutes(state,now()));return credentials;});
+  const ready = auth.initialize(store, adminCredentials, {requireExplicit: Boolean(staging)}).then(async credentials=>{await store.change(state=>require("./migrations").migrateDailyRoutes(state,now()));return credentials;});
   const recovery = require("./recovery").createRecovery({store,sendEmail,origin:publicOrigin});
   const invitations = require("./invitations").createInvitations({store,sendEmail,origin:publicOrigin});
   const app = express();
@@ -21,8 +21,13 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
   app.enable("strict routing");
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "views"));
+  if (staging) app.set('trust proxy', 'loopback');
   // Deliberately local-only until production account lifecycle and storage are provided.
   app.use((req, res, next) => {
+    if (staging) {
+      if (!req.secure || req.get('host') !== new URL(publicOrigin).host) return res.status(403).send('HTTPS required.');
+      return next();
+    }
     const address = req.socket.remoteAddress;
     if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(address) ||
       !["localhost", "127.0.0.1", "::1"].includes(req.hostname)) return res.status(403).send("Local preview only.");
@@ -33,6 +38,17 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     imgSrc: ["'self'", "data:"], connectSrc: ["'self'"], objectSrc: ["'none'"],
   } }, strictTransportSecurity: false }));
   app.use(rateLimit({ windowMs: 60000, limit: testRateLimits?.global || 240 }));
+  if (staging) {
+    app.use(rateLimit({windowMs: 60000, limit: 120}));
+    const expected = hash(staging.username + ':' + staging.password);
+    app.use((req,res,next)=>{
+      const header=req.get('authorization')||'';
+      let actual='';
+      if(header.startsWith('Basic ')) { try { actual=Buffer.from(header.slice(6),'base64').toString('utf8'); } catch {} }
+      if(!crypto.timingSafeEqual(Buffer.from(hash(actual)),Buffer.from(expected))){res.set('WWW-Authenticate','Basic realm="Kebpro test", charset="UTF-8"');return res.status(401).send('Test access required.');}
+      next();
+    });
+  }
   app.use(express.json({ limit: "30kb" }));
   app.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");

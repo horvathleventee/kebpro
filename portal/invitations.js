@@ -17,7 +17,7 @@ function createInvitations({store,sendEmail,origin,clock=()=>Date.now()}) {
   });
   try{
    const url=new URL('/partner-admin/accept-invitation',site.origin);url.hash=token;
-   await sendEmail({to:email,subject:'Kebpro · Meghívó a céges felületre',text:'Meghívást kaptál a Kebpro céges kezelőfelületére. A fiókkal rendelések, partnerek, hírek és munkatársi meghívások kezelhetők.\n\nSaját felhasználónév és jelszó beállítása:\n'+url.href+'\n\nA link 24 óráig, egyszer használható. Ne továbbítsd másnak. Ha nem számítottál erre a meghívóra, hagyd figyelmen kívül.\n\nHelyi bemutató esetén a localhost link csak a bemutatót futtató számítógépen működik.'});
+   await sendEmail({to:email,subject:'Kebpro · Meghívó a céges felületre',text:'Meghívást kaptál a Kebpro céges kezelőfelületére. A fiókkal rendelések, partnerek, hírek és munkatársi meghívások kezelhetők.\n\nSaját felhasználónév és jelszó beállítása:\n'+url.href+'\n\nA link 24 óráig, egyszer használható. Ne továbbítsd másnak. Ha nem számítottál erre a meghívóra, hagyd figyelmen kívül.'+(['localhost','127.0.0.1'].includes(site.hostname)?'\n\nHelyi bemutató esetén a localhost link csak a bemutatót futtató számítógépen működik.':'')});
    await store.change(s=>{const item=s.staffInvitations.find(i=>i.id===record.id);if(item.status==='sending')item.status='pending';});
    return {ok:true};
   }catch(error){

@@ -16,15 +16,16 @@ function username(value) {
   assert(typeof value === 'string' && /^[a-zA-Z0-9@._+-]{3,100}$/.test(value.trim()), 'A felhasználónév 3–100 karakter: betű, szám, pont, @, _, + vagy - lehet.');
   return value.trim().toLowerCase();
 }
-async function initialize(store, credentials) {
+async function initialize(store, credentials, { requireExplicit = false } = {}) {
   await store.ready;
   const state = await store.read();
   if (state.authVersion === 1) return null;
+  if (requireExplicit && !credentials) throw Error('Portal bootstrap credentials are required for the first start');
   const login = credentials || { username: 'admin', password: crypto.randomBytes(18).toString('base64url') };
   const digest = await passwordHash(login.password);
   const created=await store.change(s => {
     if(s.authVersion===1)return false;
-    s.users = [{ id: id(), username: login.username, passwordHash: digest, role: 'staff', status: 'approved' }];
+    s.users = [{ id: id(), username: login.username, passwordHash: digest, role: 'staff', status: 'approved', ...(login.email ? {email: login.email} : {}) }];
     s.sessions = []; s.authVersion = 1; return true;
   });
   return created?login:null;

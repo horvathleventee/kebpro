@@ -7,7 +7,7 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "partner:preview": "node scripts/partner-preview.js",
-    "test:partner": "node --test tests/partner.test.js tests/drafts.test.js tests/operations.test.js tests/postgres.test.js",
+    "test:partner": "node --test tests/partner.test.js tests/drafts.test.js tests/operations.test.js tests/postgres.test.js tests/staging.test.js",
     "partner:monitor": "node scripts/partner-monitor.js",
     "partner:import-postgres": "node scripts/partner-import-postgres.js",
     "partner:https": "node scripts/partner-https.cjs",

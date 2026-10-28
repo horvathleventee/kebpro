@@ -61,6 +61,21 @@ app.set("trust proxy", 1);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+// Opt-in private staging: failures are confined to partner routes, not the website.
+let portalStaging = null, portalStagingReady = false;
+if (process.env.PORTAL_STAGING_ENABLED === 'true') {
+  try {
+    const { stagingConfig, createStaging } = require('./portal/staging');
+    portalStaging = createStaging(stagingConfig());
+    portalStaging.ready.then(() => { portalStagingReady = true; }).catch(() => console.error('[partner staging] Startup failed; check private configuration and database.'));
+  } catch { console.error('[partner staging] Invalid configuration; partner routes unavailable.'); }
+}
+app.use((req, res, next) => {
+  if (!/^\/partner(?:-admin)?(?:\/|$)/.test(req.path) || process.env.PORTAL_STAGING_ENABLED !== 'true') return next();
+  if (!portalStagingReady) return res.status(503).send('Partner tesztkörnyezet átmenetileg nem érhető el.');
+  return portalStaging.app.handle(req, res, next);
+});
+
 app.use((req, res, next) => {
   const host = String(req.headers["x-forwarded-host"] || req.headers.host || "")
     .split(",")[0]
