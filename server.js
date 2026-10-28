@@ -63,12 +63,14 @@ app.set("views", path.join(__dirname, "views"));
 
 // Opt-in private staging: failures are confined to partner routes, not the website.
 let portalStaging = null, portalStagingReady = false;
+let portalDiagnose = () => 'UNKNOWN';
 if (process.env.PORTAL_STAGING_ENABLED === 'true') {
   try {
-    const { stagingConfig, createStaging } = require('./portal/staging');
+    const { stagingConfig, createStaging, diagnoseStagingError } = require('./portal/staging');
+    portalDiagnose = diagnoseStagingError;
     portalStaging = createStaging(stagingConfig());
-    portalStaging.ready.then(() => { portalStagingReady = true; }).catch(() => console.error('[partner staging] Startup failed; check private configuration and database.'));
-  } catch { console.error('[partner staging] Invalid configuration; partner routes unavailable.'); }
+    portalStaging.ready.then(() => { portalStagingReady = true; }).catch(error => console.error('[partner staging] Startup failed: ' + diagnoseStagingError(error)));
+  } catch (error) { console.error('[partner staging] Invalid configuration: ' + portalDiagnose(error)); }
 }
 app.use((req, res, next) => {
   if (!/^\/partner(?:-admin)?(?:\/|$)/.test(req.path) || process.env.PORTAL_STAGING_ENABLED !== 'true') return next();

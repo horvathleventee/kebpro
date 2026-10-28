@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { stagingConfig } = require('../portal/staging');
+const { stagingConfig, diagnoseStagingError } = require('../portal/staging');
 const { createPortalApp } = require('../portal/app');
 const { createStore } = require('../portal/store');
 const { emptyState } = require('../portal/postgres/model');
@@ -24,6 +24,12 @@ test('staging is opt-in and refuses unsafe or shared configuration',()=>{
   assert.throws(()=>stagingConfig({...cfg,PORTAL_BOOTSTRAP_PASSWORD:'123456789'}));
   assert.equal(stagingConfig({...cfg,PORTAL_BOOTSTRAP_PASSWORD:'1234567890'}).adminCredentials.password,'1234567890');
   assert.equal(stagingConfig(cfg).adminCredentials.email,'staff@example.invalid');
+});
+
+test('diagnostics use fixed codes and never expose error text',()=>{
+  assert.equal(diagnoseStagingError({code:'28P01',message:'secret'}),'DB_AUTH');
+  assert.equal(diagnoseStagingError({code:'42501'}),'DB_PERMISSION');
+  assert.equal(diagnoseStagingError(new Error('secret connection string')),'UNKNOWN');
 });
 
 test('private HTTPS staging requires Basic auth, origin and secure session',async()=>{

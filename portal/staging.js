@@ -31,4 +31,23 @@ function createStaging(config, { createApp = require('./app').createPortalApp, m
   return createApp({...config, sendEmail: mailer.send});
 }
 
-module.exports = {stagingConfig, createStaging};
+// Keep diagnostics useful without logging a connection string, credentials or input.
+function diagnoseStagingError(error) {
+  const codes = { '28P01':'DB_AUTH', '28000':'DB_AUTH', '3D000':'DB_MISSING', '42501':'DB_PERMISSION', 'ECONNREFUSED':'DB_CONNECTION', 'ENOTFOUND':'DB_HOST', 'ETIMEDOUT':'DB_TIMEOUT', 'ERR_INVALID_URL':'INVALID_URL' };
+  if (codes[error?.code]) return codes[error.code];
+  const messages = {
+    'PORTAL_DATABASE_URL is required':'DATABASE_URL_MISSING',
+    'Invalid staging database URL':'DATABASE_URL_INVALID',
+    'The staging database must differ from the website database':'DATABASE_NOT_SEPARATE',
+    'PORTAL_PUBLIC_ORIGIN must be an HTTPS origin':'ORIGIN_INVALID',
+    'Staging access credentials are missing or invalid':'TEST_CREDENTIALS_INVALID',
+    'All bootstrap credentials are required, with a password of at least 10 characters':'BOOTSTRAP_INCOMPLETE',
+    'Portal bootstrap credentials are required for the first start':'BOOTSTRAP_MISSING',
+    'SMTP must be configured for staging':'SMTP_MISSING',
+    'A felhasználónév 3–100 karakter: betű, szám, pont, @, _, + vagy - lehet.':'BOOTSTRAP_USERNAME_INVALID',
+    'Adj meg egy érvényes e-mail-címet.':'BOOTSTRAP_EMAIL_INVALID',
+  };
+  return messages[error?.message] || 'UNKNOWN';
+}
+
+module.exports = {stagingConfig, createStaging, diagnoseStagingError};
