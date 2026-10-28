@@ -50,4 +50,25 @@ function diagnoseStagingError(error) {
   return messages[error?.message] || 'UNKNOWN';
 }
 
-module.exports = {stagingConfig, createStaging, diagnoseStagingError};
+function stagingErrorDetails(error) {
+  // Only standard error class names and short system / SQLSTATE codes are exposed.
+  // Never emit error messages, connection details, stack traces or arbitrary properties.
+  const knownNames = new Set(['Error','TypeError','RangeError','AggregateError','DatabaseError','InputError']);
+  const chain = [];
+  const seen = new Set();
+  const pending = [error];
+  while (pending.length && chain.length < 4) {
+    const item = pending.shift();
+    if (!item || typeof item !== 'object' || seen.has(item)) continue;
+    seen.add(item);
+    const name = knownNames.has(item.name) ? item.name : 'OtherError';
+    const raw = typeof item.code === 'string' ? item.code : '';
+    const code = /^(?:[0-9A-Z]{5}|E[A-Z]{2,24}|ERR_[A-Z_]{2,40})$/.test(raw) ? raw : null;
+    chain.push({name, ...(code ? {code} : {})});
+    if (item.cause) pending.push(item.cause);
+    if (Array.isArray(item.errors)) pending.push(...item.errors.slice(0,4));
+  }
+  return chain;
+}
+
+module.exports = {stagingConfig, createStaging, diagnoseStagingError, stagingErrorDetails};

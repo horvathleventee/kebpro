@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { stagingConfig, diagnoseStagingError } = require('../portal/staging');
+const { stagingConfig, diagnoseStagingError, stagingErrorDetails } = require('../portal/staging');
 const { createPortalApp } = require('../portal/app');
 const { createStore } = require('../portal/store');
 const { emptyState } = require('../portal/postgres/model');
@@ -30,6 +30,9 @@ test('diagnostics use fixed codes and never expose error text',()=>{
   assert.equal(diagnoseStagingError({code:'28P01',message:'secret'}),'DB_AUTH');
   assert.equal(diagnoseStagingError({code:'42501'}),'DB_PERMISSION');
   assert.equal(diagnoseStagingError(new Error('secret connection string')),'UNKNOWN');
+  const error=new Error('secret connection string');error.code='ECONNRESET';error.cause=Object.assign(new Error('password'),{code:'42501'});
+  assert.deepEqual(stagingErrorDetails(error),[{name:'Error',code:'ECONNRESET'},{name:'Error',code:'42501'}]);
+  assert.deepEqual(stagingErrorDetails({name:'secret',code:'secret connection string'}),[{name:'OtherError'}]);
 });
 
 test('private HTTPS staging requires Basic auth, origin and secure session',async()=>{
