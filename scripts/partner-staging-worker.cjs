@@ -1,13 +1,13 @@
 // Run as a single cPanel cron, never within a Passenger web process.
 const path=require('node:path');
 const {loadPortalConfig}=require('../portal/config');
-const {stagingConfig}=require('../portal/staging');
+const {stagingDatabaseConfig}=require('../portal/staging');
 const {createPostgresStore}=require('../portal/postgres/store');
 const {createWorker}=require('../portal/worker');
 
 async function main(){
  const env={...process.env,...loadPortalConfig()};
- const config=stagingConfig(env);
+ const config=stagingDatabaseConfig(env);
  if(!config)throw Error('Staging is not enabled');
  const backupDir=env.PORTAL_BACKUP_DIR;
  if(!backupDir||!path.isAbsolute(backupDir))throw Error('An absolute private backup directory is required');

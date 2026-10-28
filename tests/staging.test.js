@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { stagingConfig, diagnoseStagingError, stagingErrorDetails } = require('../portal/staging');
+const { stagingConfig, stagingDatabaseConfig, diagnoseStagingError, stagingErrorDetails } = require('../portal/staging');
 const { createPortalApp } = require('../portal/app');
 const { createStore } = require('../portal/store');
 const { emptyState } = require('../portal/postgres/model');
@@ -25,6 +25,7 @@ test('staging is opt-in and refuses unsafe or shared configuration',()=>{
   assert.throws(()=>stagingConfig({...cfg,PORTAL_BOOTSTRAP_PASSWORD:'123456789'}));
   assert.equal(stagingConfig({...cfg,PORTAL_BOOTSTRAP_PASSWORD:'1234567890'}).adminCredentials.password,'1234567890');
   assert.equal(stagingConfig(cfg).adminCredentials.email,'staff@example.invalid');
+  assert.equal(stagingDatabaseConfig({PORTAL_STAGING_ENABLED:'true',PORTAL_DATABASE_URL:cfg.PORTAL_DATABASE_URL,PORTAL_PUBLIC_ORIGIN:cfg.PORTAL_PUBLIC_ORIGIN}).publicOrigin,'https://example.invalid');
 });
 
 test('diagnostics use fixed codes and never expose error text',()=>{

@@ -7,6 +7,7 @@ const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const endpointKey = endpoint => crypto.createHash("sha256").update(endpoint).digest("hex");
 
 function eligible(state, message, now) {
+  if (message.category === 'staff-order') return Boolean(state.users?.some(u=>u.id===message.staffUserId&&u.role==='staff'&&u.status==='approved')) && now.getTime() - Date.parse(message.createdAt) < MAX_AGE_MS;
   const partner = state.partners.find(p => p.id === message.partnerId);
   if (state.users?.some(u=>u.partnerId===message.partnerId&&u.status==='disabled'))return false;
   if (!partner || now.getTime() - Date.parse(message.createdAt) >= MAX_AGE_MS) return false;
@@ -38,7 +39,7 @@ async function dispatchNotifications(store, { dryRun = true, subject, send = web
     const tasks = [];
     for (const message of state.outbox.filter(m => m.status === "pending")) {
       if (!eligible(state,message,clock)) { message.status = "cancelled"; continue; }
-      const subscriptions = state.subscriptions.filter(s => s.partnerId === message.partnerId &&
+      const subscriptions = state.subscriptions.filter(s => (message.category==='staff-order' ? s.staffUserId===message.staffUserId : s.partnerId === message.partnerId) &&
         Date.parse(s.createdAt) <= Date.parse(message.createdAt));
       if (!subscriptions.length) { message.status = "no_devices"; continue; }
       message.deliveries ||= {};
@@ -61,7 +62,7 @@ async function dispatchNotifications(store, { dryRun = true, subject, send = web
           const minutes = value => Number(value.slice(0,2))*60+Number(value.slice(3,5));
           ttl = Math.min(ttl,Math.max(1,(minutes(route.cutoff)-minutes(localTime(clock).time))*60-clock.getUTCSeconds()));
         }
-        tasks.push({ id:message.id, key, partnerId:message.partnerId, subscription,
+        tasks.push({ id:message.id, key, partnerId:message.partnerId, staffUserId:message.staffUserId, subscription,
           attempt:delivery.attempts, vapid:state.vapid,
           payload:JSON.stringify({id:message.id,title:message.title,body:message.body,url:message.url}),
           ttl });
@@ -77,7 +78,7 @@ async function dispatchNotifications(store, { dryRun = true, subject, send = web
     const message = current.outbox.find(m => m.id === task.id);
     let outcome = "sent", code, retryAfter = 0;
     if (!message || !eligible(current,message,now()) ||
-      !current.subscriptions.some(s => s.partnerId === task.partnerId && s.endpoint === task.subscription.endpoint)) outcome = "cancelled";
+      !current.subscriptions.some(s => (message.category==='staff-order' ? s.staffUserId===task.staffUserId : s.partnerId === task.partnerId) && s.endpoint === task.subscription.endpoint)) outcome = "cancelled";
     else {
       try {
         await send({endpoint:task.subscription.endpoint,keys:task.subscription.keys},task.payload,{

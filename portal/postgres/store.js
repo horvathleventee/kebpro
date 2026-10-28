@@ -19,7 +19,7 @@ function createPostgresStore({connectionString,pool:providedPool,initialState=em
  async function readState(client,omitOrders=false){
   const meta=await client.query('SELECT key,body FROM kebpro_portal.metadata');
   const state=Object.fromEntries(meta.rows.filter(r=>r.key!=='_initialized').map(r=>[r.key,r.body]));
-  for(const [name,table]of Object.entries(collections)){if(omitOrders&&name==='responses'){state.responses=[];continue;}const result=await client.query(`SELECT body FROM kebpro_portal.${table} ORDER BY position,id`);state[name]=result.rows.map(r=>r.body);}
+  for(const [name,table]of Object.entries(collections)){if(omitOrders&&(name==='responses'||name==='complaintPhotos')){state[name]=[];continue;}const result=await client.query(`SELECT body FROM kebpro_portal.${table} ORDER BY position,id`);state[name]=result.rows.map(r=>r.body);}
   return state;
  }
  async function save(client,before,after){
@@ -41,6 +41,7 @@ function createPostgresStore({connectionString,pool:providedPool,initialState=em
   read:async()=>{await ready;return transaction(readState);},
   lookupSession:async(hash,role,now)=>{await ready;const result=await pool.query("SELECT s.body FROM kebpro_portal.sessions s JOIN kebpro_portal.users u ON u.id=s.body->>'userId' WHERE s.id=$1 AND s.body->>'role'=$2 AND (s.body->>'expires')::bigint>$3 AND u.body->>'status'='approved'",[hash,role,now]);return result.rows[0]?.body;},
   lookupUser:async id=>{await ready;const result=await pool.query('SELECT body FROM kebpro_portal.users WHERE id=$1',[id]);return result.rows[0]?.body;},
+  lookupComplaintPhoto:async id=>{await ready;const result=await pool.query('SELECT body FROM kebpro_portal.complaint_photos WHERE id=$1',[id]);return result.rows[0]?.body;},
   readPartner:async (partnerId,listing,now=new Date())=>{await ready;return transaction(async client=>{
     const state={};
     for(const [name,table]of Object.entries({routes:'routes',products:'products',news:'news'})){const rows=await client.query(`SELECT body FROM kebpro_portal.${table} ORDER BY position,id`);state[name]=rows.rows.map(r=>r.body);}

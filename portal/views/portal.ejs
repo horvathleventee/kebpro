@@ -53,7 +53,7 @@
   </aside>
   <div class="app-shell">
     <header class="topbar"><span id="identity"><%= role === 'staff' ? 'Kebpro munkatárs' : 'Partner betöltése…' %></span><div class="top-actions"><button class="button text-button" data-install-help>Telepítési segítség</button><button class="button text-button" id="install-app" hidden>Telepítés</button><button class="button text-button" id="logout">Kijelentkezés</button></div></header>
-    <div class="demo-banner"><strong>Helyi bemutató</strong><span>Mintapartnerek · nincs éles rendelés vagy push-küldés</span></div>
+    <div class="demo-banner"><strong><%= portalStaging ? 'Tesztkörnyezet' : 'Helyi bemutató' %></strong><span><%= portalStaging ? 'Csak tesztadatokat használj.' : 'Mintapartnerek · nem éles rendelések' %></span></div>
     <p id="sync-status" class="sync-status" role="status">Kapcsolódás…</p><main id="content" tabindex="-1"><p class="loading">Adatok betöltése…</p></main>
     <% if (role === 'partner') { %><div class="legal-links"><a href="/partner/legal/terms/<%= terms.version %>" target="_blank" rel="noopener">Használati feltételek tervezete</a><a href="/partner/legal/privacy/<%= privacy.version %>" target="_blank" rel="noopener">Adatkezelési tájékoztató tervezete</a></div><% } %>
     <p class="app-footer">Halasi Kebpro Kft. · Az időpontok magyarországi idő szerint értendők.</p>

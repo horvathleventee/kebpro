@@ -3,8 +3,8 @@ async function migrate(client){
  await client.query('CREATE SCHEMA IF NOT EXISTS kebpro_portal');
  await client.query('CREATE TABLE IF NOT EXISTS kebpro_portal.schema_version (version integer PRIMARY KEY, installed_at timestamptz NOT NULL DEFAULT now())');
  const v=await client.query('SELECT max(version) AS version FROM kebpro_portal.schema_version');
- if(Number(v.rows[0].version||0)>2)throw Error('Portal schema is newer than this application');
- if(Number(v.rows[0].version||0)===2)return;
+ if(Number(v.rows[0].version||0)>3)throw Error('Portal schema is newer than this application');
+ if(Number(v.rows[0].version||0)===3)return;
  if(Number(v.rows[0].version||0)<1){
  await client.query("CREATE TABLE kebpro_portal.metadata (key text PRIMARY KEY, body jsonb NOT NULL)");
  for(const table of Object.values(collections))await client.query(`CREATE TABLE kebpro_portal.${table} (id text PRIMARY KEY, position integer NOT NULL, body jsonb NOT NULL CHECK(jsonb_typeof(body)='object'))`);
@@ -18,10 +18,14 @@ async function migrate(client){
  await client.query("CREATE INDEX audit_at ON kebpro_portal.audit_events ((body->>'at'))");
  await client.query('INSERT INTO kebpro_portal.schema_version(version) VALUES(1)');
  }
+ if(Number(v.rows[0].version||0)<2){
  await client.query("CREATE INDEX order_created_page_idx ON kebpro_portal.orders ((body->>'createdAt') DESC,id DESC)");
  await client.query("CREATE INDEX order_partner_created_page_idx ON kebpro_portal.orders ((body->>'partnerId'),(body->>'createdAt') DESC,id DESC)");
  await client.query("CREATE INDEX order_archive_page_idx ON kebpro_portal.orders ((body->>'archivedAt') DESC,id DESC)");
  await client.query('INSERT INTO kebpro_portal.schema_version(version) VALUES(2)');
+ }
+ await client.query("CREATE TABLE IF NOT EXISTS kebpro_portal.complaint_photos (id text PRIMARY KEY, position integer NOT NULL, body jsonb NOT NULL CHECK(jsonb_typeof(body)='object'))");
+ await client.query('INSERT INTO kebpro_portal.schema_version(version) VALUES(3)');
 }
 module.exports={migrate};
 

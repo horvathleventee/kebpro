@@ -34,7 +34,7 @@ Hibás vagy nem elérhető partner-konfiguráció esetén a partnerútvonal 503-
 
 ## Háttérfolyamat
 
-Passenger esetén a webalkalmazás folyamata nem megbízható időzítő. A `scripts/partner-staging-worker.cjs` egyszer fut és leáll; percenkénti cPanel cronként csak a szolgáltató által támogatott, ellenőrzött beállítással használható. A cron nem feltétlenül örökli a Node alkalmazás változóit: a szükséges privát változókat külön `.env.portal.local` fájlból is olvassa. A fájl csak az adott felhasználó számára legyen olvasható, ne legyen nyilvános, és ne kerüljön Gitbe. A pontos Node végrehajtható útvonalat a cPanel virtuális környezetében kell ellenőrizni. Egyetlen cron feladatot állíts be.
+Passenger esetén a webalkalmazás folyamata nem megbízható időzítő. A `scripts/partner-staging-worker.cjs` egyszer fut és leáll; percenkénti cPanel cronként csak a szolgáltató által támogatott, ellenőrzött beállítással használható. A cron nem feltétlenül örökli a Node alkalmazás változóit: a szükséges privát változókat külön `.env.portal.local` fájlból is olvassa. A fájl csak az adott felhasználó számára legyen olvasható, ne legyen nyilvános, és ne kerüljön Gitbe. Az időzítőhöz nem kell a tesztkapu vagy a bootstrap admin jelszava. A pontos Node végrehajtható útvonalat a cPanel virtuális környezetében kell ellenőrizni. Egyetlen cron feladatot állíts be.
 
 `PORTAL_BACKUP_DIR` abszolút, a projektmappán és a nyilvános webmappán kívüli, privát könyvtár. A lokális alkalmazásmentés alapból 14 példányt tart meg; **nem helyettesíti a külön tárhelyen tárolt PostgreSQL-mentést és visszaállítási próbát**. A worker a megőrzési szabály szerint törölhet archivált tesztrendeléseket; a valós adatokra vonatkozó megőrzést még jóvá kell hagyni.
 

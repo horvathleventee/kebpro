@@ -72,6 +72,13 @@ function queueMessage(state, partnerId, key, title, body, url, category) {
     createdAt: new Date().toISOString(), status: state.pushMode === "live" ? "pending" : "simulation", attempts: 0 });
   return true;
 }
+function queueStaffOrder(state,response){
+ for(const user of (state.users||[]).filter(u=>u.role==='staff'&&u.status==='approved')){
+  const key='staff-order:'+response.id;
+  if(state.outbox.some(n=>n.key===key&&n.staffUserId===user.id))continue;
+  state.outbox.push({id:id(),staffUserId:user.id,key,title:'Új rendelés érkezett',body:'Új partneri rendelés vár feldolgozásra.',url:'/partner-admin/#dashboard',category:'staff-order',createdAt:new Date().toISOString(),status:state.pushMode==='live'?'pending':'simulation',attempts:0});
+ }
+}
 function validateItems(state,items){
  const input={items};
     assert(Array.isArray(input.items) && input.items.length > 0 && input.items.length <= 50, "Válassz legalább egy terméket (legfeljebb 50 tétel).");
@@ -121,15 +128,18 @@ function submitResponse(state, partnerId, input, now = new Date()) {
   if(existing){
     existing.changes ||= [];existing.changes.push({revision:existing.revision||1,items:existing.items,total:existing.total??null,note:existing.note,kind:existing.kind,status:existing.status,archivedAt:existing.archivedAt||null,changedAt:now.toISOString()});
     existing.changeIds ||= [existing.requestId];existing.changeIds.push(input.requestId);
+    const wasSkip=existing.kind==='skip';
     Object.assign(existing,{items,total,note:(input.note||'').trim(),kind:input.kind,revision:(existing.revision||1)+1,modifiedAt:now.toISOString(),status:input.kind==='skip'?'skip':'received'});
     delete existing.archivedAt;delete existing.archivedBy;existing.statusUpdatedAt=now.toISOString();
     queueMessage(state,partnerId,'modified:'+existing.id+':'+existing.revision,'Rendelésed módosult',delivery.date+' · A módosítást rögzítettük.','/partner/#history','order');
+    if(wasSkip&&input.kind==='order')queueStaffOrder(state,existing);
     return existing;
   }
   const response = { revision:1,id: id(), requestId: input.requestId, partnerId, partnerName: partner.name,
     address: partner.address, routeId: delivery.routeId, date: delivery.date, kind: input.kind, items, total,
     note: (input.note || "").trim(), status: input.kind === "skip" ? "skip" : "received", createdAt: now.toISOString() };
   state.responses.push(response);
+  if(input.kind==='order')queueStaffOrder(state,response);
   queueMessage(state, partnerId, "response:" + response.id, input.kind === "order" ? "Rendelésed beérkezett" : "Válaszod rögzítve",
     delivery.date + " · " + (input.kind === "order" ? "A Kebpro munkatársai feldolgozzák a rendelésedet." : "Most nem kérsz szállítást."),
     "/partner/#history", "order");
@@ -141,7 +151,15 @@ function submitComplaint(state,partnerId,input,now=new Date()){
  const existing=(partner.complaints||[]).find(c=>c.requestId===input.requestId);if(existing)return existing;
  const order=state.responses.find(r=>r.id===input.orderId&&r.partnerId===partnerId&&r.kind==='order');assert(order,'A rendelés nem található.',404);
  const message=text(input.message,2000,'A probléma leírása');
+ let photoId;
+ if(input.photo!==undefined&&input.photo!==null&&input.photo!==''){
+  assert(typeof input.photo==='string'&&input.photo.length<=410000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(input.photo),'A kép formátuma vagy mérete érvénytelen.');
+  const bytes=Buffer.from(input.photo.slice('data:image/jpeg;base64,'.length),'base64');
+  assert(bytes.length<=300000&&bytes.length>=4&&bytes[0]===0xff&&bytes[1]===0xd8&&bytes[bytes.length-2]===0xff&&bytes[bytes.length-1]===0xd9,'Csak tömörített JPEG kép tölthető fel (legfeljebb 300 KB).');
+  photoId=id();(state.complaintPhotos||=[]).push({id:photoId,partnerId,data:bytes.toString('base64'),createdAt:now.toISOString()});
+ }
  const complaint={id:id(),requestId:input.requestId,orderId:order.id,orderDate:order.date,partnerId,partnerName:partner.name,message,status:'open',revision:1,createdAt:now.toISOString(),reply:null};
+ if(photoId)complaint.photoId=photoId;
  (partner.complaints||=[]).push(complaint);return complaint;
 }
 function updateComplaint(state,input,actorId,now=new Date()){

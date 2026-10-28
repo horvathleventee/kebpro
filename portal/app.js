@@ -55,10 +55,13 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
       next();
     });
   }
-  app.use(express.json({ limit: "30kb" }));
+  const jsonDefault = express.json({ limit: "30kb" });
+  const jsonPhoto = express.json({ limit: "430kb" });
+  app.use((req,res,next)=>(req.path==='/partner/api/complaints' ? jsonPhoto : jsonDefault)(req,res,next));
   app.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Robots-Tag", "noindex, nofollow");
+    res.locals.portalStaging = Boolean(staging);
     next();
   });
   app.get('/partner/health',async(req,res)=>{
@@ -164,7 +167,7 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     await store.change(state => {
       state.sessions = state.sessions.filter(s => s.hash !== req.portalSession.hash);
       if (typeof req.body.endpoint === "string") {
-        state.subscriptions = state.subscriptions.filter(s => !(s.partnerId === req.portalSession.partnerId && s.endpoint === req.body.endpoint));
+        state.subscriptions = state.subscriptions.filter(s => !(s.endpoint === req.body.endpoint && (req.portalSession.role==='staff' ? s.staffUserId===req.portalSession.userId : s.partnerId===req.portalSession.partnerId)));
       }
     });
     res.clearCookie(req.cookieName, { path: req.base, httpOnly: true, secure:req.secure, sameSite: "strict" });
@@ -195,6 +198,11 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
   app.post('/partner/api/complaints',requireSession,partner,rateLimit({windowMs:3600000,limit:20}),async(req,res)=>{
     const complaint=await store.change(s=>domain.submitComplaint(s,req.portalSession.partnerId,req.body,now()));res.json({complaint});
   });
+  app.get(['/partner/api/complaint-photo/:id','/partner-admin/api/complaint-photo/:id'],requireSession,async(req,res)=>{
+    const photo = store.lookupComplaintPhoto ? await store.lookupComplaintPhoto(req.params.id) : (await store.read()).complaintPhotos?.find(p=>p.id===req.params.id);
+    if(!photo || (req.portalSession.role==='partner' && photo.partnerId!==req.portalSession.partnerId) || !['partner','staff'].includes(req.portalSession.role))return res.sendStatus(404);
+    res.set('Cache-Control','private, no-store');res.type('image/jpeg').send(Buffer.from(photo.data,'base64'));
+  });
   app.post("/partner/api/favorites",requireSession,partner,async(req,res)=>{
     await store.change(s=>{domain.assert(s.products.some(p=>p.id===req.body.productId&&p.active)&&typeof req.body.favorite==='boolean','Érvénytelen kedvenc.');const p=s.partners.find(p=>p.id===req.portalSession.partnerId);p.favoriteProductIds=(p.favoriteProductIds||[]).filter(id=>id!==req.body.productId);if(req.body.favorite)p.favoriteProductIds.push(req.body.productId);});res.json({ok:true});
   });
@@ -214,6 +222,10 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     await store.change(state => {
       state.subscriptions = state.subscriptions.filter(s => s.endpoint !== subscription.endpoint);
       state.subscriptions.push({ ...subscription, partnerId: req.portalSession.partnerId, createdAt: new Date().toISOString() });
+      if (req.body.enableNews === true) {
+        const person = state.partners.find(p => p.id === req.portalSession.partnerId);
+        if (person) person.preferences = { ...person.preferences, news: true };
+      }
     });
     res.json({ ok: true, mode: (await store.read()).pushMode || 'simulation' });
   });
@@ -223,13 +235,21 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     });
     res.json({ ok: true });
   });
+  app.post('/partner-admin/api/subscription',requireSession,staff,async(req,res)=>{
+    const subscription=domain.validateSubscription(req.body);
+    await store.change(state=>{state.subscriptions=state.subscriptions.filter(s=>s.endpoint!==subscription.endpoint);state.subscriptions.push({...subscription,staffUserId:req.portalSession.userId,createdAt:new Date().toISOString()});});
+    res.json({ok:true,mode:(await store.read()).pushMode||'simulation'});
+  });
+  app.delete('/partner-admin/api/subscription',requireSession,staff,async(req,res)=>{
+    await store.change(state=>{state.subscriptions=state.subscriptions.filter(s=>!(s.staffUserId===req.portalSession.userId&&s.endpoint===req.body.endpoint));});res.json({ok:true});
+  });
   app.get("/partner-admin/api/admin", requireSession, staff, async (req,res) => {
     const date = req.query.date || domain.addDays(domain.localTime(now()).date, 1);
     const listing=require('./listing').options(req.query),tomorrow=domain.addDays(domain.localTime(now()).date,1);
     const state = store.readAdmin?await store.readAdmin(date,tomorrow,listing):await store.read();
     const tomorrowView=domain.adminView(state,tomorrow,''),active=p=>!state.users.some(u=>u.partnerId===p.id&&u.status==='disabled');
     const todo={date:tomorrow,missing:tomorrowView.partners.filter(p=>active(p)&&!p.response).length,pending:state.users.filter(u=>u.role==='partner'&&u.status==='pending').length};
-    res.json({ retention:state.retention||{months:3},todo,date, currentUserId:req.portalSession.userId, accounts:state.users.filter(u=>['approved','disabled'].includes(u.status)).map(u=>({id:u.id,username:u.username,company:u.company,role:u.role,status:u.status})), auditLog:(state.auditLog||[]).slice(-100).reverse(), operations:state.operations||{}, applications:auth.applications(state), ...invitations.list(state), ...domain.adminView(state, date, req.query.route || "",listing) });
+    res.json({ retention:state.retention||{months:3},todo,date, currentUserId:req.portalSession.userId,publicKey:state.vapid.publicKey,pushMode:state.pushMode||'simulation', accounts:state.users.filter(u=>['approved','disabled'].includes(u.status)).map(u=>({id:u.id,username:u.username,company:u.company,role:u.role,status:u.status})), auditLog:(state.auditLog||[]).slice(-100).reverse(), operations:state.operations||{}, applications:auth.applications(state), ...invitations.list(state), ...domain.adminView(state, date, req.query.route || "",listing) });
   });
   app.post('/partner-admin/api/products',requireSession,staff,async(req,res)=>{
     await store.change(s=>{const p=s.products.find(p=>p.id===req.body.id);domain.assert(p&&typeof req.body.active==='boolean','Érvénytelen termék.');p.active=req.body.active;});res.json({ok:true});

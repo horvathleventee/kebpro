@@ -1,7 +1,7 @@
 // Explicitly enabled, password-protected staging. Never reuse the website database.
 const auth = require('./auth');
 
-function stagingConfig(env = process.env) {
+function stagingDatabaseConfig(env = process.env) {
   if (env.PORTAL_STAGING_ENABLED !== 'true') return null;
   if (!env.PORTAL_DATABASE_URL) throw Error('PORTAL_DATABASE_URL is required');
   const database = new URL(env.PORTAL_DATABASE_URL);
@@ -13,6 +13,11 @@ function stagingConfig(env = process.env) {
   }
   const origin = new URL(env.PORTAL_PUBLIC_ORIGIN || '');
   if (origin.protocol !== 'https:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) throw Error('PORTAL_PUBLIC_ORIGIN must be an HTTPS origin');
+  return {databaseUrl: env.PORTAL_DATABASE_URL, publicOrigin: origin.origin};
+}
+function stagingConfig(env = process.env) {
+  const databaseConfig = stagingDatabaseConfig(env);
+  if (!databaseConfig) return null;
   const username = env.PORTAL_TEST_USER || '';
   const password = env.PORTAL_TEST_PASSWORD || '';
   if (!/^[a-zA-Z0-9._-]{4,64}$/.test(username) || password.length < 8 || password.length > 128 || password.includes(':')) throw Error('Staging access credentials are missing or invalid');
@@ -22,7 +27,7 @@ function stagingConfig(env = process.env) {
     if (!supplied.every(Boolean) || supplied[1].length < 10) throw Error('All bootstrap credentials are required, with a password of at least 10 characters');
     adminCredentials = {username: auth.username(supplied[0]), password: supplied[1], email: auth.emailAddress(supplied[2])};
   }
-  return { databaseUrl: env.PORTAL_DATABASE_URL, publicOrigin: origin.origin, staging: {username, password}, adminCredentials, monitorToken: env.PORTAL_MONITOR_TOKEN };
+  return { ...databaseConfig, staging: {username, password}, adminCredentials, monitorToken: env.PORTAL_MONITOR_TOKEN };
 }
 
 function createStaging(config, { createApp = require('./app').createPortalApp, mailer = require('./mailer').createPortalMailer() } = {}) {
@@ -71,4 +76,4 @@ function stagingErrorDetails(error) {
   return chain;
 }
 
-module.exports = {stagingConfig, createStaging, diagnoseStagingError, stagingErrorDetails};
+module.exports = {stagingConfig, stagingDatabaseConfig, createStaging, diagnoseStagingError, stagingErrorDetails};

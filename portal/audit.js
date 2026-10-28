@@ -35,6 +35,7 @@ function setAccountStatus(state,input,actorId){
   state.sessions=state.sessions.filter(s=>s.userId!==user.id);
   state.passwordResets=(state.passwordResets||[]).filter(s=>s.userId!==user.id);
   for(const invite of state.staffInvitations||[])if(invite.invitedBy===user.id&&['pending','sending'].includes(invite.status)){invite.status='revoked';delete invite.hash;}
+  if(user.role==='staff'){state.subscriptions=state.subscriptions.filter(s=>s.staffUserId!==user.id);for(const message of state.outbox)if(message.staffUserId===user.id&&message.status==='pending')message.status='cancelled';}
   if(user.partnerId){state.subscriptions=state.subscriptions.filter(s=>s.partnerId!==user.partnerId);for(const message of state.outbox)if(message.partnerId===user.partnerId&&message.status==='pending')message.status='cancelled';}
  }
 }
