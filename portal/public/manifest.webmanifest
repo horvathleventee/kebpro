@@ -1,0 +1,31 @@
+{
+  "id": "/partner/",
+  "name": "Kebpro Partner",
+  "short_name": "Kebpro Partner",
+  "lang": "hu",
+  "start_url": "/partner/",
+  "scope": "/partner/",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#10243f",
+  "icons": [
+    {
+      "src": "/partner/assets/partner-v2-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/partner/assets/partner-v2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/partner/assets/partner-v2-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

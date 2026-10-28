@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#10243f"><meta name="csrf-token" content="<%= csrf %>">
+  <title>Kebpro · <%= role === 'staff' ? 'Céges kezelőfelület' : 'Partnerfelület' %></title>
+  <link rel="apple-touch-icon" href="/partner/assets/<%= role === 'staff' ? 'admin' : 'partner' %>-v2-180.png"><link rel="manifest" href="<%= role === 'staff' ? '/partner-admin' : '/partner' %>/manifest.webmanifest"><link rel="icon" type="image/png" href="/partner/assets/<%= role === 'staff' ? 'admin' : 'partner' %>-v2-192.png">
+  <link rel="stylesheet" href="/partner/assets/portal.css"><script src="/partner/assets/drafts.js" defer></script><script src="/partner/assets/portal.js" defer></script><script src="/partner/assets/install.js" defer></script>
+</head>
+<body data-role="<%= role %>">
+  <aside class="sidebar">
+    <a class="brand" href="<%= role === 'staff' ? '/partner-admin/' : '/partner/' %>"><img src="/partner/logo.png" alt="Kebpro" width="130" height="60"></a>
+    <span class="sidebar-label"><%= role === 'staff' ? 'CÉGES KEZELŐFELÜLET' : 'PARTNERFELÜLET' %></span>
+    <nav class="<%= role === 'staff' ? 'staff-desktop-nav' : 'partner-nav' %>" aria-label="Főmenü">
+    <% if (role === 'staff') { %>
+      <a href="#dashboard" data-nav="dashboard"><span aria-hidden="true">▦</span> Túrák és rendelések</a>
+      <a href="#packing" data-nav="packing"><span aria-hidden="true">☷</span> Összekészítés</a>
+      <a href="#complaints" data-nav="complaints"><span aria-hidden="true">✉</span> Bejelentések</a>
+      <a href="#products" data-nav="products"><span aria-hidden="true">▤</span> Termékek</a>
+      <a href="#calls" data-nav="calls"><span aria-hidden="true">☎</span> Kit hívjunk?</a>
+      <a href="#news" data-nav="news"><span aria-hidden="true">▤</span> Hírek és akciók</a>
+      <a href="#settings" data-nav="settings"><span aria-hidden="true">⚙</span> Túrák és partnerek</a>
+      <a href="#applications" data-nav="applications"><span aria-hidden="true">✓</span> Regisztrációk</a>
+      <a href="#notifications" data-nav="notifications"><span aria-hidden="true">◉</span> Értesítési napló</a>
+    <% } else { %>
+      <a href="#home" data-nav="home"><span aria-hidden="true">▦</span> Áttekintés</a>
+      <a href="#order" data-nav="order"><span aria-hidden="true">＋</span> Új rendelés</a>
+      <a href="#news" data-nav="news"><span aria-hidden="true">▤</span> Hírek</a>
+      <a href="#history" data-nav="history"><span aria-hidden="true">↺</span> Rendeléseim</a>
+      <a href="#reports" data-nav="reports"><span aria-hidden="true">✉</span> Bejelentéseim</a>
+      <a href="#settings" data-nav="settings"><span aria-hidden="true">⚙</span> Beállítások</a>
+    <% } %>
+    </nav>
+    <% if (role === 'staff') { %>
+    <nav class="staff-mobile-nav" aria-label="Mobil főmenü">
+      <a href="#dashboard" data-nav="dashboard"><span aria-hidden="true">▦</span>Rendelések</a>
+      <a href="#packing" data-nav="packing"><span aria-hidden="true">☷</span>Összekészítés</a>
+      <a href="#calls" data-nav="calls"><span aria-hidden="true">☎</span>Kit hívjunk?</a>
+      <details id="mobile-more">
+        <summary aria-label="További menüpontok"><span aria-hidden="true">•••</span><span>Továbbiak</span><span id="mobile-more-count" class="mobile-count" hidden></span></summary>
+        <div class="mobile-more-panel" aria-label="További menüpontok">
+          <a href="#complaints" data-nav="complaints"><span aria-hidden="true">✉</span> Bejelentések <span id="mobile-complaints-count" class="mobile-item-count" hidden></span></a>
+          <a href="#products" data-nav="products"><span aria-hidden="true">▤</span> Termékek és árak</a>
+          <a href="#news" data-nav="news"><span aria-hidden="true">▤</span> Hírek és akciók</a>
+          <a href="#settings" data-nav="settings"><span aria-hidden="true">⚙</span> Túrák és partnerek</a>
+          <a href="#applications" data-nav="applications"><span aria-hidden="true">✓</span> Regisztrációk <span id="mobile-applications-count" class="mobile-item-count" hidden></span></a>
+          <a href="#notifications" data-nav="notifications"><span aria-hidden="true">◉</span> Értesítési napló</a>
+        </div>
+      </details>
+    </nav>
+    <% } %>
+    <div class="sidebar-footer"><span class="live-dot"></span> Halasi Kebpro Kft.<br><small>Partneri kapcsolatok, egyszerűbben.</small></div>
+  </aside>
+  <div class="app-shell">
+    <header class="topbar"><span id="identity"><%= role === 'staff' ? 'Kebpro munkatárs' : 'Partner betöltése…' %></span><div class="top-actions"><button class="button text-button" data-install-help>Telepítési segítség</button><button class="button text-button" id="install-app" hidden>Telepítés</button><button class="button text-button" id="logout">Kijelentkezés</button></div></header>
+    <div class="demo-banner"><strong>Helyi bemutató</strong><span>Mintapartnerek · nincs éles rendelés vagy push-küldés</span></div>
+    <p id="sync-status" class="sync-status" role="status">Kapcsolódás…</p><main id="content" tabindex="-1"><p class="loading">Adatok betöltése…</p></main>
+    <% if (role === 'partner') { %><div class="legal-links"><a href="/partner/legal/terms/<%= terms.version %>" target="_blank" rel="noopener">Használati feltételek tervezete</a><a href="/partner/legal/privacy/<%= privacy.version %>" target="_blank" rel="noopener">Adatkezelési tájékoztató tervezete</a></div><% } %>
+    <p class="app-footer">Halasi Kebpro Kft. · Az időpontok magyarországi idő szerint értendők.</p>
+  </div>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title"></h2><div id="confirm-content"></div><div class="dialog-actions"><button class="button secondary" id="cancel-confirm">Vissza</button><button class="button primary" id="submit-confirm">Véglegesítés</button></div><p id="confirm-error" role="alert"></p></dialog>
+</body></html>

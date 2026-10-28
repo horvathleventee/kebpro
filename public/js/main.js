@@ -118,6 +118,7 @@ if (deleteForms.length > 0) {
 if (menuToggle && mainNav) {
   menuToggle.addEventListener("click", () => {
     mainNav.classList.toggle("open");
+    menuToggle.setAttribute("aria-expanded", String(mainNav.classList.contains("open")));
   });
 }
 
@@ -147,6 +148,7 @@ document.addEventListener("click", (event) => {
 
   if (!insideMenuButton && !insideNav && mainNav && window.matchMedia("(max-width: 1100px)").matches) {
     mainNav.classList.remove("open");
+    menuToggle?.setAttribute("aria-expanded", "false");
   }
 });
 
@@ -197,9 +199,11 @@ const regionOverlays = {
 
 if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
   const findRegionChip = (regionKey) => document.querySelector(`.region-chip[data-region-key="${regionKey}"]`);
+  let selectedRegion = null;
 
   const updateRegionPanel = (chip) => {
-    if (!chip) return;
+    if (!chip || chip === selectedRegion) return;
+    selectedRegion = chip;
     regionChips.forEach((item) => item.classList.remove("active"));
     chip.classList.add("active");
     logisticsPanelTitle.textContent = chip.dataset.regionTitle || "";
@@ -230,14 +234,14 @@ if (regionChips.length > 0 && logisticsPanelTitle && logisticsPanelText) {
   };
 
   regionChips.forEach((chip) => {
-    ["mouseenter", "pointerenter", "focus", "click"].forEach((eventName) => {
+    ["pointerenter", "focus", "click"].forEach((eventName) => {
       chip.addEventListener(eventName, () => updateRegionPanel(chip));
     });
   });
 
   Object.values(mapNodes).forEach((node) => {
     if (!node) return;
-    ["mouseenter", "pointerenter", "focus", "click"].forEach((eventName) => {
+    ["pointerenter", "focus", "click"].forEach((eventName) => {
       node.addEventListener(eventName, () => updateRegionPanel(findRegionChip(node.dataset.regionKey)));
     });
   });
@@ -278,12 +282,19 @@ if (countUpElements.length > 0) {
 /* Scroll progress bar */
 const scrollBar = document.querySelector(".scroll-progress");
 if (scrollBar) {
+  let progressFrame = null;
   const updateProgress = () => {
     const scrollTop = window.scrollY;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    scrollBar.style.width = docHeight > 0 ? (scrollTop / docHeight) * 100 + "%" : "0%";
+    const progress = docHeight > 0 ? Math.min(1, Math.max(0, scrollTop / docHeight)) : 0;
+    scrollBar.style.transform = `scaleX(${progress})`;
+    progressFrame = null;
   };
-  window.addEventListener("scroll", updateProgress, { passive: true });
+  const scheduleProgress = () => {
+    if (progressFrame === null) progressFrame = requestAnimationFrame(updateProgress);
+  };
+  window.addEventListener("scroll", scheduleProgress, { passive: true });
+  window.addEventListener("resize", scheduleProgress, { passive: true });
   updateProgress();
 }
 
@@ -317,11 +328,19 @@ if (zipInput && zipResult && zipLabels) {
   };
   const resultText = zipLabels.dataset.zipResult;
   const notFoundText = zipLabels.dataset.zipNotFound;
+  const scheduleText = zipLabels.dataset.zipSchedule;
+
+  const showZipRegion = (chip) => {
+    if (!chip) return;
+    chip.click();
+    zipResult.textContent = `${resultText} ${chip.dataset.regionTitle}${chip.dataset.regionSchedule ? ` · ${scheduleText}: ${chip.dataset.regionSchedule}` : ""}`;
+    zipResult.className = "zip-result";
+  };
 
   zipInput.addEventListener("input", () => {
     const val = zipInput.value.replace(/\D/g, "");
     zipInput.value = val;
-    if (val.length < 2) {
+    if (val.length < 4) {
       zipResult.textContent = "";
       zipResult.className = "zip-result";
       return;
@@ -329,9 +348,7 @@ if (zipInput && zipResult && zipLabels) {
     if (val === "6000") {
       const chip = document.querySelector('.region-chip[data-region-key="centralHungary"]');
       if (chip) {
-        chip.click();
-        zipResult.textContent = resultText + " " + chip.dataset.regionTitle;
-        zipResult.className = "zip-result";
+        showZipRegion(chip);
         return;
       }
     }
@@ -340,9 +357,7 @@ if (zipInput && zipResult && zipLabels) {
     if (regionKey) {
       const chip = document.querySelector(`.region-chip[data-region-key="${regionKey}"]`);
       if (chip) {
-        chip.click();
-        zipResult.textContent = resultText + " " + chip.dataset.regionTitle;
-        zipResult.className = "zip-result";
+        showZipRegion(chip);
       }
     } else {
       zipResult.textContent = notFoundText;
@@ -359,10 +374,12 @@ const callbackForm = document.getElementById("callbackForm");
 if (callbackToggle && callbackWidget) {
   callbackToggle.addEventListener("click", () => {
     callbackWidget.classList.toggle("open");
+    callbackToggle.setAttribute("aria-expanded", String(callbackWidget.classList.contains("open")));
   });
   document.addEventListener("click", (e) => {
     if (!e.target.closest("#callbackWidget")) {
       callbackWidget.classList.remove("open");
+      callbackToggle.setAttribute("aria-expanded", "false");
     }
   });
 }
@@ -377,6 +394,7 @@ if (callbackForm) {
         callbackWidget.classList.add("sent");
         setTimeout(() => {
           callbackWidget.classList.remove("open", "sent");
+          callbackToggle.setAttribute("aria-expanded", "false");
           callbackForm.reset();
         }, 3000);
       }
@@ -427,6 +445,11 @@ document.querySelectorAll("[data-success-toast]").forEach((toast) => {
     window.setTimeout(() => toast.remove(), 400);
   }, 6500);
 });
+
+const formErrors = document.querySelector("[data-form-errors]");
+if (formErrors) {
+  requestAnimationFrame(() => formErrors.focus());
+}
 
 const orderBuilder = document.querySelector("[data-order-products]");
 if (orderBuilder) {
@@ -485,6 +508,10 @@ if (orderBuilder) {
     const clone = firstRow.cloneNode(true);
     clone.querySelector("select").value = "";
     clone.querySelector("input").value = "";
+    clone.querySelectorAll("[aria-invalid], [aria-describedby]").forEach((field) => {
+      field.removeAttribute("aria-invalid");
+      field.removeAttribute("aria-describedby");
+    });
     rows.appendChild(clone);
     bindRow(clone);
     clone.querySelector("select")?.focus();

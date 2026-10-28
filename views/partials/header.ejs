@@ -48,8 +48,8 @@
     <link
       rel="preload"
       as="image"
-      href="/images/optimized/gyrosnyars-640.jpg?v=<%= assetVersion || 'local' %>"
-      imagesrcset="/images/optimized/gyrosnyars-640.jpg?v=<%= assetVersion || 'local' %> 640w, /images/optimized/gyrosnyars-960.jpg?v=<%= assetVersion || 'local' %> 960w"
+      href="/images/optimized/hero-gyros-generated-640.webp?v=<%= assetVersion || 'local' %>"
+      imagesrcset="/images/optimized/hero-gyros-generated-640.webp?v=<%= assetVersion || 'local' %> 640w, /images/optimized/hero-gyros-generated-960.webp?v=<%= assetVersion || 'local' %> 960w"
       imagesizes="(max-width: 768px) calc(100vw - 2rem), 490px"
       fetchpriority="high"
     />
@@ -60,11 +60,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" />
     <link rel="stylesheet" href="/css/style.css?v=<%= assetVersion || 'local' %>" />
+    <% if (typeof currentPath !== 'undefined' && !currentPath.startsWith('/admin')) { %>
+    <link rel="stylesheet" href="/css/site-theme.css?v=<%= assetVersion || 'local' %>" />
+    <% } %>
+    <% if (typeof currentPath !== 'undefined' && currentPath === '/') { %>
+    <link rel="stylesheet" href="/css/home-refresh.css?v=<%= assetVersion || 'local' %>" />
+    <% } %>
     <% if (typeof currentPath !== 'undefined' && currentPath.replace(/\/+$/, '') === '/kornyezet') { %>
     <link rel="stylesheet" href="/css/environment.css?v=<%= assetVersion || 'local' %>" />
     <% } %>
   </head>
-  <body>
+  <body<% if (typeof currentPath !== 'undefined' && !currentPath.startsWith('/admin')) { %> class="site-refresh<%= currentPath === '/' ? ' home-refresh' : '' %>"<% } %>>
     <div class="scroll-progress" aria-hidden="true"></div>
     <header class="site-header">
       <div class="container header-shell">
@@ -74,7 +80,7 @@
             <span>Halasi Kebpro Kft.</span>
           </a>
 
-          <button class="menu-toggle" id="menuToggle" aria-label="Menü megnyitása">
+          <button class="menu-toggle" id="menuToggle" type="button" aria-label="Menü" aria-controls="mainNav" aria-expanded="false">
             <span></span><span></span><span></span>
           </button>
 

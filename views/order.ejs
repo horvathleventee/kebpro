@@ -27,43 +27,46 @@
           <img src="/images/optimized/logo-85.png?v=<%= assetVersion || 'local' %>" alt="" width="46" height="21" style="width:46px;max-width:46px;height:auto;" loading="lazy" decoding="async" />
         </div>
         <p class="form-required-hint"><%= t.forms.requiredHint %></p>
+        <% if (Object.keys(errors).length) { %>
+        <div class="form-error-summary" role="alert" tabindex="-1" data-form-errors><strong><%= lang === 'en' ? 'Please check the highlighted fields.' : lang === 'de' ? 'Bitte prüfen Sie die markierten Felder.' : 'Kérjük, ellenőrizze a jelölt mezőket.' %></strong></div>
+        <% } %>
 
         <label for="name"><%= t.forms.contactName %> <span class="required-mark">*</span></label>
-        <input id="name" name="name" type="text" value="<%= formData.name || '' %>" />
-        <% if (errors.name) { %><small class="error"><%= errors.name %></small><% } %>
+        <input id="name" name="name" autocomplete="name" aria-required="true" <%- errors.name ? 'aria-invalid="true" aria-describedby="error-name"' : '' %> type="text" value="<%= formData.name || '' %>" />
+        <% if (errors.name) { %><small class="error" id="error-name"><%= errors.name %></small><% } %>
 
         <label for="company"><%= t.forms.company %> <span class="required-mark">*</span></label>
-        <input id="company" name="company" type="text" value="<%= formData.company || '' %>" />
-        <% if (errors.company) { %><small class="error"><%= errors.company %></small><% } %>
+        <input id="company" name="company" autocomplete="organization" aria-required="true" <%- errors.company ? 'aria-invalid="true" aria-describedby="error-company"' : '' %> type="text" value="<%= formData.company || '' %>" />
+        <% if (errors.company) { %><small class="error" id="error-company"><%= errors.company %></small><% } %>
 
         <label for="companyHeadquarters"><%= t.forms.headquarters %> <span class="required-mark">*</span></label>
-        <input id="companyHeadquarters" name="companyHeadquarters" type="text" value="<%= formData.companyHeadquarters || '' %>" />
-        <% if (errors.companyHeadquarters) { %><small class="error"><%= errors.companyHeadquarters %></small><% } %>
+        <input id="companyHeadquarters" name="companyHeadquarters" autocomplete="street-address" aria-required="true" <%- errors.companyHeadquarters ? 'aria-invalid="true" aria-describedby="error-companyHeadquarters"' : '' %> type="text" value="<%= formData.companyHeadquarters || '' %>" />
+        <% if (errors.companyHeadquarters) { %><small class="error" id="error-companyHeadquarters"><%= errors.companyHeadquarters %></small><% } %>
 
         <label for="taxNumber"><%= t.forms.taxNumber %> <span class="required-mark">*</span></label>
-        <input id="taxNumber" name="taxNumber" type="text" value="<%= formData.taxNumber || '' %>" />
-        <% if (errors.taxNumber) { %><small class="error"><%= errors.taxNumber %></small><% } %>
+        <input id="taxNumber" name="taxNumber" aria-required="true" <%- errors.taxNumber ? 'aria-invalid="true" aria-describedby="error-taxNumber"' : '' %> type="text" value="<%= formData.taxNumber || '' %>" />
+        <% if (errors.taxNumber) { %><small class="error" id="error-taxNumber"><%= errors.taxNumber %></small><% } %>
 
         <label for="email"><%= t.forms.email %> <span class="required-mark">*</span></label>
-        <input id="email" name="email" type="email" value="<%= formData.email || '' %>" />
-        <% if (errors.email) { %><small class="error"><%= errors.email %></small><% } %>
+        <input id="email" name="email" autocomplete="email" aria-required="true" <%- errors.email ? 'aria-invalid="true" aria-describedby="error-email"' : '' %> type="email" value="<%= formData.email || '' %>" />
+        <% if (errors.email) { %><small class="error" id="error-email"><%= errors.email %></small><% } %>
 
         <label for="phone"><%= t.forms.phone %> <span class="required-mark">*</span></label>
-        <input id="phone" name="phone" type="tel" value="<%= formData.phone || '' %>" />
-        <% if (errors.phone) { %><small class="error"><%= errors.phone %></small><% } %>
+        <input id="phone" name="phone" autocomplete="tel" aria-required="true" <%- errors.phone ? 'aria-invalid="true" aria-describedby="error-phone"' : '' %> type="tel" value="<%= formData.phone || '' %>" />
+        <% if (errors.phone) { %><small class="error" id="error-phone"><%= errors.phone %></small><% } %>
 
         <div class="order-products-builder" data-order-products>
           <label><%= t.forms.productList %> <span class="required-mark">*</span></label>
           <div class="order-product-rows" data-order-product-rows>
             <% initialProducts.forEach((initialProduct) => { %>
             <div class="order-product-row">
-              <select name="products" class="status-select order-product-select">
+              <select name="products" class="status-select order-product-select" aria-label="<%= t.forms.selectProduct %>" <%- errors.product ? 'aria-invalid="true" aria-describedby="error-product"' : '' %>>
                 <option value=""><%= t.forms.selectProduct %></option>
                 <% (productOptions || []).forEach((option) => { %>
                 <option value="<%= option.value %>" <%= initialProduct.product === option.value ? 'selected' : '' %>><%= option.label %></option>
                 <% }) %>
               </select>
-              <input name="productQuantities" type="text" placeholder="<%= t.forms.quantity %>" value="<%= initialProduct.quantity || '' %>" />
+              <input name="productQuantities" type="text" aria-label="<%= t.forms.quantity %>" <%- errors.quantity ? 'aria-invalid="true" aria-describedby="error-quantity"' : '' %> placeholder="<%= t.forms.quantity %>" value="<%= initialProduct.quantity || '' %>" />
               <button type="button" class="btn btn-secondary order-remove-product" aria-label="<%= t.forms.removeProduct %>">×</button>
             </div>
             <% }) %>
@@ -71,15 +74,15 @@
           <button type="button" class="btn btn-secondary order-add-product" data-add-order-product><%= t.forms.addProduct %></button>
         </div>
         <input id="product" name="product" type="hidden" value="<%= formData.product || '' %>" />
-        <% if (errors.product) { %><small class="error"><%= errors.product %></small><% } %>
+        <% if (errors.product) { %><small class="error" id="error-product"><%= errors.product %></small><% } %>
 
         <label for="quantity" class="visually-hidden"><%= t.forms.quantity %> <span class="required-mark">*</span></label>
         <input id="quantity" name="quantity" type="hidden" value="<%= formData.quantity || '' %>" />
-        <% if (errors.quantity) { %><small class="error"><%= errors.quantity %></small><% } %>
+        <% if (errors.quantity) { %><small class="error" id="error-quantity"><%= errors.quantity %></small><% } %>
 
         <label for="address"><%= t.forms.address %> <span class="required-mark">*</span></label>
-        <input id="address" name="address" type="text" value="<%= formData.address || '' %>" />
-        <% if (errors.address) { %><small class="error"><%= errors.address %></small><% } %>
+        <input id="address" name="address" autocomplete="shipping street-address" aria-required="true" <%- errors.address ? 'aria-invalid="true" aria-describedby="error-address"' : '' %> type="text" value="<%= formData.address || '' %>" />
+        <% if (errors.address) { %><small class="error" id="error-address"><%= errors.address %></small><% } %>
 
         <label for="requestedDate"><%= t.forms.requestedDate %></label>
         <input id="requestedDate" name="requestedDate" type="date" value="<%= formData.requestedDate || '' %>" />

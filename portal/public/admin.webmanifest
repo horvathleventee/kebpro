@@ -1,0 +1,30 @@
+{
+  "id": "/partner-admin/",
+  "name": "Kebpro Admin",
+  "short_name": "Kebpro Admin",
+  "start_url": "/partner-admin/",
+  "scope": "/partner-admin/",
+  "display": "standalone",
+  "background_color": "#f4f6fa",
+  "theme_color": "#10243f",
+  "icons": [
+    {
+      "src": "/partner/assets/admin-v2-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/partner/assets/admin-v2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/partner/assets/admin-v2-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

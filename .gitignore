@@ -11,3 +11,17 @@ uploads/
 *.exe
 *.msi
 public/images/scoped_dir*/
+data/*.sqlite-*
+
+data/partner-admin-access.txt
+data/partner-preview-access.json
+
+# Private portal snapshots (contain account hashes and push keys)
+data/backups/
+
+data/*alert-state.json*
+data/monitor-state.json*
+.env.portal*
+# Private local TLS key and disposable test output
+.local-tests/
+output/npm-cache/
