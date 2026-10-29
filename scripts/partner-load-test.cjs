@@ -18,6 +18,7 @@ async function main(){
   const localDir=path.resolve(__dirname,'../.local-tests/load-'+crypto.randomUUID());if(!storage)fs.mkdirSync(localDir,{recursive:true});
   portal=createPortalApp({storage,filename:path.join(localDir,'test.sqlite'),now:()=>now,publicOrigin:'https://localhost',adminCredentials:{username:'load-admin',password},testRateLimits:{global:100000,auth:10000}});
   await portal.ready;
+  await portal.store.change(s=>{s.products[0].prices={...(s.products[0].prices||{}),kg:2000};});
   server=https.createServer(tls,portal.app);await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
   const port=server.address().port,origin='https://localhost:'+port;
   async function request(route,{body,cookie='',csrf='',originHeader=origin,ca=tls.cert}={}){
@@ -50,7 +51,7 @@ async function main(){
      const cookie=login.headers['set-cookie'][0].split(';')[0];
      const page=await request('/partner/',{cookie}),csrf=page.raw.match(/name="csrf-token" content="([^"]+)"/)[1];
      const first=await request('/partner/api/me',{cookie});assert.equal(first.status,200);assert.equal(first.json.id,id);
-     const body={kind:'order',date:first.json.nextDelivery.date,requestId:crypto.randomUUID(),items:[{productId:first.json.products[0].id,quantity:2,unit:'kg'}],note:'Synthetic load test'};
+     const body={kind:'order',date:first.json.nextDelivery.date,requestId:crypto.randomUUID(),items:[{productId:first.json.products[0].id,quantity:2,unit:'kg'}],expectedPrices:[2000],note:'Synthetic load test'};
      const [a,b]=await Promise.all([request('/partner/api/responses',{cookie,csrf,body}),request('/partner/api/responses',{cookie,csrf,body})]);
      assert.equal(a.status,200);assert.equal(b.status,200);assert.equal(a.json.response.id,b.json.response.id);
      const archived=await request('/partner-admin/api/archive',{cookie:adminCookie,csrf:adminCsrf,body:{id:a.json.response.id,archived:true,revision:1}});assert.equal(archived.status,200);

@@ -20,7 +20,7 @@ async function main(){
   await client.connect();try{await client.query('CREATE DATABASE kebpro_test_validation');console.log('Local PostgreSQL:',(await client.query('SELECT version()')).rows[0].version.split(',')[0]);}finally{await client.end();}
   const env={...process.env,PORTAL_TEST_DATABASE_URL:'postgresql://portaltest:'+password+'@127.0.0.1:'+port+'/kebpro_test_validation'};
   async function run(args){await new Promise((resolve,reject)=>{const child=spawn(process.execPath,args,{cwd:root,env,stdio:'inherit',windowsHide:true});child.on('error',reject);child.on('exit',code=>code===0?resolve():reject(Error('Test process failed: '+code)));});}
-  await run(['--test','tests/partner.test.js','tests/drafts.test.js','tests/operations.test.js','tests/postgres.test.js']);
+  await run(['--test','tests/partner.test.js','tests/drafts.test.js','tests/operations.test.js','tests/postgres.test.js','tests/staging.test.js','tests/portal-updates.test.js']);
   await run(['scripts/partner-load-test.cjs']);
  }finally{
   if(started)await exec(path.join(bin,'pg_ctl.exe'),['-D',path.join(dir,'data'),'-m','fast','-w','stop'],{windowsHide:true,timeout:30000});
