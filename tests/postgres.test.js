@@ -35,17 +35,21 @@ test('Real PostgreSQL: roundtrip, restart, rollback, concurrent writers and reco
   const history=await first.readPartner('paging',listing.options({page:2},true),new Date('2026-10-20T10:00:00Z'));
   assert.equal(history._history.rows.length,25);assert.equal(history._history.pagination.total,61);assert.equal(history.responses.length,0);
   let complaintId;
-  await first.change(s=>{domain.updatePrice(s,{productId:s.products[0].id,unit:'kg',price:1900});domain.updatePrice(s,{productId:s.products[0].id,unit:'kg',partnerId:'paging',price:1200});complaintId=domain.submitComplaint(s,'paging',{orderId:'000',message:'Synthetic PostgreSQL complaint',requestId:domain.id()}).id;});
+  await first.change(s=>{domain.updatePrice(s,{productId:s.products[0].id,unit:'kg',price:1900});domain.updatePrice(s,{productId:s.products[0].id,unit:'kg',partnerId:'paging',price:1200});complaintId=domain.submitComplaint(s,'paging',{orderId:'000',message:'Synthetic PostgreSQL complaint',requestId:domain.id(),photo:'data:image/jpeg;base64,/9j/2Q==',labelPhoto:'data:image/jpeg;base64,/9j/2Q=='}).id;});
   await audit.context.run({id:'admin',username:'admin',role:'staff',action:'complaints'},()=>second.change(s=>domain.updateComplaint(s,{id:complaintId,status:'resolved',reply:'Handled',expectedRevision:1},'admin')));
   const partnerState=await first.readPartner('paging',listing.options({page:1},true),new Date('2026-10-20T10:00:00Z'));
   const partnerView=domain.safePartner(partnerState,partnerState.partners[0],new Date('2026-10-20T10:00:00Z'),listing.options({page:1},true));
   assert.equal(partnerView.products[0].prices.kg,1200);assert.equal(partnerView.complaints[0].reply,'Handled');assert.equal(partnerView.complaints[0].status,'resolved');
   assert.ok((await first.read()).auditLog.at(-1).changes.some(c=>c.collection==='complaints'));
+  const complaintState=await first.read(),record=complaintState.partners.find(p=>p.id==='paging').complaints[0];assert.ok(record.photoId&&record.labelPhotoId);assert.ok(await first.lookupComplaintPhoto(record.photoId));assert.ok(await second.lookupComplaintPhoto(record.labelPhotoId));assert.match(require('../portal/complaint-export').exportComplaint(complaintState,record.id),/data:image\/jpeg;base64,/);
+  const removalTime=new Date('2026-12-01T12:00:00Z');await first.change(s=>{const c=s.partners.find(p=>p.id==='paging').complaints[0];c.resolvedAt=new Date(removalTime.getTime()-28*86400000).toISOString();s.operations={backupAt:removalTime.toISOString()};require('../portal/retention').purge(s,removalTime);});assert.equal(await first.lookupComplaintPhoto(record.photoId),undefined);assert.equal(await first.lookupComplaintPhoto(record.labelPhotoId),undefined);assert.equal((await first.read()).partners.find(p=>p.id==='paging').complaints.length,0);
   const legal=require('../portal/legal'),terms=legal.snapshot('terms'),privacy=legal.snapshot('privacy');
   const evidence=legal.verifyAcceptance({termsAccepted:true,termsVersion:terms.version,termsHash:terms.hash,privacyVersion:privacy.version,privacyHash:privacy.hash});
   await require('../portal/auth').register(first,{username:'policytest',email:'policy@example.invalid',password:'Password123',company:'Test',contact:'Test',phone:'123',address:'Test'},evidence);
   const policyUser=(await second.read()).users.find(u=>u.username==='policytest');assert.equal(policyUser.termsAcceptance.terms.hash,terms.hash);assert.equal(policyUser.termsAcceptance.privacyDocument,evidence.privacyDocument);
+  const friday=new Date('2026-10-30T09:00:00Z');
+  await first.change(s=>{s.routes=[{id:'sat',name:'Szombat',days:[6]},{id:'mon',name:'Hétfő',days:[1]}];s.partners.push({id:'calltest',name:'Hívandó',routeIds:['sat','mon'],preferences:{}});s.responses.push({id:'sat-answer',partnerId:'calltest',date:'2026-10-31',kind:'order',items:[],createdAt:friday.toISOString()});});
+  const callState=await first.readAdmin('2026-11-03','2026-10-31',listing.options({}),domain.callDeliveryDates(friday));const callGroups=domain.callSchedule(callState,friday);assert.equal(callGroups.find(g=>g.date==='2026-10-31').routes[0].pending.length,0);assert.equal(callGroups.find(g=>g.date==='2026-11-02').routes[0].pending[0].id,'calltest');
   await assert.rejects(first.importEmpty(emptyState()),/empty/);
  }finally{await first.close();await second.close();await admin.query('DROP SCHEMA IF EXISTS kebpro_portal CASCADE');await admin.end();}
 });
-

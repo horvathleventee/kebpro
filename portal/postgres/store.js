@@ -51,9 +51,9 @@ function createPostgresStore({connectionString,pool:providedPool,initialState=em
     else{const rows=await client.query("SELECT body FROM kebpro_portal.orders WHERE body->>'partnerId'=$1 ORDER BY position,id",[partnerId]);state.responses=rows.rows.map(r=>r.body);}
     const vapid=await client.query("SELECT body->>'publicKey' AS key FROM kebpro_portal.metadata WHERE key='vapid'");state.vapid={publicKey:vapid.rows[0]?.key};return state;
   });},
-  readAdmin:async(date,tomorrow,listing)=>{await ready;return transaction(async client=>{
+  readAdmin:async(date,tomorrow,listing,callDates=[])=>{await ready;return transaction(async client=>{
    const state=await readState(client,true);state._orders=await require('../listing').sqlPage(client,listing);
-   const rows=await client.query("SELECT body FROM kebpro_portal.orders WHERE body->>'date' IN ($1,$2)",[date,tomorrow]);state.responses=rows.rows.map(r=>r.body);return state;
+   const rows=await client.query("SELECT body FROM kebpro_portal.orders WHERE body->>'date' = ANY($1::text[])",[[...new Set([date,tomorrow,...callDates])]]);state.responses=rows.rows.map(r=>r.body);return state;
   });},
   change:async fn=>{await ready;return transaction(async client=>{
    const state=await readState(client),before=structuredClone(state),actor=audit.context.getStore();

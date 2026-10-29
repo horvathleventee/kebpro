@@ -38,6 +38,24 @@ function deliveries(state,partner,now=new Date()){
  return result;
 }
 function orderCutoffDate(date){return addDays(date,new Date(date+'T12:00:00Z').getUTCDay()===1?-3:-1);}
+function callDeliveryDates(now=new Date()){
+ const today=localTime(now).date;
+ return [1,2,3].map(n=>addDays(today,n)).filter(date=>orderCutoffDate(date)===today);
+}
+function callSchedule(state,now=new Date()){
+ const groups=[];
+ for(const date of callDeliveryDates(now)){
+  const routes=[];
+  for(const route of state.routes.filter(r=>deliveryOn(r,date))){
+   const people=state.partners.filter(p=>(p.routeIds||[p.routeId]).includes(route.id)&&!state.users?.some(u=>u.partnerId===p.id&&u.status==='disabled'));
+   if(!people.length)continue;
+   const partners=people.map(p=>({id:p.id,name:p.name,address:p.address,phone:p.phone||state.users?.find(u=>u.partnerId===p.id)?.phone||'',response:state.responses.find(r=>r.partnerId===p.id&&r.date===date)||null}));
+   routes.push({id:route.id,name:route.name,pending:partners.filter(p=>!p.response),skipped:partners.filter(p=>p.response?.kind==='skip')});
+  }
+  if(routes.length)groups.push({date,cutoff:'14:00',routes});
+ }
+ return groups;
+}
 function deliveryOn(route, date) {
   return validDate(date) && route.days.includes(new Date(date + "T12:00:00Z").getUTCDay());
 }
@@ -308,5 +326,5 @@ function validateSubscription(subscription) {
     /^[\w-]{22}$/.test(keys.auth) && /^[\w-]{87}$/.test(keys.p256dh), "Érvénytelen push-kulcsok.");
   return { endpoint: url.href, keys: { auth: keys.auth, p256dh: keys.p256dh } };
 }
-module.exports = { InputError, assert, id, seed, text, localTime, addDays, validDate, nextDelivery, orderCutoffDate,
+module.exports = { InputError, assert, id, seed, text, localTime, addDays, validDate, nextDelivery, orderCutoffDate, callDeliveryDates, callSchedule,
   partnerRoutes, routeFor, deliveries, updatePrice, updatePromotion, priceFor, queueStaffNotification, submitComplaint, updateComplaint, saveTemplate, submitResponse, publishNews, runReminders, updateRoute, updatePartner, archiveOrder, safePartner, adminView, validateSubscription };

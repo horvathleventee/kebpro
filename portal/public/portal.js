@@ -7,7 +7,7 @@ let data, cart = [], note = "", requestId = crypto.randomUUID(), newsRequestId =
 let automaticLoadPending=false;
 let ordersPage=1,historyPage=1,searchTimer;
 let productSearch='',partnerSearch='',pricePartner='',complaintRequests={};
-let orderView="new", archiveSort="createdAt", archiveDate="", orderSearch="", loadSequence=0, mutations=0;
+let orderView="new", archiveSort="createdAt", archiveDate="", orderSearch="", loadSequence=0, mutations=0, routeSettingsOpen=false;
 let orderDate="", editing=null;
 let draftStore, draftReady=false, draftError='', draftFingerprint='';
 function draftState(){return {cart,note,orderDate:chosenDelivery().date,editing,requestId};}
@@ -35,7 +35,7 @@ function showDraftStatus(){
  host.innerHTML='<strong>'+ (draftError?'Piszkozatmentési hiba':'Piszkozat – még nincs beküldve')+'</strong><p>'+esc(draftError||'Ezen az eszközön megőrizve. A cég csak sikeres beküldés után látja.')+'</p>'+(exists?'<p>'+esc(dateLabel(chosenDelivery().date))+' · '+cart.length+' tétel'+(!chosenDelivery().open?' · A rendelési határidő lejárt.':'')+'</p><a class="button secondary" href="#order">Kosár megnyitása</a> <button class="button text-button" data-action="discard-draft">Piszkozat törlése</button>':'');
 }
 
-let selectedDate = "", selectedRoute = "", deferredInstall, confirmAction, toastTimer;
+let selectedDate = "", selectedRoute = "", deferredInstall, confirmAction, toastTimer, callMode="today";
 const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 async function compressComplaintPhoto(file){
  if(!file||!file.size)return null;
@@ -193,7 +193,7 @@ function partnerSettings() {
 
 function todoPanel(){
  const t=data.todo||{};
- return '<section class="section-gap"><h2>Napi teendők</h2><p class="muted">Következő napi kiszállítás: '+esc(t.date?dateLabel(t.date):'')+'</p><div class="todo-grid"><button class="card todo-card" data-action="todo-new"><strong>'+(data.orderCounts?.new||0)+'</strong><span>Feldolgozatlan rendelés</span></button><button class="card todo-card" data-action="todo-calls"><strong>'+(t.missing||0)+'</strong><span>Holnapra még nem válaszolt</span></button><a class="card todo-card" href="#applications"><strong>'+(t.pending||0)+'</strong><span>Jóváhagyásra váró regisztráció</span></a></div></section>';
+ return '<section class="section-gap"><h2>Napi teendők</h2><p class="muted">Mai rendelési nap: '+esc(t.date?dateLabel(t.date):'')+'</p><div class="todo-grid"><button class="card todo-card" data-action="todo-new"><strong>'+(data.orderCounts?.new||0)+'</strong><span>Feldolgozatlan rendelés</span></button><button class="card todo-card" data-action="todo-calls"><strong>'+(t.missing||0)+'</strong><span>Mai rendelési határidőre nem válaszolt</span></button><a class="card todo-card" href="#applications"><strong>'+(t.pending||0)+'</strong><span>Jóváhagyásra váró regisztráció</span></a></div></section>';
 }
 function searchMatch(value,query){return String(value).toLocaleLowerCase('hu-HU').includes(String(query).trim().toLocaleLowerCase('hu-HU'));}
 function filterPricePartners(){const select=document.getElementById('price-partner-filter');if(!select)return;const partners=[...data.allPartners].filter(p=>searchMatch(p.name,partnerSearch)||p.id===pricePartner).sort((a,b)=>a.name.localeCompare(b.name,'hu'));select.replaceChildren(new Option('Alapárak',''),...partners.map(p=>new Option(p.name,p.id)));select.value=pricePartner;}
@@ -220,10 +220,17 @@ function staffDashboard() {
 }
 
 function calls(){
- const pending=data.partners.filter(p=>!p.disabled&&!p.response),skipped=data.partners.filter(p=>p.response?.kind==='skip');
  const card=p=>{const phone=String(p.phone||'').replace(/[^+0-9]/g,'');return '<article class="card"><h3>'+esc(p.name)+'</h3><p>'+esc(p.address)+'</p><p>'+esc(p.phone||'Nincs telefonszám megadva')+'</p>'+(phone&&/^[+]?[0-9]{6,15}$/.test(phone)?'<a class="button primary full" href="tel:'+esc(phone)+'">☎ Partner hívása</a>':'')+'</article>';};
- return heading('NAPI VISSZAJELZÉSEK','Kit kell még hívni?','Csak az adott napra beosztott partnerek. A lista automatikusan frissül.')+'<form id="filters" class="filters"><label>Kiszállítás napja<input name="date" type="date" value="'+esc(selectedDate)+'" required></label><label>Túra<select name="route"><option value="">Minden túra</option>'+data.routes.map(r=>'<option value="'+esc(r.id)+'" '+(r.id===selectedRoute?'selected':'')+'>'+esc(r.name)+'</option>').join('')+'</select></label></form><h2>Még nem válaszolt ('+pending.length+')</h2><div class="order-grid section-gap">'+(pending.length?pending.map(card).join(''):'<p class="card">Minden beosztott partner válaszolt, vagy nincs partner erre a napra.</p>')+'</div><details class="card section-gap"><summary>Most nem kér szállítást ('+skipped.length+')</summary>'+skipped.map(p=>'<p>✓ '+esc(p.name)+'</p>').join('')+'</details>';
+ const sorted=list=>[...list].sort((a,b)=>a.name.localeCompare(b.name,'hu'));
+ const switcher='<div class="button-row call-mode"><button class="button '+(callMode==='today'?'primary':'secondary')+'" data-action="calls-mode" data-mode="today" aria-pressed="'+(callMode==='today')+'">Mai rendelési nap</button><button class="button '+(callMode==='manual'?'primary':'secondary')+'" data-action="calls-mode" data-mode="manual" aria-pressed="'+(callMode==='manual')+'">Másik kiszállítási nap</button></div>';
+ if(callMode==='manual'){
+  const pending=sorted(data.partners.filter(p=>!p.disabled&&!p.response)),skipped=sorted(data.partners.filter(p=>p.response?.kind==='skip'));
+  return heading('PARTNEREK','Kit kell még hívni?','Válassz tetszőleges kiszállítási napot és túrát.')+switcher+'<form id="filters" class="filters section-gap"><label>Kiszállítás napja<input name="date" type="date" value="'+esc(selectedDate)+'" required></label><label>Túra<select name="route"><option value="">Minden túra</option>'+data.routes.map(r=>'<option value="'+esc(r.id)+'" '+(r.id===selectedRoute?'selected':'')+'>'+esc(r.name)+'</option>').join('')+'</select></label></form><h2>Még nem válaszolt ('+pending.length+')</h2><div class="order-grid section-gap">'+(pending.length?pending.map(card).join(''):'<p class="card">Minden beosztott partner válaszolt, vagy nincs partner erre a kiválasztásra.</p>')+'</div><details class="card section-gap"><summary>Most nem kér szállítást ('+skipped.length+')</summary>'+skipped.map(p=>'<p>✓ '+esc(p.name)+'</p>').join('')+'</details>';
+ }
+ const groups=data.calls||[];
+ return heading('MAI RENDELÉSI NAP','Kit kell még hívni?','A mai határidőhöz tartozó kiszállítások és túrák. A lista automatikusan frissül.')+switcher+(groups.length?groups.map(g=>'<section class="section-gap call-delivery"><h2>Kiszállítás: '+esc(dateLabel(g.date))+'</h2><p class="muted">Rendelési határidő ma '+esc(g.cutoff)+'</p>'+g.routes.map(r=>{const pending=sorted(r.pending),skipped=sorted(r.skipped);return '<section class="section-gap"><h3>'+esc(r.name)+' · Még nem válaszolt ('+pending.length+')</h3><div class="order-grid section-gap">'+(pending.length?pending.map(card).join(''):'<p class="card">Minden partner válaszolt ezen a túrán.</p>')+'</div>'+(skipped.length?'<details class="card section-gap"><summary>Most nem kér szállítást ('+skipped.length+')</summary>'+skipped.map(p=>'<p>✓ '+esc(p.name)+'</p>').join('')+'</details>':'')+'</section>';}).join('')+'</section>').join(''):'<div class="card empty section-gap">Mára nincs beosztott partner rendelési határidővel. Másik kiszállítási napot fent választhatsz.</div>');
 }
+
 function staffNews() {
   return heading("KOMMUNIKÁCIÓ","Hírek és akciók","A megjelent híreket minden partner láthatja; push azoknak készül, akik kérték.")+
     '<div class="grid equal-col"><section class="card"><h2>Új közlemény</h2><form id="publish-news" class="section-gap"><div class="field"><label for="news-kind">Típus</label><select id="news-kind" name="kind"><option>Hír</option><option>Akció</option><option>Tájékoztató</option></select></div><div class="field"><label for="news-title">Cím</label><input id="news-title" name="title" maxlength="140" placeholder="Például: Akciós az 1 kg-os gyros" required></div><div class="field"><label for="news-body">Szöveg</label><textarea id="news-body" name="body" rows="7" maxlength="4000" placeholder="Írd le az ajánlatot, az árat, az érvényességet és a feltételeket." required></textarea></div><p class="notice">'+data.subscribedPartners+' partner kért hírekről értesítést. A küldés a háttérfolyamat működésétől függ.</p><button class="button primary">Közzététel →</button></form></section><div class="news-list">'+data.news.map(newsCard).join("")+'</div></div>';
@@ -242,7 +249,7 @@ function staffAccess() {
 function staffSettings() {
   const days=["Vasárnap","Hétfő","Kedd","Szerda","Csütörtök","Péntek","Szombat"];
   return heading("BEÁLLÍTÁSOK","Túrák és partnerek","Határidő 14:00-kor az előző napon; hétfői kiszállításnál pénteken. Emlékeztető előző este 17:00-kor és a határidő napján 10:00-kor.")+
-    '<div class="grid equal-col section-gap">'+data.routes.map(r=>'<section class="card"><h2>'+esc(days[r.fixedDay]||r.name)+'</h2><form data-route-form="'+esc(r.id)+'"><label for="route-name-'+esc(r.id)+'">Túra neve</label><input id="route-name-'+esc(r.id)+'" name="name" maxlength="100" value="'+esc(r.name)+'" required><input type="hidden" name="days" value="'+r.fixedDay+'"><p class="small muted section-gap">Emlékeztetők: a rendelési nap előtti este 17:00 és a rendelési napon 10:00. Határidő: 14:00; hétfői kiszállításhoz pénteken.</p><input type="hidden" name="reminder" value="10:00"><input type="hidden" name="cutoff" value="14:00"><button class="button primary">Túra mentése</button></form></section>').join("")+'</div>'+
+    '<details id="route-settings" class="card section-gap" '+(routeSettingsOpen?'open':'')+'><summary>Túrák szerkesztése ('+data.routes.length+')</summary><p class="muted small">Itt módosíthatod a túrák elnevezését.</p><div class="grid equal-col section-gap">'+data.routes.map(r=>'<section class="card"><h2>'+esc(days[r.fixedDay]||r.name)+'</h2><form data-route-form="'+esc(r.id)+'"><label for="route-name-'+esc(r.id)+'">Túra neve</label><input id="route-name-'+esc(r.id)+'" name="name" maxlength="100" value="'+esc(r.name)+'" required><input type="hidden" name="days" value="'+r.fixedDay+'"><p class="small muted section-gap">Emlékeztetők: a rendelési nap előtti este 17:00 és a rendelési napon 10:00. Határidő: 14:00; hétfői kiszállításhoz pénteken.</p><input type="hidden" name="reminder" value="10:00"><input type="hidden" name="cutoff" value="14:00"><button class="button primary">Túra mentése</button></form></section>').join("")+'</div></details>'+
     '<section class="card section-gap"><h2>Partnerek kiszállítási napjai</h2>'+accountList(data.allPartners,'partner-delivery-days',p=>p.name,p=>'<form id="partner-days-'+esc(p.id)+'" data-partner-days="'+esc(p.id)+'" class="partner-days"><h3>'+esc(p.name)+'</h3><div class="route-checks">'+data.routes.map(r=>'<label class="check-line"><input type="checkbox" name="routeIds" value="'+esc(r.id)+'" '+((p.routeIds||[p.routeId]).includes(r.id)?'checked':'')+'>'+esc(r.name)+'</label>').join('')+'</div><button class="button primary">Kiszállítási napok mentése</button></form>',3,'További partnerek')+'</section>'+staffAccess()+accountControls()+sessionSettings();
 }
 function applications() {
@@ -345,6 +352,7 @@ content.addEventListener("submit",async event=>{
     }
   }catch(err){toast(err.message);}finally{if(button)button.disabled=false;}
 });
+content.addEventListener('toggle',event=>{if(event.target.id==='route-settings')routeSettingsOpen=event.target.open;},true);
 content.addEventListener("change",async event=>{
  if(event.target.id==='price-partner-filter'){if(content.querySelector('form[data-price-product][data-dirty="true"]')){event.target.value=pricePartner;toast('Előbb mentsd az elkezdett ármódosítást.');return;}pricePartner=event.target.value;render();return;}
  if(event.target.matches('[data-price-partner],[data-price-unit]')){event.target.form.dataset.dirty='true';fillPriceForm(event.target.form);return;}
@@ -373,7 +381,8 @@ content.addEventListener("click",async event=>{
   try{
     if(action==='page'){if(button.dataset.kind==='history')historyPage=Number(button.dataset.page);else ordersPage=Number(button.dataset.page);await load();window.scrollTo(0,0);}
     if(action==='todo-new'){orderView='new';ordersPage=1;orderSearch='';await load();}
-    if(action==='todo-calls'){selectedDate=data.todo.date;selectedRoute='';await load();location.hash='calls';}
+    if(action==='todo-calls'){callMode='today';location.hash='calls';render();}
+    if(action==='calls-mode'){callMode=button.dataset.mode==='manual'?'manual':'today';render();}
     if(action==='product-availability'){button.disabled=true;try{await api('products',{id:button.dataset.id,active:button.dataset.active==='true'});await load();toast('Termék elérhetősége mentve.');}finally{button.disabled=false;}}
 
     if(action==='account-status'){

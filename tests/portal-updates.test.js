@@ -125,11 +125,26 @@ test('admin renewal endpoint requires its own session and CSRF and sets a seven-
  const post=(url,body,cookie='',csrf='')=>fetch(origin+url,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie,'X-CSRF-Token':csrf},body:JSON.stringify(body)});
  try{const login=await post('/partner-admin/api/login',{username:'admin',password:'Password123'});const cookie=login.headers.get('set-cookie').split(';')[0];const html=await(await fetch(origin+'/partner-admin/',{headers:{Cookie:cookie}})).text(),csrf=html.match(/name="csrf-token" content="([^"]+)"/)[1];const expiresAt=Date.now()+86400000;await portal.store.change(s=>{s.sessions.find(x=>x.role==='staff').expires=expiresAt;});
   const me=await(await fetch(origin+'/partner-admin/api/admin',{headers:{Cookie:cookie}})).json();assert.equal(me.loginSession.canExtend,true);
-  assert.equal((await post('/partner-admin/api/extend-session',{expiresAt},cookie,'wrong')).status,403);const extended=await post('/partner-admin/api/extend-session',{expiresAt},cookie,csrf);assert.equal(extended.status,200);assert.match(extended.headers.get('set-cookie'),/Max-Age=6047/);assert.ok((await extended.json()).loginSession.expiresAt>Date.now()+6*86400000);
+  assert.equal((await post('/partner-admin/api/extend-session',{expiresAt},cookie,'wrong')).status,403);const extended=await post('/partner-admin/api/extend-session',{expiresAt},cookie,csrf);assert.equal(extended.status,200);const maxAge=Number(extended.headers.get('set-cookie').match(/Max-Age=(\d+)/)[1]);assert.ok(maxAge>=604790&&maxAge<=604800);assert.ok((await extended.json()).loginSession.expiresAt>Date.now()+6*86400000);
  }finally{await new Promise(r=>server.close(r));await portal.store.close();}
 });
 
 test('daily backups retain five recent snapshots by default',async()=>{
  const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),dir=await fs.mkdtemp(path.join(os.tmpdir(),'kebpro-five-backups-'));const state=d.seed();state.users=[];const store=createStore(':memory:',()=>state);await store.ready;
  try{for(let i=0;i<6;i++)await require('../portal/backup').backup(store,dir,{now:new Date(Date.UTC(2026,9,10+i))});assert.equal((await fs.readdir(dir)).filter(f=>f.endsWith('.json')).length,5);}finally{await store.close();if(path.dirname(dir)!==os.tmpdir()||!path.basename(dir).startsWith('kebpro-five-backups-'))throw Error('Invalid test directory');await fs.rm(dir,{recursive:true,force:true});}
+});
+
+test('call schedule groups each delivery due today, including Saturday and Monday on Friday',()=>{
+ const s=d.seed(),fri=new Date('2026-10-30T09:00:00Z');s.routes=[{id:'sat',name:'Szombati túra',days:[6]},{id:'mon',name:'Hétfői túra',days:[1]},{id:'tue',name:'Keddi túra',days:[2]}];
+ s.partners=[{id:'both',name:'Mindkettő',phone:'123456',routeIds:['sat','mon'],preferences:{}},{id:'mon',name:'Hétfő partner',routeId:'mon',preferences:{}},{id:'disabled',name:'Tiltott',routeId:'mon',preferences:{}},{id:'tue',name:'Keddi',routeId:'tue',preferences:{}}];
+ s.users=[{id:'disabled-user',partnerId:'disabled',status:'disabled'},{id:'active-user',partnerId:'mon',status:'approved'}];s.responses=[{id:'r1',partnerId:'both',date:'2026-10-31',kind:'order'},{id:'r2',partnerId:'mon',date:'2026-11-02',kind:'skip'}];
+ assert.deepEqual(d.callDeliveryDates(fri),['2026-10-31','2026-11-02']);const groups=d.callSchedule(s,fri);assert.deepEqual(groups.map(g=>g.date),['2026-10-31','2026-11-02']);assert.equal(groups[0].routes[0].pending.length,0);assert.deepEqual(groups[1].routes[0].pending.map(p=>p.id),['both']);assert.deepEqual(groups[1].routes[0].skipped.map(p=>p.id),['mon']);
+ const monday=new Date('2026-11-02T09:00:00Z');assert.deepEqual(d.callDeliveryDates(monday),['2026-11-03']);assert.deepEqual(d.callSchedule(s,monday)[0].routes[0].pending.map(p=>p.id),['tue']);
+});
+
+test('admin API shows Friday call groups for Saturday and Monday even when another date is selected',async()=>{
+ const now=new Date('2026-10-30T09:00:00Z'),portal=createPortalApp({filename:':memory:',now:()=>now,adminCredentials:{username:'admin',password:'Password123'}});await portal.ready;
+ await portal.store.change(s=>{s.routes=[{id:'sat',name:'Szombat',days:[6]},{id:'mon',name:'Hétfő',days:[1]}];s.partners=[{id:'p1',name:'P1',address:'A',routeIds:['sat','mon'],preferences:{}}];s.responses=[{id:'order',partnerId:'p1',date:'2026-10-31',kind:'order',createdAt:now.toISOString(),items:[]}];});
+ const server=portal.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const origin='http://127.0.0.1:'+server.address().port;
+ try{const login=await fetch(origin+'/partner-admin/api/login',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({username:'admin',password:'Password123'})});const cookie=login.headers.get('set-cookie').split(';')[0];const result=await fetch(origin+'/partner-admin/api/admin?date=2026-11-03',{headers:{Cookie:cookie}});assert.equal(result.status,200);const data=await result.json();assert.equal(data.date,'2026-11-03');assert.equal(data.todo.date,'2026-10-30');assert.equal(data.todo.missing,1);assert.deepEqual(data.calls.map(c=>c.date),['2026-10-31','2026-11-02']);assert.equal(data.calls[0].routes[0].pending.length,0);assert.equal(data.calls[1].routes[0].pending[0].id,'p1');}finally{await new Promise(r=>server.close(r));await portal.store.close();}
 });

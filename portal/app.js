@@ -246,10 +246,10 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
   app.get("/partner-admin/api/admin", requireSession, staff, async (req,res) => {
     const date = req.query.date || domain.addDays(domain.localTime(now()).date, 1);
     const listing=require('./listing').options(req.query),tomorrow=domain.addDays(domain.localTime(now()).date,1);
-    const state = store.readAdmin?await store.readAdmin(date,tomorrow,listing):await store.read();
-    const tomorrowView=domain.adminView(state,tomorrow,''),active=p=>!state.users.some(u=>u.partnerId===p.id&&u.status==='disabled');
-    const todo={date:tomorrow,missing:tomorrowView.partners.filter(p=>active(p)&&!p.response).length,pending:state.users.filter(u=>u.role==='partner'&&u.status==='pending').length};
-    res.json({ retention:state.retention||{months:3},todo,date, currentUserId:req.portalSession.userId,loginSession:require('./sessions').info(req.portalSession),publicKey:state.vapid.publicKey,pushMode:state.pushMode||'simulation', accounts:state.users.filter(u=>['approved','disabled'].includes(u.status)).map(u=>({id:u.id,username:u.username,company:u.company,role:u.role,status:u.status})), auditLog:(state.auditLog||[]).slice(-100).reverse(), operations:state.operations||{}, applications:auth.applications(state), ...invitations.list(state), ...domain.adminView(state, date, req.query.route || "",listing) });
+    const state = store.readAdmin?await store.readAdmin(date,tomorrow,listing,domain.callDeliveryDates(now())):await store.read();
+    const calls=domain.callSchedule(state,now());
+    const todo={date:domain.localTime(now()).date,missing:calls.reduce((n,g)=>n+g.routes.reduce((sum,r)=>sum+r.pending.length,0),0),pending:state.users.filter(u=>u.role==='partner'&&u.status==='pending').length};
+    res.json({ retention:state.retention||{months:3},todo,calls,date, currentUserId:req.portalSession.userId,loginSession:require('./sessions').info(req.portalSession),publicKey:state.vapid.publicKey,pushMode:state.pushMode||'simulation', accounts:state.users.filter(u=>['approved','disabled'].includes(u.status)).map(u=>({id:u.id,username:u.username,company:u.company,role:u.role,status:u.status})), auditLog:(state.auditLog||[]).slice(-100).reverse(), operations:state.operations||{}, applications:auth.applications(state), ...invitations.list(state), ...domain.adminView(state, date, req.query.route || "",listing) });
   });
   app.post('/partner-admin/api/products',requireSession,staff,async(req,res)=>{
     await store.change(s=>{const p=s.products.find(p=>p.id===req.body.id);domain.assert(p&&typeof req.body.active==='boolean','Érvénytelen termék.');p.active=req.body.active;});res.json({ok:true});

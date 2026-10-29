@@ -639,7 +639,7 @@ test('Product availability is staff-only, audited and enforced for existing cart
   assert.equal((await post('/partner-admin/api/prices',price,cookie,'bad')).status,403);
   assert.equal((await post('/partner-admin/api/prices',price,cookie,csrf)).status,200);
   state=await portal.store.read();assert.equal(state.products[0].prices.kg,2200);assert.equal(state.auditLog.at(-1).changes[0].collection,'products');
-  const view=await(await fetch(origin+'/partner-admin/api/admin?page=1',{headers:{Cookie:cookie}})).json();assert.equal(view.orderPage.size,25);assert.ok(Number.isInteger(view.todo.missing));assert.equal(view.todo.date,'2026-10-15');assert.equal(view.products.length,state.products.length);
+  const view=await(await fetch(origin+'/partner-admin/api/admin?page=1',{headers:{Cookie:cookie}})).json();assert.equal(view.orderPage.size,25);assert.ok(Number.isInteger(view.todo.missing));assert.equal(view.todo.date,'2026-10-14');assert.equal(view.products.length,state.products.length);
  }finally{await new Promise(r=>server.close(r));await portal.store.close();}
 });
 
