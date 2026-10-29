@@ -40,7 +40,7 @@ const previousDocsV2=Object.freeze({
  ]})
 });
 // New versions do not change the recorded content or hashes of earlier acceptances.
-const docs=Object.freeze({
+const previousDocsV3=Object.freeze({
  terms:Object.freeze({version:'2026-10-28-v3',title:'Partnerfelület használati feltételei',sections:[
   ['Szolgáltató',company],
   ['A partnerfelület használata','A felület üzleti partnerek számára készült. Regisztráció után a hozzáférésről a Halasi Kebpro Kft. munkatársai döntenek. A felhasználó a belépési adatait köteles bizalmasan kezelni.'],
@@ -57,8 +57,12 @@ const docs=Object.freeze({
   ['Adatkezelési tájékoztató','A Halasi Kebpro Kft. weboldalának adatkezelési tájékoztatója a kebpro.hu/adatkezelesi-tajekoztato oldalon érhető el. Ebben a társaság az érintetti jogokról és a panasztételi lehetőségekről is tájékoztatást ad. Adatvédelmi kérdés esetén keress minket az info@kebpro.hu címen.']
  ]})
 });
+const docs=Object.freeze({
+ terms:previousDocsV3.terms,
+ privacy:Object.freeze({...previousDocsV3.privacy,version:'2026-10-29-v4',sections:previousDocsV3.privacy.sections.map(([title,body])=>title==='Megőrzés'?[title,'A partnerfelületen a legalább három hónapja archivált, elmúlt kiszállítású rendelések sikeres mentés után törlődhetnek. A lezárt bejelentések és csatolt képeik a lezárás után négy héttel automatikusan törlődhetnek; a nyitott bejelentések nem. A mentett rendelési listák nem tartoznak e törlés alá. A rendszer a helyi biztonsági mentésekből legfeljebb öt példányt tart meg.']: [title,body])})
+});
 function hash(doc){return crypto.createHash('sha256').update(JSON.stringify(doc)).digest('hex');}
 function snapshot(kind){const d=docs[kind];return {version:d.version,hash:hash(d)};}
-function resolve(kind,version){return docs[kind]?.version===version?docs[kind]:previousDocsV2[kind]?.version===version?previousDocsV2[kind]:previousDocs[kind]?.version===version?previousDocs[kind]:null;}
+function resolve(kind,version){return docs[kind]?.version===version?docs[kind]:previousDocsV3[kind]?.version===version?previousDocsV3[kind]:previousDocsV2[kind]?.version===version?previousDocsV2[kind]:previousDocs[kind]?.version===version?previousDocs[kind]:null;}
 function verifyAcceptance(input){const terms=snapshot('terms'),privacy=snapshot('privacy');const {assert}=require('./domain');assert(input.termsAccepted===true,'A használati feltételek elfogadása szükséges.');assert(input.termsVersion===terms.version&&input.termsHash===terms.hash&&input.privacyVersion===privacy.version&&input.privacyHash===privacy.hash,'A dokumentumok időközben megváltoztak. Frissítsd az oldalt és olvasd el őket újra.',409);return {terms,privacy,termsDocument:JSON.stringify(docs.terms),privacyDocument:JSON.stringify(docs.privacy),acceptedAt:new Date().toISOString()};}
 module.exports={snapshot,resolve,verifyAcceptance};

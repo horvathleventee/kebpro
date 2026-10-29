@@ -535,12 +535,12 @@ test('Live worker dispatches eligible messages once through injected transport, 
  try{await worker.tick();const count=sent;assert.ok(count>0);await worker.tick();assert.equal(sent,count);assert.equal((await store.read()).outbox.find(n=>n.id==='old-simulation').status,'simulation');}finally{await store.close();}
 });
 
-test('Partner login persists 90 days while staff login remains one day',async()=>{
+test('Partner login persists 90 days while staff login lasts seven days',async()=>{
  const {app,store,ready}=createPortalApp({filename:':memory:'});const admin=await ready;const auth=require('../portal/auth');
  await auth.register(store,{username:'longlogin',email:'long@example.com',password:'12345678',company:'Test',contact:'Test',phone:'123',address:'Test'});
  await store.change(s=>{const u=s.users.find(u=>u.username==='longlogin');u.status='approved';u.partnerId='partner-1';});
  const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.on('listening',r));const origin='http://127.0.0.1:'+server.address().port;
- try{for(const [base,credentials,days] of [['/partner',{username:'longlogin',password:'12345678'},90],['/partner-admin',admin,1]]){
+ try{for(const [base,credentials,days] of [['/partner',{username:'longlogin',password:'12345678'},90],['/partner-admin',admin,7]]){
   const before=Date.now();const res=await fetch(origin+base+'/api/login',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify(credentials)});
   assert.equal(res.status,200);assert.match(res.headers.get('set-cookie'),new RegExp('Max-Age='+days*86400+';'));assert.match(res.headers.get('set-cookie'),/HttpOnly/);
   const session=(await store.read()).sessions.at(-1);assert.ok(session.expires>=before+days*86400000);assert.ok(session.expires<=Date.now()+days*86400000);

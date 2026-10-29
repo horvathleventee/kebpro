@@ -8,7 +8,7 @@ function decodeBackup(text){
  for(const key of ['users','partners','routes','responses','sessions','subscriptions','outbox'])if(!Array.isArray(state[key]))throw Error('Invalid backup structure');
  return state;
 }
-async function backup(store,directory,{now=new Date(),keep=14}={}){
+async function backup(store,directory,{now=new Date(),keep=5}={}){
  if(!Number.isInteger(keep)||keep<1)throw Error('Invalid backup retention');
  await fs.mkdir(directory,{recursive:true,mode:0o700});
  const body=JSON.stringify(await store.read());

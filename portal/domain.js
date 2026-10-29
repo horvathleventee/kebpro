@@ -188,6 +188,8 @@ function updateComplaint(state,input,actorId,now=new Date()){
  const partner=state.partners.find(p=>(p.complaints||[]).some(c=>c.id===input.id));const complaint=partner?.complaints.find(c=>c.id===input.id);
  assert(complaint,'A bejelentés nem található.',404);assert(input.expectedRevision===(complaint.revision||1),'A bejelentés időközben módosult. Frissítsd és ellenőrizd újra.',409);assert(['open','resolved'].includes(input.status),'Érvénytelen állapot.');
  assert(typeof input.reply==='string'&&input.reply.length<=2000,'A válasz legfeljebb 2000 karakter lehet.');
+ if(input.status==='resolved'&&complaint.status!=='resolved')complaint.resolvedAt=now.toISOString();
+ if(input.status==='open')delete complaint.resolvedAt;
  Object.assign(complaint,{status:input.status,reply:input.reply.trim()||null,revision:(complaint.revision||1)+1,updatedAt:now.toISOString(),updatedBy:actorId});return complaint;
 }
 function publishNews(state, input) {

@@ -70,7 +70,7 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     try{await ready;const checks={...require('./health').inspect(await store.read()),server:Date.now()-lastServerErrorAt>300000};res.status(Object.values(checks).every(Boolean)?200:503).json({checks});}
     catch{res.status(503).json({checks:{database:false}});}
   });
-  app.use("/partner/assets", express.static(path.join(__dirname, "public"), { maxAge: 0, setHeaders:res=>res.setHeader("Cache-Control","public, max-age=0, must-revalidate") }));
+  app.use("/partner/assets", express.static(path.join(__dirname, "public"), { maxAge: 0, setHeaders:(res,file)=>{res.setHeader("Cache-Control","public, max-age=0, must-revalidate");if(['offline.html','unavailable.html'].includes(path.basename(file)))res.setHeader('Content-Security-Policy',"default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'");} }));
   app.get("/partner-admin/sw.js", (req,res)=>res.type("application/javascript").sendFile(path.join(__dirname,"public/admin-sw.js")));
   app.get("/partner-admin/manifest.webmanifest", (req,res)=>res.type("application/manifest+json").sendFile(path.join(__dirname,"public/admin.webmanifest")));
   app.get("/partner/sw.js", (req, res) => res.sendFile(path.join(__dirname, "public/sw.js")));
@@ -157,7 +157,7 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     domain.assert(user && valid, "Hibás felhasználónév vagy jelszó.", 401);
     domain.assert(user.status === "approved", user.status === "pending" ? "A regisztrációd még céges jóváhagyásra vár." : "A regisztrációdat nem hagyták jóvá. Keresd a Kebpro munkatársait.", 403);
     const token = crypto.randomBytes(32).toString("hex");
-    const sessionDuration = (user.role === 'partner' ? 90 : 1) * 86400000;
+    const sessionDuration = (user.role === 'partner' ? 90 : 7) * 86400000;
     const session = {hash:hash(token), csrf:crypto.randomBytes(32).toString("hex"), expires:Date.now()+sessionDuration, role:user.role, partnerId:user.partnerId, userId:user.id};
     await store.change(s => { domain.assert(s.users.find(u=>u.id===user.id)?.passwordHash===user.passwordHash && s.users.find(u=>u.id===user.id)?.status==='approved',"A jelszó időközben megváltozott. Jelentkezz be újra.",401); s.sessions=s.sessions.filter(x=>x.expires>Date.now()); s.sessions.push(session); });
     res.cookie(req.cookieName, token, {httpOnly:true,secure:req.secure,sameSite:"strict",path:req.base,maxAge:sessionDuration});
@@ -186,7 +186,7 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     const state = store.readPartner ? await store.readPartner(req.portalSession.partnerId,listing,now()) : await store.read();
     res.json({...domain.safePartner(state, state.partners.find(p => p.id === req.portalSession.partnerId), now(),listing),loginSession:require('./sessions').info(state.sessions?.find(s=>s.hash===req.portalSession.hash)||req.portalSession)});
   });
-  app.post('/partner/api/extend-session',requireSession,partner,async(req,res)=>{
+  app.post(['/partner/api/extend-session','/partner-admin/api/extend-session'],requireSession,async(req,res)=>{
     const loginSession=await store.change(s=>require('./sessions').extend(s,req.portalSession.hash,req.body.expiresAt));
     res.cookie(req.cookieName,req.portalToken,{httpOnly:true,secure:req.secure,sameSite:'strict',path:req.base,maxAge:Math.max(0,loginSession.expiresAt-Date.now())});
     res.json({loginSession});
@@ -249,7 +249,7 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
     const state = store.readAdmin?await store.readAdmin(date,tomorrow,listing):await store.read();
     const tomorrowView=domain.adminView(state,tomorrow,''),active=p=>!state.users.some(u=>u.partnerId===p.id&&u.status==='disabled');
     const todo={date:tomorrow,missing:tomorrowView.partners.filter(p=>active(p)&&!p.response).length,pending:state.users.filter(u=>u.role==='partner'&&u.status==='pending').length};
-    res.json({ retention:state.retention||{months:3},todo,date, currentUserId:req.portalSession.userId,publicKey:state.vapid.publicKey,pushMode:state.pushMode||'simulation', accounts:state.users.filter(u=>['approved','disabled'].includes(u.status)).map(u=>({id:u.id,username:u.username,company:u.company,role:u.role,status:u.status})), auditLog:(state.auditLog||[]).slice(-100).reverse(), operations:state.operations||{}, applications:auth.applications(state), ...invitations.list(state), ...domain.adminView(state, date, req.query.route || "",listing) });
+    res.json({ retention:state.retention||{months:3},todo,date, currentUserId:req.portalSession.userId,loginSession:require('./sessions').info(req.portalSession),publicKey:state.vapid.publicKey,pushMode:state.pushMode||'simulation', accounts:state.users.filter(u=>['approved','disabled'].includes(u.status)).map(u=>({id:u.id,username:u.username,company:u.company,role:u.role,status:u.status})), auditLog:(state.auditLog||[]).slice(-100).reverse(), operations:state.operations||{}, applications:auth.applications(state), ...invitations.list(state), ...domain.adminView(state, date, req.query.route || "",listing) });
   });
   app.post('/partner-admin/api/products',requireSession,staff,async(req,res)=>{
     await store.change(s=>{const p=s.products.find(p=>p.id===req.body.id);domain.assert(p&&typeof req.body.active==='boolean','Érvénytelen termék.');p.active=req.body.active;});res.json({ok:true});
@@ -258,6 +258,12 @@ function createPortalApp({ testRateLimits, databaseUrl, storage, alerts, monitor
   app.post('/partner-admin/api/promotions',requireSession,staff,async(req,res)=>{await store.change(s=>domain.updatePromotion(s,req.body));res.json({ok:true});});
   app.post('/partner-admin/api/complaints',requireSession,staff,async(req,res)=>{
     const complaint=await store.change(s=>domain.updateComplaint(s,req.body,req.portalSession.userId,now()));res.json({complaint});
+  });
+  app.get('/partner-admin/api/complaints/:id/export',requireSession,staff,async(req,res)=>{
+    const html=require('./complaint-export').exportComplaint(await store.read(),req.params.id);
+    if(!html)return res.sendStatus(404);
+    res.set('Content-Security-Policy',"sandbox; default-src 'none'; img-src data:; style-src 'unsafe-inline'");
+    res.set('Content-Disposition','attachment; filename="kebpro-bejelentes.html"');res.type('html').send(html);
   });
   app.post('/partner-admin/api/accounts',requireSession,staff,async(req,res)=>{
     await store.change(s=>require('./audit').setAccountStatus(s,req.body,req.portalSession.userId));res.json({ok:true});

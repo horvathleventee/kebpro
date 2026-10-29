@@ -21,6 +21,7 @@ test('complaint photo is size-limited, isolated and accessible only to its partn
   assert.equal((await fetch(origin+'/partner/api/complaint-photo/'+c.photoId,{headers:{Cookie:a.cookie}})).status,200);
   assert.equal((await fetch(origin+'/partner/api/complaint-photo/'+c.photoId,{headers:{Cookie:b.cookie}})).status,404);
   assert.equal((await fetch(origin+'/partner-admin/api/complaint-photo/'+c.photoId,{headers:{Cookie:admin.cookie}})).status,200);
+  const report=await fetch(origin+'/partner-admin/api/complaints/'+c.id+'/export',{headers:{Cookie:admin.cookie}});assert.equal(report.status,200);assert.match(report.headers.get('content-disposition'),/attachment/);const html=await report.text();assert.match(html,/Próbabejelentés/);assert.equal((html.match(/data:image\/jpeg;base64,/g)||[]).length,2);assert.equal((await fetch(origin+'/partner-admin/api/complaints/'+c.id+'/export',{headers:{Cookie:a.cookie}})).status,401);
   assert.equal((await fetch(origin+'/partner/api/complaint-photo/'+c.photoId)).status,401);
   r=await post('/partner/api/complaints',{orderId:'order-one',message:'Második',requestId:d.id(),photo:'data:image/jpeg;base64,SGVsbG8=',labelPhoto:photo},a.cookie,a.csrf);assert.equal(r.status,400);
  }finally{await new Promise(r=>server.close(r));await portal.store.close();}
@@ -90,4 +91,45 @@ test('new registrations and complaints queue private, deduplicated push to subsc
   assert.equal(sent.length,2);assert.ok(sent.every(x=>x.endpoint.includes('staff-active')));assert.deepEqual(new Set(sent.map(x=>x.payload.url)),new Set(['/partner-admin/#applications','/partner-admin/#complaints']));
   current=await store.read();assert.ok(current.outbox.filter(m=>['staff-registration','staff-complaint'].includes(m.category)).every(m=>m.status==='complete'));
  }finally{await store.close();}
+});
+
+test('partner session remains valid after application restart using the same persistent database',async()=>{
+ const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path');const dir=await fs.mkdtemp(path.join(os.tmpdir(),'kebpro-session-restart-'));const filename=path.join(dir,'portal.sqlite');let portal,server;
+ async function start(){portal=createPortalApp({filename,adminCredentials:{username:'admin',password:'Password123'}});await portal.ready;server=portal.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));return 'http://127.0.0.1:'+server.address().port;}
+ async function stop(){await new Promise(r=>server.close(r));server=null;await portal.store.close();portal=null;}
+ try{
+  let origin=await start();await auth.register(portal.store,{username:'restartuser',password:'Password123',email:'restart@example.invalid',company:'Test',contact:'Test',phone:'123',address:'Test'});await portal.store.change(s=>{const u=s.users.find(x=>x.username==='restartuser');u.status='approved';u.partnerId='partner-1';});
+  const login=await fetch(origin+'/partner/api/login',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({username:'restartuser',password:'Password123'})});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];assert.equal((await fetch(origin+'/partner/api/me',{headers:{Cookie:cookie}})).status,200);
+  await stop();origin=await start();assert.equal((await fetch(origin+'/partner/api/me',{headers:{Cookie:cookie}})).status,200);
+ }finally{if(server)await stop();if(path.dirname(dir)!==os.tmpdir()||!path.basename(dir).startsWith('kebpro-session-restart-'))throw Error('Invalid test directory');await fs.rm(dir,{recursive:true,force:true});}
+});
+
+test('closed complaints and photos expire only after four weeks and a fresh backup; reopened and legacy complaints are retained',()=>{
+ const now=new Date('2026-10-29T10:00:00Z'),day=86400000,s=d.seed();s.operations={backupAt:now.toISOString()};
+ s.partners[0].complaints=[{id:'expired',status:'resolved',resolvedAt:new Date(now-28*day).toISOString(),photoId:'photo-a',labelPhotoId:'photo-b'},{id:'recent',status:'resolved',resolvedAt:new Date(now-27*day).toISOString(),photoId:'photo-c'},{id:'open',status:'open',resolvedAt:new Date(now-50*day).toISOString(),photoId:'photo-d'},{id:'legacy',status:'resolved',updatedAt:new Date(now-100*day).toISOString(),photoId:'photo-e'}];
+ s.complaintPhotos=['a','b','c','d','e'].map(x=>({id:'photo-'+x}));const withoutBackup=structuredClone(s);withoutBackup.operations={};require('../portal/retention').purge(withoutBackup,now);assert.equal(withoutBackup.partners[0].complaints.length,4);
+ require('../portal/retention').purge(s,now);assert.deepEqual(s.partners[0].complaints.map(c=>c.id),['recent','open','legacy']);assert.deepEqual(s.complaintPhotos.map(p=>p.id),['photo-c','photo-d','photo-e']);assert.equal(s.partners[0].complaints[2].resolvedAt,now.toISOString());assert.equal(s.retention.complaintsDeleted,1);
+});
+test('staff renewal is offered only in the final two days and extends seven days',()=>{
+ const {info,extend,STAFF_DURATION,STAFF_WARNING}=require('../portal/sessions'),now=Date.now();const state={users:[{id:'admin',status:'approved'}],sessions:[{hash:'staff-token',userId:'admin',role:'staff',expires:now+STAFF_WARNING+1}]};
+ assert.equal(info(state.sessions[0],now).canExtend,false);state.sessions[0].expires=now+STAFF_WARNING;const old=state.sessions[0].expires;assert.equal(info(state.sessions[0],now).canExtend,true);assert.equal(extend(state,'staff-token',old,now).expiresAt,now+STAFF_DURATION);assert.equal(extend(state,'staff-token',old,now+1000).expiresAt,now+STAFF_DURATION);
+});
+test('reopening a complaint cancels the deletion date; resolving again starts a fresh period',()=>{
+ const s=d.seed(),p=s.partners[0],now=new Date('2026-10-29T10:00:00Z');p.complaints=[{id:'c',status:'resolved',resolvedAt:'2026-10-01T10:00:00Z',revision:1}];
+ d.updateComplaint(s,{id:'c',status:'open',reply:'',expectedRevision:1},'admin',now);assert.equal(p.complaints[0].resolvedAt,undefined);
+ d.updateComplaint(s,{id:'c',status:'resolved',reply:'Rendezve',expectedRevision:2},'admin',now);assert.equal(p.complaints[0].resolvedAt,now.toISOString());
+});
+
+test('admin renewal endpoint requires its own session and CSRF and sets a seven-day cookie',async()=>{
+ const portal=createPortalApp({filename:':memory:',adminCredentials:{username:'admin',password:'Password123'}});await portal.ready;const server=portal.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));const origin='http://127.0.0.1:'+server.address().port;
+ const post=(url,body,cookie='',csrf='')=>fetch(origin+url,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie,'X-CSRF-Token':csrf},body:JSON.stringify(body)});
+ try{const login=await post('/partner-admin/api/login',{username:'admin',password:'Password123'});const cookie=login.headers.get('set-cookie').split(';')[0];const html=await(await fetch(origin+'/partner-admin/',{headers:{Cookie:cookie}})).text(),csrf=html.match(/name="csrf-token" content="([^"]+)"/)[1];const expiresAt=Date.now()+86400000;await portal.store.change(s=>{s.sessions.find(x=>x.role==='staff').expires=expiresAt;});
+  const me=await(await fetch(origin+'/partner-admin/api/admin',{headers:{Cookie:cookie}})).json();assert.equal(me.loginSession.canExtend,true);
+  assert.equal((await post('/partner-admin/api/extend-session',{expiresAt},cookie,'wrong')).status,403);const extended=await post('/partner-admin/api/extend-session',{expiresAt},cookie,csrf);assert.equal(extended.status,200);assert.match(extended.headers.get('set-cookie'),/Max-Age=6047/);assert.ok((await extended.json()).loginSession.expiresAt>Date.now()+6*86400000);
+ }finally{await new Promise(r=>server.close(r));await portal.store.close();}
+});
+
+test('daily backups retain five recent snapshots by default',async()=>{
+ const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),dir=await fs.mkdtemp(path.join(os.tmpdir(),'kebpro-five-backups-'));const state=d.seed();state.users=[];const store=createStore(':memory:',()=>state);await store.ready;
+ try{for(let i=0;i<6;i++)await require('../portal/backup').backup(store,dir,{now:new Date(Date.UTC(2026,9,10+i))});assert.equal((await fs.readdir(dir)).filter(f=>f.endsWith('.json')).length,5);}finally{await store.close();if(path.dirname(dir)!==os.tmpdir()||!path.basename(dir).startsWith('kebpro-five-backups-'))throw Error('Invalid test directory');await fs.rm(dir,{recursive:true,force:true});}
 });
