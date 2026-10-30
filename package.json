@@ -14,7 +14,9 @@
     "test:partner:load": "node scripts/partner-load-test.cjs",
     "test:partner:postgres-local": "node scripts/partner-postgres-local.cjs",
     "build:partner-react": "npm run typecheck:partner && node scripts/build-partner-react.cjs",
-    "typecheck:partner": "tsc --project tsconfig.partner.json"
+    "typecheck:partner": "tsc --project tsconfig.partner.json",
+    "format": "prettier --write \"{api,portal,public/js,public/css,routes,scripts,tests,utils}/**/*.{js,cjs,ts,tsx,css}\" app.js server.js",
+    "format:check": "prettier --check \"{api,portal,public/js,public/css,routes,scripts,tests,utils}/**/*.{js,cjs,ts,tsx,css}\" app.js server.js"
   },
   "keywords": [
     "express",
@@ -44,6 +46,7 @@
     "@types/react-dom": "^19.3.0",
     "esbuild": "^0.28.2",
     "nodemon": "^3.1.14",
+    "prettier": "^3.9.10",
     "typescript": "^7.0.2"
   },
   "overrides": {

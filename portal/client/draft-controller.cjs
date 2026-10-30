@@ -36,16 +36,26 @@ function createDraftController(ctx) {
       store = ctx.createStore(ctx.getStorage(), data.id);
       const saved = store.read();
       if (saved) {
-        if ([...data.history, ...data.currentResponses || []].some((r) => r.requestId === saved.requestId || (r.changeIds || []).includes(saved.requestId))) {
+        if ([...data.history, ...data.currentResponses || []].some(
+          (r) => r.requestId === saved.requestId || (r.changeIds || []).includes(saved.requestId)
+        )) {
           store.clear();
           return;
         }
-        ctx.setState({ cart: saved.cart, note: saved.note, orderDate: saved.orderDate, editing: saved.editing, requestId: saved.requestId });
+        ctx.setState({
+          cart: saved.cart,
+          note: saved.note,
+          orderDate: saved.orderDate,
+          editing: saved.editing,
+          requestId: saved.requestId
+        });
         fingerprint = JSON.stringify(snapshot());
         ctx.toast("Visszat\xF6lt\xF6tt\xFCk a rendel\xE9si piszkozatodat. M\xE9g nincs bek\xFCldve.");
       }
     } catch {
-      ctx.setError("A helyi piszkozatot nem siker\xFClt bet\xF6lteni vagy el\xE9rni. A tart\xF3s ment\xE9s nem garant\xE1lt.");
+      ctx.setError(
+        "A helyi piszkozatot nem siker\xFClt bet\xF6lteni vagy el\xE9rni. A tart\xF3s ment\xE9s nem garant\xE1lt."
+      );
     }
   }
   function save() {

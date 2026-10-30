@@ -29,7 +29,8 @@ function createSessionController(ctx) {
     return "kebpro-session-reminder:" + role + ":" + (appState.state.data.id || appState.state.data.currentUserId) + ":" + appState.state.data.loginSession.expiresAt;
   }
   function offerSessionRenewal() {
-    if (!appState.state.data.loginSession?.canExtend || document.querySelector("dialog[open]")) return;
+    if (!appState.state.data.loginSession?.canExtend || document.querySelector("dialog[open]"))
+      return;
     const key = sessionReminderKey();
     if (sessionReminderShown === key || Date.now() < sessionSnoozedUntil) return;
     try {
@@ -39,7 +40,8 @@ function createSessionController(ctx) {
     openSessionRenewal();
   }
   function openSessionRenewal() {
-    if (!appState.state.data.loginSession?.canExtend || document.querySelector("dialog[open]")) return;
+    if (!appState.state.data.loginSession?.canExtend || document.querySelector("dialog[open]"))
+      return;
     const expiresAt = appState.state.data.loginSession.expiresAt, key = sessionReminderKey();
     sessionReminderShown = key;
     const snooze = () => {
@@ -50,12 +52,19 @@ function createSessionController(ctx) {
       } catch {
       }
     };
-    screens.openSessionRenewal({ staff: role === "staff", expiresAt, onLater: snooze, onRenew: async () => {
-      const result = await api("extend-session", { expiresAt });
-      appState.state.data.loginSession = result.loginSession;
-      render();
-      toast("Meghosszabb\xEDtottuk a bel\xE9p\xE9sedet eddig: " + operationTime(result.loginSession.expiresAt));
-    } });
+    screens.openSessionRenewal({
+      staff: role === "staff",
+      expiresAt,
+      onLater: snooze,
+      onRenew: async () => {
+        const result = await api("extend-session", { expiresAt });
+        appState.state.data.loginSession = result.loginSession;
+        render();
+        toast(
+          "Meghosszabb\xEDtottuk a bel\xE9p\xE9sedet eddig: " + operationTime(result.loginSession.expiresAt)
+        );
+      }
+    });
   }
   return { offerSessionRenewal, openSessionRenewal };
 }

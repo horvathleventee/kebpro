@@ -24,7 +24,8 @@ __export(photo_exports, {
 module.exports = __toCommonJS(photo_exports);
 async function compressComplaintPhoto(file) {
   if (!file || !file.size) return null;
-  if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024) throw Error("V\xE1lassz egy legfeljebb 20 MB-os k\xE9pet.");
+  if (!file.type.startsWith("image/") || file.size > 20 * 1024 * 1024)
+    throw Error("V\xE1lassz egy legfeljebb 20 MB-os k\xE9pet.");
   const url = await new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
@@ -46,7 +47,9 @@ async function compressComplaintPhoto(file) {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   for (const quality of [0.78, 0.65, 0.5, 0.35]) {
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+    const blob = await new Promise(
+      (resolve) => canvas.toBlob(resolve, "image/jpeg", quality)
+    );
     if (blob?.type === "image/jpeg" && blob.size <= 3e5) {
       return await new Promise((resolve, reject) => {
         const reader = new FileReader();

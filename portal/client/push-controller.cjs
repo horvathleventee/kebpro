@@ -27,11 +27,16 @@ function createPushController(ctx) {
   const Notification = window.Notification;
   const atob = window.atob.bind(window);
   async function registration() {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) throw new Error("Ez a b\xF6ng\xE9sz\u0151 most nem t\xE1mogatja a push \xE9rtes\xEDt\xE9st. iPhone-on a f\u0151k\xE9perny\u0151re telep\xEDtett appb\xF3l pr\xF3b\xE1ld.");
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window))
+      throw new Error(
+        "Ez a b\xF6ng\xE9sz\u0151 most nem t\xE1mogatja a push \xE9rtes\xEDt\xE9st. iPhone-on a f\u0151k\xE9perny\u0151re telep\xEDtett appb\xF3l pr\xF3b\xE1ld."
+      );
     return navigator.serviceWorker.ready;
   }
   function keyBytes(value) {
-    const raw = atob(value.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - value.length % 4) % 4));
+    const raw = atob(
+      value.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - value.length % 4) % 4)
+    );
     return Uint8Array.from(raw, (c) => c.charCodeAt(0));
   }
   let pushOfferShown = false;
@@ -45,14 +50,25 @@ function createPushController(ctx) {
     }
   }
   async function enablePartnerPush() {
-    if (!("Notification" in window) || !("PushManager" in window) || !("serviceWorker" in navigator)) throw new Error("Ezen a b\xF6ng\xE9sz\u0151n nem \xE9rhet\u0151 el. iPhone-on el\u0151bb add a F\u0151k\xE9perny\u0151h\xF6z, majd onnan nyisd meg az appot.");
+    if (!("Notification" in window) || !("PushManager" in window) || !("serviceWorker" in navigator))
+      throw new Error(
+        "Ezen a b\xF6ng\xE9sz\u0151n nem \xE9rhet\u0151 el. iPhone-on el\u0151bb add a F\u0151k\xE9perny\u0151h\xF6z, majd onnan nyisd meg az appot."
+      );
     const permission = await Notification.requestPermission();
-    if (permission !== "granted") throw new Error("Az \xE9rtes\xEDt\xE9seket nem enged\xE9lyezted. A b\xF6ng\xE9sz\u0151 vagy a telefon be\xE1ll\xEDt\xE1saiban k\xE9s\u0151bb bekapcsolhatod.");
+    if (permission !== "granted")
+      throw new Error(
+        "Az \xE9rtes\xEDt\xE9seket nem enged\xE9lyezted. A b\xF6ng\xE9sz\u0151 vagy a telefon be\xE1ll\xEDt\xE1saiban k\xE9s\u0151bb bekapcsolhatod."
+      );
     const reg = await registration();
-    const subscription = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(appState.state.data.publicKey) });
+    const subscription = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: keyBytes(appState.state.data.publicKey)
+    });
     const result = await api("subscription", { ...subscription.toJSON(), enableNews: true });
     rememberPushOffer();
-    toast(result.mode === "live" ? "\xC9rtes\xEDt\xE9sek \xE9s h\xEDrek bekapcsolva. A h\xEDrek a Be\xE1ll\xEDt\xE1sokban kikapcsolhat\xF3k." : "\xC9rtes\xEDt\xE9sek \xE9s h\xEDrek be\xE1ll\xEDtva. A t\xE1voli k\xFCld\xE9s jelenleg nem akt\xEDv.");
+    toast(
+      result.mode === "live" ? "\xC9rtes\xEDt\xE9sek \xE9s h\xEDrek bekapcsolva. A h\xEDrek a Be\xE1ll\xEDt\xE1sokban kikapcsolhat\xF3k." : "\xC9rtes\xEDt\xE9sek \xE9s h\xEDrek be\xE1ll\xEDtva. A t\xE1voli k\xFCld\xE9s jelenleg nem akt\xEDv."
+    );
     await load();
   }
   function offerPushSetup() {
@@ -64,7 +80,12 @@ function createPushController(ctx) {
     pushOfferShown = true;
     const supported = "Notification" in window && "PushManager" in window && "serviceWorker" in navigator;
     const denied = supported && Notification.permission === "denied";
-    screens.openPushWelcome({ supported, denied, onEnable: enablePartnerPush, onLater: rememberPushOffer });
+    screens.openPushWelcome({
+      supported,
+      denied,
+      onEnable: enablePartnerPush,
+      onLater: rememberPushOffer
+    });
   }
   return { registration, keyBytes, enablePartnerPush, offerPushSetup };
 }

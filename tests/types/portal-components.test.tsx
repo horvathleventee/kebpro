@@ -18,20 +18,67 @@ store.publish('home', <div>Rendelések</div>);
 <DraftStatus error="" exists={true} date="hétfő" count="egy" open={true} onDiscard={() => {}} />;
 // @ts-expect-error A view name must be a string.
 store.publish(5, <div />);
-<News news={[{id:'1',kind:'Hír',createdAt:'2026-10-01',title:'Cím',body:'Szöveg'}]} onRefresh={() => {}} />;
+<News
+  news={[{ id: '1', kind: 'Hír', createdAt: '2026-10-01', title: 'Cím', body: 'Szöveg' }]}
+  onRefresh={() => {}}
+/>;
 // @ts-expect-error News items need their publication date and text.
-<News news={[{id:'1'}]} onRefresh={() => {}} />;
-<Calls data={{partners:[],routes:[]}} mode="today" date="" route="" onMode={() => {}} onFilter={() => {}} />;
-<Packing data={{responses:[],totals:[{name:'Gyros',quantity:2,unit:'kg'}],routes:[]}} date="" route="" onFilter={() => {}} />;
+<News news={[{ id: '1' }]} onRefresh={() => {}} />;
+<Calls
+  data={{ partners: [], routes: [] }}
+  mode="today"
+  date=""
+  route=""
+  onMode={() => {}}
+  onFilter={() => {}}
+/>;
+<Packing
+  data={{ responses: [], totals: [{ name: 'Gyros', quantity: 2, unit: 'kg' }], routes: [] }}
+  date=""
+  route=""
+  onFilter={() => {}}
+/>;
 // @ts-expect-error Packing quantities are numbers.
-<Packing data={{responses:[],totals:[{name:'Gyros',quantity:'2',unit:'kg'}],routes:[]}} date="" route="" onFilter={() => {}} />;
+const invalidQuantity: React.ComponentProps<typeof Packing>['data']['totals'][number]['quantity'] =
+  '2';
+<Packing
+  data={{
+    responses: [],
+    totals: [{ name: 'Gyros', quantity: invalidQuantity, unit: 'kg' }],
+    routes: [],
+  }}
+  date=""
+  route=""
+  onFilter={() => {}}
+/>;
 <PhotoViewer id="id" label="Címke" base="/partner" onClose={() => {}} />;
 <ExportDialog file={new File([], 'report.html')} url="blob:report" onClose={() => {}} />;
-<ProductPicker products={[{id:'p',name:'Gyros'}]} favoriteProductIds={[]} onFavorite={async () => {}} onSelect={() => {}} onClose={() => {}} onError={() => {}} />;
-<SessionRenewal staff={true} expiresAt="2026-11-01" onRenew={async () => {}} onLater={() => {}} onClose={() => {}} />;
+<ProductPicker
+  products={[{ id: 'p', name: 'Gyros' }]}
+  favoriteProductIds={[]}
+  onFavorite={async () => {}}
+  onSelect={() => {}}
+  onClose={() => {}}
+  onError={() => {}}
+/>;
+<SessionRenewal
+  staff={true}
+  expiresAt="2026-11-01"
+  onRenew={async () => {}}
+  onLater={() => {}}
+  onClose={() => {}}
+/>;
 <TokenForm type="reset" base="/partner" token="token" />;
 // @ts-expect-error A product needs an identifier and name.
-<ProductPicker products={[{id:'p'}]} favoriteProductIds={[]} onFavorite={async () => {}} onSelect={() => {}} onClose={() => {}} onError={() => {}} />;
+const invalidProduct: React.ComponentProps<typeof ProductPicker>['products'][number] = { id: 'p' };
+<ProductPicker
+  products={[invalidProduct]}
+  favoriteProductIds={[]}
+  onFavorite={async () => {}}
+  onSelect={() => {}}
+  onClose={() => {}}
+  onError={() => {}}
+/>;
 // @ts-expect-error Only supported token form types may be used.
 <TokenForm type="other" base="/partner" token="token" />;
 declare const bridge: PortalScreens;

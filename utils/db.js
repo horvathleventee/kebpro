@@ -1,9 +1,9 @@
-﻿const path = require("path");
-const fs = require("fs");
+﻿const path = require('path');
+const fs = require('fs');
 
 function cleanEnv(value) {
-  if (typeof value !== "string") return "";
-  return value.trim().replace(/^['\"]|['\"]$/g, "");
+  if (typeof value !== 'string') return '';
+  return value.trim().replace(/^['\"]|['\"]$/g, '');
 }
 
 const envAdapter = cleanEnv(process.env.DB_ADAPTER).toLowerCase();
@@ -11,11 +11,10 @@ const connectionString =
   cleanEnv(process.env.DATABASE_URL) ||
   cleanEnv(process.env.POSTGRES_URL) ||
   cleanEnv(process.env.POSTGRES_PRISMA_URL) ||
-  "";
+  '';
 
 const adapter =
-  envAdapter ||
-  (connectionString ? "postgres" : process.env.VERCEL ? "memory" : "sqlite");
+  envAdapter || (connectionString ? 'postgres' : process.env.VERCEL ? 'memory' : 'sqlite');
 
 let sqlite;
 let db;
@@ -28,27 +27,27 @@ let positionsMemory = [];
 let careerApplicationsMemory = [];
 let settingsMemory = {
   notificationEmail:
-    process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || "info@kebpro.hu",
-  emailEnabled: process.env.ENABLE_EMAIL === "true",
+    process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || 'info@kebpro.hu',
+  emailEnabled: process.env.ENABLE_EMAIL === 'true',
   careerNotificationEmail:
-    process.env.CAREER_NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || "info@kebpro.hu",
-  careerEmailEnabled: process.env.ENABLE_CAREER_EMAIL === "true",
+    process.env.CAREER_NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || 'info@kebpro.hu',
+  careerEmailEnabled: process.env.ENABLE_CAREER_EMAIL === 'true',
 };
 
 function shouldUseMemoryFallback() {
-  return adapter === "memory" || (Boolean(dbInitError) && Boolean(process.env.VERCEL));
+  return adapter === 'memory' || (Boolean(dbInitError) && Boolean(process.env.VERCEL));
 }
 
-if (adapter === "sqlite") {
-  sqlite = require("sqlite3").verbose();
-  const dbPath = process.env.DB_PATH || path.join(__dirname, "..", "data", "kebpro.sqlite");
+if (adapter === 'sqlite') {
+  sqlite = require('sqlite3').verbose();
+  const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'kebpro.sqlite');
   sqliteDbPath = dbPath;
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   db = new sqlite.Database(dbPath);
 }
 
-if (adapter === "postgres") {
-  ({ Pool } = require("pg"));
+if (adapter === 'postgres') {
+  ({ Pool } = require('pg'));
   const sslEnabled = !/(localhost|127\.0\.0\.1)/i.test(connectionString);
   pool = new Pool({
     connectionString,
@@ -84,10 +83,10 @@ function get(sql, params = []) {
 }
 
 async function initDb() {
-  if (adapter === "memory") return;
+  if (adapter === 'memory') return;
 
   try {
-    if (adapter === "postgres") {
+    if (adapter === 'postgres') {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS submissions (
           id SERIAL PRIMARY KEY,
@@ -112,7 +111,9 @@ async function initDb() {
         ALTER TABLE submissions
         ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'new'
       `);
-      await pool.query(`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS company_headquarters TEXT`);
+      await pool.query(
+        `ALTER TABLE submissions ADD COLUMN IF NOT EXISTS company_headquarters TEXT`,
+      );
       await pool.query(`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS tax_number TEXT`);
 
       await pool.query(`
@@ -131,13 +132,17 @@ async function initDb() {
           DO NOTHING
         `,
         [
-          process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || "info@kebpro.hu",
-          process.env.ENABLE_EMAIL === "true",
-        ]
+          process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || 'info@kebpro.hu',
+          process.env.ENABLE_EMAIL === 'true',
+        ],
       );
 
-      await pool.query(`ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS career_notification_email TEXT NOT NULL DEFAULT 'info@kebpro.hu'`);
-      await pool.query(`ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS career_email_enabled BOOLEAN NOT NULL DEFAULT FALSE`);
+      await pool.query(
+        `ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS career_notification_email TEXT NOT NULL DEFAULT 'info@kebpro.hu'`,
+      );
+      await pool.query(
+        `ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS career_email_enabled BOOLEAN NOT NULL DEFAULT FALSE`,
+      );
 
       await pool.query(`
         CREATE TABLE IF NOT EXISTS positions (
@@ -187,7 +192,9 @@ async function initDb() {
       )
     `);
 
-    await run(`ALTER TABLE submissions ADD COLUMN status TEXT NOT NULL DEFAULT 'new'`).catch(() => {});
+    await run(`ALTER TABLE submissions ADD COLUMN status TEXT NOT NULL DEFAULT 'new'`).catch(
+      () => {},
+    );
     await run(`ALTER TABLE submissions ADD COLUMN company_headquarters TEXT`).catch(() => {});
     await run(`ALTER TABLE submissions ADD COLUMN tax_number TEXT`).catch(() => {});
 
@@ -205,13 +212,17 @@ async function initDb() {
         VALUES (1, ?, ?)
       `,
       [
-        process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || "info@kebpro.hu",
-        process.env.ENABLE_EMAIL === "true" ? 1 : 0,
-      ]
+        process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL || 'info@kebpro.hu',
+        process.env.ENABLE_EMAIL === 'true' ? 1 : 0,
+      ],
     );
 
-    await run(`ALTER TABLE app_settings ADD COLUMN career_notification_email TEXT NOT NULL DEFAULT 'info@kebpro.hu'`).catch(() => {});
-    await run(`ALTER TABLE app_settings ADD COLUMN career_email_enabled INTEGER NOT NULL DEFAULT 0`).catch(() => {});
+    await run(
+      `ALTER TABLE app_settings ADD COLUMN career_notification_email TEXT NOT NULL DEFAULT 'info@kebpro.hu'`,
+    ).catch(() => {});
+    await run(
+      `ALTER TABLE app_settings ADD COLUMN career_email_enabled INTEGER NOT NULL DEFAULT 0`,
+    ).catch(() => {});
 
     await run(`
       CREATE TABLE IF NOT EXISTS positions (
@@ -242,7 +253,10 @@ async function initDb() {
   } catch (error) {
     dbInitError = error;
     if (process.env.VERCEL) {
-      console.error("[db] Database init failed, falling back to memory storage:", error.message || error);
+      console.error(
+        '[db] Database init failed, falling back to memory storage:',
+        error.message || error,
+      );
       return;
     }
     throw error;
@@ -255,24 +269,24 @@ async function insertSubmission(payload) {
     submissionsMemory.unshift({
       id,
       type: payload.type,
-      status: "new",
+      status: 'new',
       name: payload.name,
       email: payload.email,
       phone: payload.phone,
       company: payload.company,
-      company_headquarters: payload.companyHeadquarters || "",
-      tax_number: payload.taxNumber || "",
+      company_headquarters: payload.companyHeadquarters || '',
+      tax_number: payload.taxNumber || '',
       product: payload.product,
-      quantity: payload.quantity || "",
-      address: payload.address || "",
-      requested_date: payload.requestedDate || "",
-      message: payload.message || "",
+      quantity: payload.quantity || '',
+      address: payload.address || '',
+      requested_date: payload.requestedDate || '',
+      message: payload.message || '',
       created_at: new Date().toISOString(),
     });
     return id;
   }
 
-  if (adapter === "postgres") {
+  if (adapter === 'postgres') {
     const result = await pool.query(
       `
         INSERT INTO submissions
@@ -286,14 +300,14 @@ async function insertSubmission(payload) {
         payload.email,
         payload.phone,
         payload.company,
-        payload.companyHeadquarters || "",
-        payload.taxNumber || "",
+        payload.companyHeadquarters || '',
+        payload.taxNumber || '',
         payload.product,
-        payload.quantity || "",
-        payload.address || "",
-        payload.requestedDate || "",
-        payload.message || "",
-      ]
+        payload.quantity || '',
+        payload.address || '',
+        payload.requestedDate || '',
+        payload.message || '',
+      ],
     );
 
     return result.rows[0]?.id;
@@ -311,49 +325,49 @@ async function insertSubmission(payload) {
       payload.email,
       payload.phone,
       payload.company,
-      payload.companyHeadquarters || "",
-      payload.taxNumber || "",
+      payload.companyHeadquarters || '',
+      payload.taxNumber || '',
       payload.product,
-      payload.quantity || "",
-      payload.address || "",
-      payload.requestedDate || "",
-      payload.message || "",
-    ]
+      payload.quantity || '',
+      payload.address || '',
+      payload.requestedDate || '',
+      payload.message || '',
+    ],
   );
 
   return result.lastID;
 }
 
-async function listSubmissions(type = "all") {
+async function listSubmissions(type = 'all') {
   const isCallbackLike = (row) =>
-    row.type === "callback" ||
-    /visszahív|visszahiv|callback|telefon/i.test(`${row.product || ""} ${row.message || ""}`);
+    row.type === 'callback' ||
+    /visszahív|visszahiv|callback|telefon/i.test(`${row.product || ''} ${row.message || ''}`);
 
   if (shouldUseMemoryFallback()) {
-    if (type === "all") return submissionsMemory.slice(0, 300);
-    if (type === "callback") return submissionsMemory.filter(isCallbackLike).slice(0, 300);
-    if (type === "quote") {
+    if (type === 'all') return submissionsMemory.slice(0, 300);
+    if (type === 'callback') return submissionsMemory.filter(isCallbackLike).slice(0, 300);
+    if (type === 'quote') {
       return submissionsMemory
-        .filter((row) => row.type === "quote" && !isCallbackLike(row))
+        .filter((row) => row.type === 'quote' && !isCallbackLike(row))
         .slice(0, 300);
     }
     return submissionsMemory.filter((row) => row.type === type).slice(0, 300);
   }
 
-  if (adapter === "postgres") {
-    if (type === "all") {
+  if (adapter === 'postgres') {
+    if (type === 'all') {
       const result = await pool.query(
         `
           SELECT id, type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message, created_at
           FROM submissions
           ORDER BY created_at DESC, id DESC
           LIMIT 300
-        `
+        `,
       );
       return result.rows;
     }
 
-    if (type === "callback") {
+    if (type === 'callback') {
       const result = await pool.query(
         `
           SELECT id, type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message, created_at
@@ -362,12 +376,12 @@ async function listSubmissions(type = "all") {
              OR CONCAT(COALESCE(product, ''), ' ', COALESCE(message, '')) ~* 'visszahív|visszahiv|callback|telefon'
           ORDER BY created_at DESC, id DESC
           LIMIT 300
-        `
+        `,
       );
       return result.rows;
     }
 
-    if (type === "quote") {
+    if (type === 'quote') {
       const result = await pool.query(
         `
           SELECT id, type, status, name, email, phone, company, company_headquarters, tax_number, product, quantity, address, requested_date, message, created_at
@@ -376,7 +390,7 @@ async function listSubmissions(type = "all") {
             AND CONCAT(COALESCE(product, ''), ' ', COALESCE(message, '')) !~* 'visszahív|visszahiv|callback|telefon'
           ORDER BY created_at DESC, id DESC
           LIMIT 300
-        `
+        `,
       );
       return result.rows;
     }
@@ -389,20 +403,22 @@ async function listSubmissions(type = "all") {
         ORDER BY created_at DESC, id DESC
         LIMIT 300
       `,
-      [type]
+      [type],
     );
     return result.rows;
   }
 
   const params = [];
-  let whereClause = "";
+  let whereClause = '';
 
-  if (type === "callback") {
-    whereClause = "WHERE type = 'callback' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%visszahív%' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%visszahiv%' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%callback%' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%telefon%'";
-  } else if (type === "quote") {
-    whereClause = "WHERE type = 'quote' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%visszahív%' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%visszahiv%' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%callback%' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%telefon%'";
-  } else if (type !== "all") {
-    whereClause = "WHERE type = ?";
+  if (type === 'callback') {
+    whereClause =
+      "WHERE type = 'callback' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%visszahív%' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%visszahiv%' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%callback%' OR LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) LIKE '%telefon%'";
+  } else if (type === 'quote') {
+    whereClause =
+      "WHERE type = 'quote' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%visszahív%' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%visszahiv%' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%callback%' AND LOWER(COALESCE(product, '') || ' ' || COALESCE(message, '')) NOT LIKE '%telefon%'";
+  } else if (type !== 'all') {
+    whereClause = 'WHERE type = ?';
     params.push(type);
   }
 
@@ -414,16 +430,16 @@ async function listSubmissions(type = "all") {
       ORDER BY created_at DESC, id DESC
       LIMIT 300
     `,
-    params
+    params,
   );
 }
 
 async function getNotificationSettings() {
   if (shouldUseMemoryFallback()) return { ...settingsMemory };
 
-  if (adapter === "postgres") {
+  if (adapter === 'postgres') {
     const result = await pool.query(
-      "SELECT notification_email, email_enabled, career_notification_email, career_email_enabled FROM app_settings WHERE id = 1"
+      'SELECT notification_email, email_enabled, career_notification_email, career_email_enabled FROM app_settings WHERE id = 1',
     );
     const row = result.rows[0];
     return {
@@ -431,18 +447,24 @@ async function getNotificationSettings() {
         row?.notification_email || process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
       emailEnabled: Boolean(row?.email_enabled),
       careerNotificationEmail:
-        row?.career_notification_email || process.env.CAREER_NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
+        row?.career_notification_email ||
+        process.env.CAREER_NOTIFICATION_EMAIL ||
+        process.env.COMPANY_EMAIL,
       careerEmailEnabled: Boolean(row?.career_email_enabled),
     };
   }
 
-  const row = await get("SELECT notification_email, email_enabled, career_notification_email, career_email_enabled FROM app_settings WHERE id = 1");
+  const row = await get(
+    'SELECT notification_email, email_enabled, career_notification_email, career_email_enabled FROM app_settings WHERE id = 1',
+  );
   return {
     notificationEmail:
       row?.notification_email || process.env.NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
     emailEnabled: Boolean(row?.email_enabled),
     careerNotificationEmail:
-      row?.career_notification_email || process.env.CAREER_NOTIFICATION_EMAIL || process.env.COMPANY_EMAIL,
+      row?.career_notification_email ||
+      process.env.CAREER_NOTIFICATION_EMAIL ||
+      process.env.COMPANY_EMAIL,
     careerEmailEnabled: Boolean(row?.career_email_enabled),
   };
 }
@@ -453,12 +475,12 @@ async function updateNotificationEmail(email) {
     return;
   }
 
-  if (adapter === "postgres") {
-    await pool.query("UPDATE app_settings SET notification_email = $1 WHERE id = 1", [email]);
+  if (adapter === 'postgres') {
+    await pool.query('UPDATE app_settings SET notification_email = $1 WHERE id = 1', [email]);
     return;
   }
 
-  await run("UPDATE app_settings SET notification_email = ? WHERE id = 1", [email]);
+  await run('UPDATE app_settings SET notification_email = ? WHERE id = 1', [email]);
 }
 
 async function setEmailEnabled(enabled) {
@@ -467,12 +489,12 @@ async function setEmailEnabled(enabled) {
     return;
   }
 
-  if (adapter === "postgres") {
-    await pool.query("UPDATE app_settings SET email_enabled = $1 WHERE id = 1", [Boolean(enabled)]);
+  if (adapter === 'postgres') {
+    await pool.query('UPDATE app_settings SET email_enabled = $1 WHERE id = 1', [Boolean(enabled)]);
     return;
   }
 
-  await run("UPDATE app_settings SET email_enabled = ? WHERE id = 1", [enabled ? 1 : 0]);
+  await run('UPDATE app_settings SET email_enabled = ? WHERE id = 1', [enabled ? 1 : 0]);
 }
 
 async function updateCareerNotificationEmail(email) {
@@ -481,12 +503,14 @@ async function updateCareerNotificationEmail(email) {
     return;
   }
 
-  if (adapter === "postgres") {
-    await pool.query("UPDATE app_settings SET career_notification_email = $1 WHERE id = 1", [email]);
+  if (adapter === 'postgres') {
+    await pool.query('UPDATE app_settings SET career_notification_email = $1 WHERE id = 1', [
+      email,
+    ]);
     return;
   }
 
-  await run("UPDATE app_settings SET career_notification_email = ? WHERE id = 1", [email]);
+  await run('UPDATE app_settings SET career_notification_email = ? WHERE id = 1', [email]);
 }
 
 async function setCareerEmailEnabled(enabled) {
@@ -495,28 +519,30 @@ async function setCareerEmailEnabled(enabled) {
     return;
   }
 
-  if (adapter === "postgres") {
-    await pool.query("UPDATE app_settings SET career_email_enabled = $1 WHERE id = 1", [Boolean(enabled)]);
+  if (adapter === 'postgres') {
+    await pool.query('UPDATE app_settings SET career_email_enabled = $1 WHERE id = 1', [
+      Boolean(enabled),
+    ]);
     return;
   }
 
-  await run("UPDATE app_settings SET career_email_enabled = ? WHERE id = 1", [enabled ? 1 : 0]);
+  await run('UPDATE app_settings SET career_email_enabled = ? WHERE id = 1', [enabled ? 1 : 0]);
 }
 
 async function updateSubmissionStatus(id, status) {
   if (shouldUseMemoryFallback()) {
     submissionsMemory = submissionsMemory.map((row) =>
-      Number(row.id) === Number(id) ? { ...row, status } : row
+      Number(row.id) === Number(id) ? { ...row, status } : row,
     );
     return;
   }
 
-  if (adapter === "postgres") {
-    await pool.query("UPDATE submissions SET status = $1 WHERE id = $2", [status, id]);
+  if (adapter === 'postgres') {
+    await pool.query('UPDATE submissions SET status = $1 WHERE id = $2', [status, id]);
     return;
   }
 
-  await run("UPDATE submissions SET status = ? WHERE id = ?", [status, id]);
+  await run('UPDATE submissions SET status = ? WHERE id = ?', [status, id]);
 }
 
 async function deleteSubmission(id) {
@@ -525,17 +551,17 @@ async function deleteSubmission(id) {
     return;
   }
 
-  if (adapter === "postgres") {
-    await pool.query("DELETE FROM submissions WHERE id = $1", [id]);
+  if (adapter === 'postgres') {
+    await pool.query('DELETE FROM submissions WHERE id = $1', [id]);
     return;
   }
 
-  await run("DELETE FROM submissions WHERE id = ?", [id]);
+  await run('DELETE FROM submissions WHERE id = ?', [id]);
 }
 
 function formatBytes(bytes) {
   if (!Number.isFinite(bytes) || bytes < 0) return null;
-  const units = ["B", "KB", "MB", "GB"];
+  const units = ['B', 'KB', 'MB', 'GB'];
   let value = bytes;
   let unitIndex = 0;
   while (value >= 1024 && unitIndex < units.length - 1) {
@@ -549,7 +575,7 @@ function getStorageLimitBytes() {
   const rawLimit =
     cleanEnv(process.env.DB_STORAGE_LIMIT_MB) ||
     cleanEnv(process.env.NEON_STORAGE_LIMIT_MB) ||
-    "500";
+    '500';
   const limitMb = Number(rawLimit);
   return (Number.isFinite(limitMb) && limitMb > 0 ? limitMb : 500) * 1024 * 1024;
 }
@@ -561,11 +587,11 @@ function getMemoryUsageBytes() {
       positions: positionsMemory,
       applications: careerApplicationsMemory.map((item) => ({
         ...item,
-        cv_filename: item.cv_filename ? "[file-reference]" : null,
+        cv_filename: item.cv_filename ? '[file-reference]' : null,
       })),
       settings: settingsMemory,
     }),
-    "utf8"
+    'utf8',
   );
 }
 
@@ -573,9 +599,9 @@ async function getDatabaseUsage() {
   const limitBytes = getStorageLimitBytes();
   const base = {
     available: true,
-    adapter: shouldUseMemoryFallback() ? "memory" : adapter,
+    adapter: shouldUseMemoryFallback() ? 'memory' : adapter,
     usedBytes: 0,
-    usedLabel: "0 B",
+    usedLabel: '0 B',
     limitBytes,
     limitLabel: formatBytes(limitBytes),
     freeBytes: limitBytes,
@@ -589,13 +615,15 @@ async function getDatabaseUsage() {
 
     if (shouldUseMemoryFallback()) {
       usedBytes = getMemoryUsageBytes();
-      base.note = "Becsült memóriahasználat, nem tartós Neon tárhely.";
-    } else if (adapter === "postgres") {
-      const result = await pool.query("SELECT pg_database_size(current_database())::bigint AS bytes");
+      base.note = 'Becsült memóriahasználat, nem tartós Neon tárhely.';
+    } else if (adapter === 'postgres') {
+      const result = await pool.query(
+        'SELECT pg_database_size(current_database())::bigint AS bytes',
+      );
       usedBytes = Number(result.rows[0]?.bytes || 0);
-    } else if (adapter === "sqlite") {
+    } else if (adapter === 'sqlite') {
       usedBytes = sqliteDbPath && fs.existsSync(sqliteDbPath) ? fs.statSync(sqliteDbPath).size : 0;
-      base.note = "Helyi SQLite fájlméret.";
+      base.note = 'Helyi SQLite fájlméret.';
     }
 
     const freeBytes = Math.max(limitBytes - usedBytes, 0);
@@ -620,11 +648,11 @@ async function getDbDiagnostics() {
   const diagnostics = {
     adapter,
     envAdapter,
-    configured: Boolean(connectionString) || adapter !== "postgres",
+    configured: Boolean(connectionString) || adapter !== 'postgres',
     connectionStringPresent: Boolean(connectionString),
     initError: dbInitError ? dbInitError.message || String(dbInitError) : null,
     writableStore:
-      adapter === "postgres" ? "persistent" : adapter === "sqlite" ? "local file" : "memory only",
+      adapter === 'postgres' ? 'persistent' : adapter === 'sqlite' ? 'local file' : 'memory only',
     submissionCount: 0,
     lastWriteAt: null,
     storage: await getDatabaseUsage(),
@@ -634,16 +662,16 @@ async function getDbDiagnostics() {
     diagnostics.submissionCount = submissionsMemory.length;
     diagnostics.lastWriteAt = submissionsMemory[0]?.created_at || null;
     if (dbInitError) {
-      diagnostics.writableStore = "memory fallback";
+      diagnostics.writableStore = 'memory fallback';
     }
     return diagnostics;
   }
 
   try {
-    if (adapter === "postgres") {
-      const countResult = await pool.query("SELECT COUNT(*)::int AS count FROM submissions");
+    if (adapter === 'postgres') {
+      const countResult = await pool.query('SELECT COUNT(*)::int AS count FROM submissions');
       const lastResult = await pool.query(
-        "SELECT created_at FROM submissions ORDER BY created_at DESC, id DESC LIMIT 1"
+        'SELECT created_at FROM submissions ORDER BY created_at DESC, id DESC LIMIT 1',
       );
 
       diagnostics.submissionCount = countResult.rows[0]?.count || 0;
@@ -651,9 +679,9 @@ async function getDbDiagnostics() {
       return diagnostics;
     }
 
-    const countRow = await get("SELECT COUNT(*) AS count FROM submissions");
+    const countRow = await get('SELECT COUNT(*) AS count FROM submissions');
     const lastRow = await get(
-      "SELECT created_at FROM submissions ORDER BY created_at DESC, id DESC LIMIT 1"
+      'SELECT created_at FROM submissions ORDER BY created_at DESC, id DESC LIMIT 1',
     );
 
     diagnostics.submissionCount = countRow?.count || 0;
@@ -673,16 +701,18 @@ async function listPositions(activeOnly = false) {
     return positionsMemory;
   }
 
-  if (adapter === "postgres") {
-    const where = activeOnly ? "WHERE active = TRUE" : "";
+  if (adapter === 'postgres') {
+    const where = activeOnly ? 'WHERE active = TRUE' : '';
     const result = await pool.query(
-      `SELECT id, title, description, location, type, active, created_at FROM positions ${where} ORDER BY created_at DESC`
+      `SELECT id, title, description, location, type, active, created_at FROM positions ${where} ORDER BY created_at DESC`,
     );
     return result.rows;
   }
 
-  const where = activeOnly ? "WHERE active = 1" : "";
-  return all(`SELECT id, title, description, location, type, active, created_at FROM positions ${where} ORDER BY created_at DESC`);
+  const where = activeOnly ? 'WHERE active = 1' : '';
+  return all(
+    `SELECT id, title, description, location, type, active, created_at FROM positions ${where} ORDER BY created_at DESC`,
+  );
 }
 
 async function addPosition(payload) {
@@ -691,26 +721,26 @@ async function addPosition(payload) {
     positionsMemory.unshift({
       id,
       title: payload.title,
-      description: payload.description || "",
-      location: payload.location || "",
-      type: payload.type || "",
+      description: payload.description || '',
+      location: payload.location || '',
+      type: payload.type || '',
       active: 1,
       created_at: new Date().toISOString(),
     });
     return id;
   }
 
-  if (adapter === "postgres") {
+  if (adapter === 'postgres') {
     const result = await pool.query(
       `INSERT INTO positions (title, description, location, type) VALUES ($1, $2, $3, $4) RETURNING id`,
-      [payload.title, payload.description || "", payload.location || "", payload.type || ""]
+      [payload.title, payload.description || '', payload.location || '', payload.type || ''],
     );
     return result.rows[0]?.id;
   }
 
   const result = await run(
     `INSERT INTO positions (title, description, location, type) VALUES (?, ?, ?, ?)`,
-    [payload.title, payload.description || "", payload.location || "", payload.type || ""]
+    [payload.title, payload.description || '', payload.location || '', payload.type || ''],
   );
   return result.lastID;
 }
@@ -719,19 +749,21 @@ async function deletePosition(id) {
   if (shouldUseMemoryFallback()) {
     positionsMemory = positionsMemory.filter((p) => Number(p.id) !== Number(id));
     careerApplicationsMemory = careerApplicationsMemory.map((a) =>
-      Number(a.position_id) === Number(id) ? { ...a, position_id: null } : a
+      Number(a.position_id) === Number(id) ? { ...a, position_id: null } : a,
     );
     return;
   }
 
-  if (adapter === "postgres") {
-    await pool.query("UPDATE career_applications SET position_id = NULL WHERE position_id = $1", [id]);
-    await pool.query("DELETE FROM positions WHERE id = $1", [id]);
+  if (adapter === 'postgres') {
+    await pool.query('UPDATE career_applications SET position_id = NULL WHERE position_id = $1', [
+      id,
+    ]);
+    await pool.query('DELETE FROM positions WHERE id = $1', [id]);
     return;
   }
 
-  await run("UPDATE career_applications SET position_id = NULL WHERE position_id = ?", [id]);
-  await run("DELETE FROM positions WHERE id = ?", [id]);
+  await run('UPDATE career_applications SET position_id = NULL WHERE position_id = ?', [id]);
+  await run('DELETE FROM positions WHERE id = ?', [id]);
 }
 
 /* ── Career applications ── */
@@ -744,7 +776,7 @@ async function insertCareerApplication(payload) {
       name: payload.name,
       email: payload.email,
       phone: payload.phone,
-      motivation: payload.motivation || "",
+      motivation: payload.motivation || '',
       position_id: payload.positionId || null,
       cv_filename: payload.cvFilename || null,
       created_at: new Date().toISOString(),
@@ -752,11 +784,18 @@ async function insertCareerApplication(payload) {
     return id;
   }
 
-  if (adapter === "postgres") {
+  if (adapter === 'postgres') {
     const result = await pool.query(
       `INSERT INTO career_applications (name, email, phone, motivation, position_id, cv_filename)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-      [payload.name, payload.email, payload.phone, payload.motivation || "", payload.positionId || null, payload.cvFilename || null]
+      [
+        payload.name,
+        payload.email,
+        payload.phone,
+        payload.motivation || '',
+        payload.positionId || null,
+        payload.cvFilename || null,
+      ],
     );
     return result.rows[0]?.id;
   }
@@ -764,7 +803,14 @@ async function insertCareerApplication(payload) {
   const result = await run(
     `INSERT INTO career_applications (name, email, phone, motivation, position_id, cv_filename)
      VALUES (?, ?, ?, ?, ?, ?)`,
-    [payload.name, payload.email, payload.phone, payload.motivation || "", payload.positionId || null, payload.cvFilename || null]
+    [
+      payload.name,
+      payload.email,
+      payload.phone,
+      payload.motivation || '',
+      payload.positionId || null,
+      payload.cvFilename || null,
+    ],
   );
   return result.lastID;
 }
@@ -772,12 +818,12 @@ async function insertCareerApplication(payload) {
 async function listCareerApplications() {
   if (shouldUseMemoryFallback()) return careerApplicationsMemory.slice(0, 300);
 
-  if (adapter === "postgres") {
+  if (adapter === 'postgres') {
     const result = await pool.query(
       `SELECT ca.*, p.title AS position_title
        FROM career_applications ca
        LEFT JOIN positions p ON ca.position_id = p.id
-       ORDER BY ca.created_at DESC LIMIT 300`
+       ORDER BY ca.created_at DESC LIMIT 300`,
     );
     return result.rows;
   }
@@ -786,27 +832,29 @@ async function listCareerApplications() {
     `SELECT ca.*, p.title AS position_title
      FROM career_applications ca
      LEFT JOIN positions p ON ca.position_id = p.id
-     ORDER BY ca.created_at DESC LIMIT 300`
+     ORDER BY ca.created_at DESC LIMIT 300`,
   );
 }
 
 async function deleteCareerApplication(id) {
   if (shouldUseMemoryFallback()) {
     const deleted = careerApplicationsMemory.find((item) => Number(item.id) === Number(id));
-    careerApplicationsMemory = careerApplicationsMemory.filter((item) => Number(item.id) !== Number(id));
+    careerApplicationsMemory = careerApplicationsMemory.filter(
+      (item) => Number(item.id) !== Number(id),
+    );
     return deleted?.cv_filename || null;
   }
 
-  if (adapter === "postgres") {
+  if (adapter === 'postgres') {
     const result = await pool.query(
-      "DELETE FROM career_applications WHERE id = $1 RETURNING cv_filename",
-      [id]
+      'DELETE FROM career_applications WHERE id = $1 RETURNING cv_filename',
+      [id],
     );
     return result.rows[0]?.cv_filename || null;
   }
 
-  const row = await get("SELECT cv_filename FROM career_applications WHERE id = ?", [id]);
-  await run("DELETE FROM career_applications WHERE id = ?", [id]);
+  const row = await get('SELECT cv_filename FROM career_applications WHERE id = ?', [id]);
+  await run('DELETE FROM career_applications WHERE id = ?', [id]);
   return row?.cv_filename || null;
 }
 

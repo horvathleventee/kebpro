@@ -22,24 +22,40 @@ __export(api_exports, {
   createPortalApi: () => createPortalApi
 });
 module.exports = __toCommonJS(api_exports);
-function createPortalApi({ base, csrf, fetchImpl, isOnline, saveDraft, onMutationStart, onMutationEnd, onUnauthorized }) {
+function createPortalApi({
+  base,
+  csrf,
+  fetchImpl,
+  isOnline,
+  saveDraft,
+  onMutationStart,
+  onMutationEnd,
+  onUnauthorized
+}) {
   return async function request(path, body, method = "POST") {
     if (path === "responses") saveDraft();
     const mutating = body !== void 0;
     if (mutating) onMutationStart();
     let response;
     try {
-      response = await fetchImpl(base + "/api/" + path, mutating ? {
-        method,
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
-        body: JSON.stringify(body)
-      } : {});
+      response = await fetchImpl(
+        base + "/api/" + path,
+        mutating ? {
+          method,
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+          body: JSON.stringify(body)
+        } : {}
+      );
     } catch {
       if (path === "responses") {
         saveDraft();
-        throw new Error("Nem kaptunk visszaigazol\xE1st. A piszkozat megmaradt. Kapcsol\xF3dj \xFAjra, majd ellen\u0151rizd a Rendel\xE9seim oldalt, miel\u0151tt \xFAjrapr\xF3b\xE1lod.");
+        throw new Error(
+          "Nem kaptunk visszaigazol\xE1st. A piszkozat megmaradt. Kapcsol\xF3dj \xFAjra, majd ellen\u0151rizd a Rendel\xE9seim oldalt, miel\u0151tt \xFAjrapr\xF3b\xE1lod."
+        );
       }
-      throw new Error(isOnline() === false ? "Nincs internetkapcsolat. Ellen\u0151rizd a kapcsolatot, majd pr\xF3b\xE1ld \xFAjra." : "Nem siker\xFClt el\xE9rni a kiszolg\xE1l\xF3t. Pr\xF3b\xE1ld \xFAjra k\xE9s\u0151bb.");
+      throw new Error(
+        isOnline() === false ? "Nincs internetkapcsolat. Ellen\u0151rizd a kapcsolatot, majd pr\xF3b\xE1ld \xFAjra." : "Nem siker\xFClt el\xE9rni a kiszolg\xE1l\xF3t. Pr\xF3b\xE1ld \xFAjra k\xE9s\u0151bb."
+      );
     } finally {
       if (mutating) onMutationEnd();
     }
@@ -49,7 +65,9 @@ function createPortalApi({ base, csrf, fetchImpl, isOnline, saveDraft, onMutatio
     }
     if (response.status >= 500) {
       if (path === "responses") saveDraft();
-      throw new Error("Az alkalmaz\xE1s kiszolg\xE1l\xF3ja \xE1tmenetileg nem el\xE9rhet\u0151. Pr\xF3b\xE1ld \xFAjra k\xE9s\u0151bb." + (path === "responses" ? " A piszkozat megmaradt; ellen\u0151rizd a Rendel\xE9seim oldalt az \xFAjrapr\xF3b\xE1l\xE1s el\u0151tt." : ""));
+      throw new Error(
+        "Az alkalmaz\xE1s kiszolg\xE1l\xF3ja \xE1tmenetileg nem el\xE9rhet\u0151. Pr\xF3b\xE1ld \xFAjra k\xE9s\u0151bb." + (path === "responses" ? " A piszkozat megmaradt; ellen\u0151rizd a Rendel\xE9seim oldalt az \xFAjrapr\xF3b\xE1l\xE1s el\u0151tt." : "")
+      );
     }
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Nem siker\xFClt menteni.");

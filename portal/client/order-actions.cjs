@@ -30,10 +30,14 @@ function createOrderActions(ctx) {
     add(values) {
       try {
         const { data, cart } = state(), product = data.products.find((p) => p.id === values.get("productId")), amount = Number(values.get("quantity")), unit = values.get("unit");
-        if (!product || unit !== "kg" && unit !== "db" && unit !== "karton" || !Number.isFinite(amount) || amount <= 0 || amount > 1e4 || unit !== "kg" && !Number.isInteger(amount)) throw Error("Ellen\u0151rizd a term\xE9ket \xE9s a mennyis\xE9get. Darab \xE9s karton csak eg\xE9sz sz\xE1m lehet.");
+        if (!product || unit !== "kg" && unit !== "db" && unit !== "karton" || !Number.isFinite(amount) || amount <= 0 || amount > 1e4 || unit !== "kg" && !Number.isInteger(amount))
+          throw Error(
+            "Ellen\u0151rizd a term\xE9ket \xE9s a mennyis\xE9get. Darab \xE9s karton csak eg\xE9sz sz\xE1m lehet."
+          );
         const existing = cart.find((i) => i.productId === product.id);
         if (existing) {
-          if (existing.unit !== unit) throw Error("Ez a term\xE9k m\xE1r szerepel m\xE1s m\xE9rt\xE9kegys\xE9ggel. El\u0151bb t\xE1vol\xEDtsd el.");
+          if (existing.unit !== unit)
+            throw Error("Ez a term\xE9k m\xE1r szerepel m\xE1s m\xE9rt\xE9kegys\xE9ggel. El\u0151bb t\xE1vol\xEDtsd el.");
           if (existing.quantity + amount > 1e4) throw Error("T\xFAl nagy mennyis\xE9g.");
           existing.quantity = Math.round((existing.quantity + amount) * 100) / 100;
         } else cart.push({ productId: product.id, name: product.name, quantity: amount, unit });
@@ -86,7 +90,11 @@ function createOrderActions(ctx) {
     },
     saveTemplate() {
       ctx.confirm("Szok\xE1sos rendel\xE9si lista ment\xE9se", async () => {
-        await ctx.api("templates", { id: document.getElementById("template-target").value || void 0, name: document.getElementById("template-name").value, items: state().cart });
+        await ctx.api("templates", {
+          id: document.getElementById("template-target").value || void 0,
+          name: document.getElementById("template-name").value,
+          items: state().cart
+        });
         await ctx.load();
         ctx.toast("Rendel\xE9si lista mentve.");
       });
@@ -94,13 +102,16 @@ function createOrderActions(ctx) {
     loadTemplate(id) {
       try {
         const { data, cart, editing } = state();
-        if (ctx.currentResponse() && !editing) throw Error("Erre a napra m\xE1r v\xE1laszolt\xE1l. El\u0151bb nyisd meg a rendel\xE9s m\xF3dos\xEDt\xE1s\xE1t.");
+        if (ctx.currentResponse() && !editing)
+          throw Error("Erre a napra m\xE1r v\xE1laszolt\xE1l. El\u0151bb nyisd meg a rendel\xE9s m\xF3dos\xEDt\xE1s\xE1t.");
         const template = data.templates.find((t) => t.id === id);
         const use = () => {
           const items = template.items.filter((i) => state().data.products.some((p) => p.id === i.productId)).map((i) => ({ ...i }));
           update({ cart: items, requestId: newRequest() });
           ctx.render();
-          ctx.toast(items.length < template.items.length ? "Lista bet\xF6ltve; a m\xE1r nem rendelhet\u0151 term\xE9keket kihagytuk. Ellen\u0151rizd a kosarat." : "Lista bet\xF6ltve. Ellen\u0151rizd a t\xE9teleket; m\xE9g nem adt\xE1l le rendel\xE9st.");
+          ctx.toast(
+            items.length < template.items.length ? "Lista bet\xF6ltve; a m\xE1r nem rendelhet\u0151 term\xE9keket kihagytuk. Ellen\u0151rizd a kosarat." : "Lista bet\xF6ltve. Ellen\u0151rizd a t\xE9teleket; m\xE9g nem adt\xE1l le rendel\xE9st."
+          );
         };
         if (cart.length) ctx.confirm("Kos\xE1r cser\xE9je", use);
         else use();
@@ -117,13 +128,28 @@ function createOrderActions(ctx) {
     review() {
       try {
         const { data, cart, note } = state(), unavailable = cart.filter((i) => !data.products.some((p) => p.id === i.productId));
-        if (unavailable.length) throw Error("Ezek most nem rendelhet\u0151k: " + unavailable.map((i) => i.name).join(", ") + ". T\xE1vol\xEDtsd el \u0151ket a kos\xE1rb\xF3l.");
+        if (unavailable.length)
+          throw Error(
+            "Ezek most nem rendelhet\u0151k: " + unavailable.map((i) => i.name).join(", ") + ". T\xE1vol\xEDtsd el \u0151ket a kos\xE1rb\xF3l."
+          );
         const expectedPrices = cart.map(ctx.currentPrice);
-        if (expectedPrices.some((p) => p === null)) throw Error("Az egyik term\xE9khez nincs megadva \xE1r. K\xE9rj\xFCk, fordulj az \xE9rt\xE9kes\xEDt\u0151 koll\xE9g\xE1khoz az \xE1r be\xE1ll\xEDt\xE1s\xE1hoz.");
+        if (expectedPrices.some((p) => p === null))
+          throw Error(
+            "Az egyik term\xE9khez nincs megadva \xE1r. K\xE9rj\xFCk, fordulj az \xE9rt\xE9kes\xEDt\u0151 koll\xE9g\xE1khoz az \xE1r be\xE1ll\xEDt\xE1s\xE1hoz."
+          );
         ctx.confirm("Ellen\u0151rizd a rendel\xE9sed", async () => {
           const current = state();
           update({ historyPage: 1 });
-          const result = await ctx.api("responses", { kind: "order", date: ctx.chosenDelivery().date, items: current.cart, expectedPrices, note: current.note, requestId: current.requestId, responseId: current.editing?.id, revision: current.editing?.revision });
+          const result = await ctx.api("responses", {
+            kind: "order",
+            date: ctx.chosenDelivery().date,
+            items: current.cart,
+            expectedPrices,
+            note: current.note,
+            requestId: current.requestId,
+            responseId: current.editing?.id,
+            revision: current.editing?.revision
+          });
           update({ cart: [], note: "", editing: null, requestId: newRequest() });
           ctx.saveDraft();
           await ctx.load();

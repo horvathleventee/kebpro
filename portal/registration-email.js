@@ -28,10 +28,19 @@ function approvalEmail(account, origin) {
   return {
     to: account.email,
     subject: 'Kebpro · Partnerregisztráció jóváhagyva',
-    text: ['Szia!', '', 'A Halasi Kebpro Kft. jóváhagyta a partnerregisztrációdat.',
-      'Cég / üzlet neve: ' + account.company, 'Felhasználónév: ' + account.username,
-      '', 'Most már bejelentkezhetsz a partnerfelületre:', new URL('/partner/login', origin).toString(),
-      '', 'Üdvözlettel:', 'Halasi Kebpro Kft.'].join('\n'),
+    text: [
+      'Szia!',
+      '',
+      'A Halasi Kebpro Kft. jóváhagyta a partnerregisztrációdat.',
+      'Cég / üzlet neve: ' + account.company,
+      'Felhasználónév: ' + account.username,
+      '',
+      'Most már bejelentkezhetsz a partnerfelületre:',
+      new URL('/partner/login', origin).toString(),
+      '',
+      'Üdvözlettel:',
+      'Halasi Kebpro Kft.',
+    ].join('\n'),
   };
 }
 module.exports = { registrationEmail, approvalEmail };

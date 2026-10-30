@@ -34,6 +34,7 @@ function getLinePrice(products, item) {
 function summarizeCart(products, cart) {
   if (!cart.length) return "";
   const lines = cart.map((item) => getLinePrice(products, item));
-  if (lines.some((value) => value === null)) return "Hi\xE1nyz\xF3 \xE1r: k\xE9rj\xFCk, fordulj az \xE9rt\xE9kes\xEDt\u0151 koll\xE9g\xE1khoz.";
+  if (lines.some((value) => value === null))
+    return "Hi\xE1nyz\xF3 \xE1r: k\xE9rj\xFCk, fordulj az \xE9rt\xE9kes\xEDt\u0151 koll\xE9g\xE1khoz.";
   return "Nett\xF3 \xF6sszesen: " + formatMoney(lines.reduce((sum, value) => sum + (value ?? 0), 0));
 }

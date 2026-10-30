@@ -1,6 +1,6 @@
-﻿require("dotenv").config();
+﻿require('dotenv').config();
 
-const { app, dbReady } = require("./server");
+const { app, dbReady } = require('./server');
 
 const PORT = process.env.PORT || 3000;
 
@@ -11,7 +11,6 @@ dbReady
     });
   })
   .catch((error) => {
-    console.error("Indítási hiba:", error);
+    console.error('Indítási hiba:', error);
     process.exit(1);
   });
-

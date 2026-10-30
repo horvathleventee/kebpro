@@ -27,11 +27,14 @@ function createPortalLoader(ctx) {
   const editing = () => ctx.content.contains(ctx.document.activeElement) && ctx.document.activeElement?.matches("input,textarea,select");
   return async function load(automatic = false) {
     let state = ctx.getState();
-    if (automatic && (ctx.content.querySelector(dirtySelector) || state.automaticLoadPending || ctx.navigator.onLine === false || ctx.document.hidden || state.mutations || ctx.document.querySelector("dialog[open]") || editing())) return;
+    if (automatic && (ctx.content.querySelector(dirtySelector) || state.automaticLoadPending || ctx.navigator.onLine === false || ctx.document.hidden || state.mutations || ctx.document.querySelector("dialog[open]") || editing()))
+      return;
     if (automatic) ctx.setState({ automaticLoadPending: true });
     const sequence = state.loadSequence + 1;
     ctx.setState({ loadSequence: sequence });
-    const query = new URLSearchParams({ page: String(state.role === "staff" ? state.ordersPage : state.historyPage) });
+    const query = new URLSearchParams({
+      page: String(state.role === "staff" ? state.ordersPage : state.historyPage)
+    });
     if (state.role === "staff") {
       query.set("view", state.orderView);
       query.set("sort", state.archiveSort);
@@ -44,13 +47,20 @@ function createPortalLoader(ctx) {
       const next = await ctx.api(state.role === "staff" ? "admin?" + query : "me?" + query);
       state = ctx.getState();
       if (sequence !== state.loadSequence) return;
-      if (automatic && (ctx.content.querySelector(dirtySelector) || state.mutations || ctx.document.querySelector("dialog[open]") || editing())) return;
+      if (automatic && (ctx.content.querySelector(dirtySelector) || state.mutations || ctx.document.querySelector("dialog[open]") || editing()))
+        return;
       const data = state.data, changed = JSON.stringify(next) !== JSON.stringify(data);
       const searchSelection = ctx.document.activeElement?.id === "order-search" ? ctx.document.activeElement.selectionStart : null;
       const oldIds = new Set(data?.allOrders?.map((r) => r.id) || []);
-      const modified = automatic && state.role === "staff" && data ? next.allOrders.filter((r) => data.allOrders.some((old) => old.id === r.id && (old.revision || 1) < (r.revision || 1))).length : 0;
+      const modified = automatic && state.role === "staff" && data ? next.allOrders.filter(
+        (r) => data.allOrders.some(
+          (old) => old.id === r.id && (old.revision || 1) < (r.revision || 1)
+        )
+      ).length : 0;
       const added = automatic && state.role === "staff" && data ? next.allOrders.filter((r) => !oldIds.has(r.id)).length : 0;
-      const updates = state.role === "partner" && data ? next.history.filter((r) => r.kind === "order" && data.history.some((old) => old.id === r.id && old.status !== r.status)) : [];
+      const updates = state.role === "partner" && data ? next.history.filter(
+        (r) => r.kind === "order" && data.history.some((old) => old.id === r.id && old.status !== r.status)
+      ) : [];
       const changes = { data: next };
       if (state.role === "staff") {
         changes.ordersPage = next.orderPage?.page || 1;
@@ -71,11 +81,23 @@ function createPortalLoader(ctx) {
           input.setSelectionRange(searchSelection, searchSelection);
         }
       }
-      ctx.syncStatus("Automatikus friss\xEDt\xE9s \xB7 " + (/* @__PURE__ */ new Date()).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Budapest" }));
+      ctx.syncStatus(
+        "Automatikus friss\xEDt\xE9s \xB7 " + (/* @__PURE__ */ new Date()).toLocaleTimeString("hu-HU", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Europe/Budapest"
+        })
+      );
       ctx.offerSessionRenewal();
       if (!automatic) ctx.offerPushSetup();
-      if (updates.length) ctx.toast(updates.length === 1 ? "Rendel\xE9sed \xE1llapota: " + (ctx.statusLabel[updates[0].status] || updates[0].status) + ". R\xE9szletek a Rendel\xE9seim oldalon." : updates.length + " rendel\xE9sed \xE1llapota friss\xFClt. R\xE9szletek a Rendel\xE9seim oldalon.");
-      if (added || modified) ctx.toast((added ? added + " \xFAj rendel\xE9s. " : "") + (modified ? modified + " rendel\xE9st m\xF3dos\xEDtottak." : ""));
+      if (updates.length)
+        ctx.toast(
+          updates.length === 1 ? "Rendel\xE9sed \xE1llapota: " + (ctx.statusLabel[updates[0].status] || updates[0].status) + ". R\xE9szletek a Rendel\xE9seim oldalon." : updates.length + " rendel\xE9sed \xE1llapota friss\xFClt. R\xE9szletek a Rendel\xE9seim oldalon."
+        );
+      if (added || modified)
+        ctx.toast(
+          (added ? added + " \xFAj rendel\xE9s. " : "") + (modified ? modified + " rendel\xE9st m\xF3dos\xEDtottak." : "")
+        );
     } catch (error) {
       ctx.syncStatus("Kapcsol\xF3d\xE1s \xFAjra\u2026");
       if (!automatic) throw error;

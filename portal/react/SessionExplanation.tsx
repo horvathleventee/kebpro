@@ -1,4 +1,52 @@
 import React from 'react';
-export function SessionExplanation({staff=false}: {staff?: boolean}) {
-  return <details className="section-gap"><summary>{staff ? "Hogyan m\u0171k\xF6dik a bel\xE9p\xE9s meghosszabb\xEDt\xE1sa?" : "Mi\xE9rt j\xE1r le a bel\xE9p\xE9sem, \xE9s hogyan m\u0171k\xF6dik a hosszabb\xEDt\xE1s?"}</summary>{staff ? <p>A céges belépés ezen az eszközön 7 napig marad érvényes. A lejárat előtti 2 napban az alkalmazás megnyitásakor felajánljuk az újabb 7 napot. Ez nem küld push értesítést. Más eszközöket nem érint, és kijelentkezéskor vagy jelszó-visszaállításkor megszűnhet.</p> : <div className="section-gap"><p>A belépésed ezen a böngészőn vagy telepített appon 90 napig marad érvényes. Így nem kell minden rendelés előtt megadnod a jelszavadat. Az app bezárása önmagában nem jelentkeztet ki.</p><p>A lejárat előtti 7 napban felajánljuk a hosszabbítást. Ha megerősíted, a megerősítés időpontjától újabb 90 napig maradsz bejelentkezve ezen az eszközön. A hosszabbítás nem automatikus, és más telefonon vagy böngészőben nem módosítja a belépésedet.</p><p>A „Most nem” nem jelentkeztet ki: az eredeti lejáratig használhatod az appot. Legkorábban 24 óra múlva, az app használatakor újra szólunk. Addig a Beállításokból is hosszabbíthatsz. Ha lejár, újra be kell jelentkezned.</p><p>A határidő azért van, hogy egy régi vagy már nem használt eszközön ne maradjon korlátlan ideig hozzáférés. Csak saját vagy megbízható eszközön hosszabbíts. Közös vagy eladott telefonon jelentkezz ki.</p><p>A kijelentkezés, a jelszó visszaállítása vagy a fiók letiltása a 90 nap letelte előtt is megszüntetheti a hozzáférést. A böngésző adatainak törlése után szintén új belépés szükséges.</p><p>A hosszabbítás nem küld be rendelést, nem törli a piszkozatot, és nem változtatja meg az értesítési beállításokat. A push engedélye külön beállítás; ez a lejárati felhívás az app használatakor jelenik meg, nem háttérben kiküldött értesítés.</p></div>}</details>;
+export function SessionExplanation({ staff = false }: { staff?: boolean }) {
+  return (
+    <details className="section-gap">
+      <summary>
+        {staff
+          ? 'Hogyan m\u0171k\xF6dik a bel\xE9p\xE9s meghosszabb\xEDt\xE1sa?'
+          : 'Mi\xE9rt j\xE1r le a bel\xE9p\xE9sem, \xE9s hogyan m\u0171k\xF6dik a hosszabb\xEDt\xE1s?'}
+      </summary>
+      {staff ? (
+        <p>
+          A céges belépés ezen az eszközön 7 napig marad érvényes. A lejárat előtti 2 napban az
+          alkalmazás megnyitásakor felajánljuk az újabb 7 napot. Ez nem küld push értesítést. Más
+          eszközöket nem érint, és kijelentkezéskor vagy jelszó-visszaállításkor megszűnhet.
+        </p>
+      ) : (
+        <div className="section-gap">
+          <p>
+            A belépésed ezen a böngészőn vagy telepített appon 90 napig marad érvényes. Így nem kell
+            minden rendelés előtt megadnod a jelszavadat. Az app bezárása önmagában nem jelentkeztet
+            ki.
+          </p>
+          <p>
+            A lejárat előtti 7 napban felajánljuk a hosszabbítást. Ha megerősíted, a megerősítés
+            időpontjától újabb 90 napig maradsz bejelentkezve ezen az eszközön. A hosszabbítás nem
+            automatikus, és más telefonon vagy böngészőben nem módosítja a belépésedet.
+          </p>
+          <p>
+            A „Most nem” nem jelentkeztet ki: az eredeti lejáratig használhatod az appot.
+            Legkorábban 24 óra múlva, az app használatakor újra szólunk. Addig a Beállításokból is
+            hosszabbíthatsz. Ha lejár, újra be kell jelentkezned.
+          </p>
+          <p>
+            A határidő azért van, hogy egy régi vagy már nem használt eszközön ne maradjon korlátlan
+            ideig hozzáférés. Csak saját vagy megbízható eszközön hosszabbíts. Közös vagy eladott
+            telefonon jelentkezz ki.
+          </p>
+          <p>
+            A kijelentkezés, a jelszó visszaállítása vagy a fiók letiltása a 90 nap letelte előtt is
+            megszüntetheti a hozzáférést. A böngésző adatainak törlése után szintén új belépés
+            szükséges.
+          </p>
+          <p>
+            A hosszabbítás nem küld be rendelést, nem törli a piszkozatot, és nem változtatja meg az
+            értesítési beállításokat. A push engedélye külön beállítás; ez a lejárati felhívás az
+            app használatakor jelenik meg, nem háttérben kiküldött értesítés.
+          </p>
+        </div>
+      )}
+    </details>
+  );
 }

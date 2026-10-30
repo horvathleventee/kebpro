@@ -1,11 +1,176 @@
-import React from "react";
-import { Heading, dateLabel, dateShort, timeLabel, Badge, OrderProgress, NewsCard, money, quantity, ComplaintPhotos, PartnerComplaints, Pager, SessionSettings } from "./shared";
-type HomeOrder = React.ComponentProps<typeof OrderProgress>['order'] & {id:string;date:string;items:unknown[]};
-interface HomeData {nextDelivery:{date:string;route:string;cutoffDate:string;cutoff:string;open:boolean}; currentResponses?:HomeOrder[]; history:HomeOrder[];news:(React.ComponentProps<typeof NewsCard>['item'] & {id:string})[];}
-function Home({ data, onSkip, onRepeat }: {data:HomeData;onSkip():void;onRepeat(id:string):void}) {
-  const next = data.nextDelivery, response = (data.currentResponses || data.history).find((r) => r.date === next.date), latest = data.history.find((r) => r.kind === "order");
-  return <><Heading eyebrow="ÜDVÖZLÜNK A PARTNERFELÜLETEN" title="Jó újra itt látni!" description="Minden, ami a következő kiszállításhoz szükséges." /><div className="grid two-col"><section className="delivery-card"><span className="eyebrow">KÖVETKEZŐ KISZÁLLÍTÁS</span><p className="delivery-date">{dateLabel(next.date)}</p><p className="route-name">{next.route}</p><p className="delivery-cutoff">Rendelési határidő: <strong>{dateShort(next.cutoffDate)} · {next.cutoff}</strong></p>{response ? <><p><Badge status={response.status} /></p><a className="button accent section-gap" href="#history">Rögzített válasz megtekintése →</a></> : next.open ? <div className="delivery-actions"><a className="button accent" href="#order">Rendelést adok le →</a><button className="button skip-delivery" data-action="skip" onClick={event => {event.stopPropagation();onSkip();}}><span aria-hidden="true">✓</span> Most nem kérek szállítást</button><p>Ha most nem rendelsz, jelezd itt, és nem kell telefonon keresnünk.</p></div> : <p>A rendelési határidő lejárt. Egyeztess a Kebpro munkatársaival.</p>}</section><section className="card"><div className="card-header"><h2>Gyors áttekintés</h2></div><div className="fact-list"><div className="fact"><span className="fact-icon" aria-hidden="true">↺</span><div><strong>Rendelj a korábbi listádból</strong><p>{latest ? "A legut\xF3bbi rendel\xE9sed " + latest.items.length + " t\xE9telt tartalmaz." : "Az els\u0151 rendel\xE9sed ut\xE1n itt is gyors\xEDthatod a k\xF6vetkez\u0151t."}</p>{latest && <button className="button text-button" data-action="repeat" data-id={latest.id} onClick={event => {event.stopPropagation();onRepeat(latest.id);}}>Legutóbbi rendelés betöltése →</button>}</div></div><div className="fact"><span className="fact-icon" aria-hidden="true">◉</span><div><strong>Szólunk a rendelési határidő előtt</strong><p>A rendelési nap előtti este és a határidő napján emlékeztetünk, ha még nem válaszoltál.</p></div></div><div className="fact"><span className="fact-icon" aria-hidden="true">✓</span><div><strong>Most nem kérsz szállítást?</strong><p>Egy gombnyomással ezt is jelezheted.</p></div></div></div></section></div>{latest && <section className="card section-gap"><h2>Legutóbbi rendelésed állapota</h2><p>{dateLabel(latest.date)} · #{latest.id.slice(0, 8).toUpperCase()}</p><OrderProgress order={latest} /><a href="#history">Rendeléseim megtekintése →</a></section>}<section className="report-shortcut section-gap"><div><h2>Bejelentéseim</h2><p>Rendeléssel kapcsolatos problémák és a Kebpro válaszai.</p></div><a className="button secondary" href="#reports">Bejelentések megtekintése →</a></section><div className="card-header section-gap"><h2>Friss hírek és ajánlatok</h2><a href="#news">Minden hír →</a></div><div className="grid equal-col">{data.news.slice(0, 2).map((item) => <NewsCard key={item.id} item={item} />)}</div></>;
-}
-export {
-  Home
+import React from 'react';
+import {
+  Heading,
+  dateLabel,
+  dateShort,
+  timeLabel,
+  Badge,
+  OrderProgress,
+  NewsCard,
+  money,
+  quantity,
+  ComplaintPhotos,
+  PartnerComplaints,
+  Pager,
+  SessionSettings,
+} from './shared';
+type HomeOrder = React.ComponentProps<typeof OrderProgress>['order'] & {
+  id: string;
+  date: string;
+  items: unknown[];
 };
+interface HomeData {
+  nextDelivery: { date: string; route: string; cutoffDate: string; cutoff: string; open: boolean };
+  currentResponses?: HomeOrder[];
+  history: HomeOrder[];
+  news: (React.ComponentProps<typeof NewsCard>['item'] & { id: string })[];
+}
+function Home({
+  data,
+  onSkip,
+  onRepeat,
+}: {
+  data: HomeData;
+  onSkip(): void;
+  onRepeat(id: string): void;
+}) {
+  const next = data.nextDelivery,
+    response = (data.currentResponses || data.history).find((r) => r.date === next.date),
+    latest = data.history.find((r) => r.kind === 'order');
+  return (
+    <>
+      <Heading
+        eyebrow="ÜDVÖZLÜNK A PARTNERFELÜLETEN"
+        title="Jó újra itt látni!"
+        description="Minden, ami a következő kiszállításhoz szükséges."
+      />
+      <div className="grid two-col">
+        <section className="delivery-card">
+          <span className="eyebrow">KÖVETKEZŐ KISZÁLLÍTÁS</span>
+          <p className="delivery-date">{dateLabel(next.date)}</p>
+          <p className="route-name">{next.route}</p>
+          <p className="delivery-cutoff">
+            Rendelési határidő:{' '}
+            <strong>
+              {dateShort(next.cutoffDate)} · {next.cutoff}
+            </strong>
+          </p>
+          {response ? (
+            <>
+              <p>
+                <Badge status={response.status} />
+              </p>
+              <a className="button accent section-gap" href="#history">
+                Rögzített válasz megtekintése →
+              </a>
+            </>
+          ) : next.open ? (
+            <div className="delivery-actions">
+              <a className="button accent" href="#order">
+                Rendelést adok le →
+              </a>
+              <button
+                className="button skip-delivery"
+                data-action="skip"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSkip();
+                }}
+              >
+                <span aria-hidden="true">✓</span> Most nem kérek szállítást
+              </button>
+              <p>Ha most nem rendelsz, jelezd itt, és nem kell telefonon keresnünk.</p>
+            </div>
+          ) : (
+            <p>A rendelési határidő lejárt. Egyeztess a Kebpro munkatársaival.</p>
+          )}
+        </section>
+        <section className="card">
+          <div className="card-header">
+            <h2>Gyors áttekintés</h2>
+          </div>
+          <div className="fact-list">
+            <div className="fact">
+              <span className="fact-icon" aria-hidden="true">
+                ↺
+              </span>
+              <div>
+                <strong>Rendelj a korábbi listádból</strong>
+                <p>
+                  {latest
+                    ? 'A legut\xF3bbi rendel\xE9sed ' +
+                      latest.items.length +
+                      ' t\xE9telt tartalmaz.'
+                    : 'Az els\u0151 rendel\xE9sed ut\xE1n itt is gyors\xEDthatod a k\xF6vetkez\u0151t.'}
+                </p>
+                {latest && (
+                  <button
+                    className="button text-button"
+                    data-action="repeat"
+                    data-id={latest.id}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onRepeat(latest.id);
+                    }}
+                  >
+                    Legutóbbi rendelés betöltése →
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="fact">
+              <span className="fact-icon" aria-hidden="true">
+                ◉
+              </span>
+              <div>
+                <strong>Szólunk a rendelési határidő előtt</strong>
+                <p>
+                  A rendelési nap előtti este és a határidő napján emlékeztetünk, ha még nem
+                  válaszoltál.
+                </p>
+              </div>
+            </div>
+            <div className="fact">
+              <span className="fact-icon" aria-hidden="true">
+                ✓
+              </span>
+              <div>
+                <strong>Most nem kérsz szállítást?</strong>
+                <p>Egy gombnyomással ezt is jelezheted.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      {latest && (
+        <section className="card section-gap">
+          <h2>Legutóbbi rendelésed állapota</h2>
+          <p>
+            {dateLabel(latest.date)} · #{latest.id.slice(0, 8).toUpperCase()}
+          </p>
+          <OrderProgress order={latest} />
+          <a href="#history">Rendeléseim megtekintése →</a>
+        </section>
+      )}
+      <section className="report-shortcut section-gap">
+        <div>
+          <h2>Bejelentéseim</h2>
+          <p>Rendeléssel kapcsolatos problémák és a Kebpro válaszai.</p>
+        </div>
+        <a className="button secondary" href="#reports">
+          Bejelentések megtekintése →
+        </a>
+      </section>
+      <div className="card-header section-gap">
+        <h2>Friss hírek és ajánlatok</h2>
+        <a href="#news">Minden hír →</a>
+      </div>
+      <div className="grid equal-col">
+        {data.news.slice(0, 2).map((item) => (
+          <NewsCard key={item.id} item={item} />
+        ))}
+      </div>
+    </>
+  );
+}
+export { Home };

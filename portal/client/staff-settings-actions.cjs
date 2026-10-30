@@ -30,7 +30,13 @@ function createStaffSettingsActions(ctx) {
       else ctx.expanded.delete(key);
     },
     async saveRoute(id, values, form) {
-      await ctx.api("routes", { id, name: values.get("name"), days: values.getAll("days").map(Number), reminder: values.get("reminder"), cutoff: values.get("cutoff") });
+      await ctx.api("routes", {
+        id,
+        name: values.get("name"),
+        days: values.getAll("days").map(Number),
+        reminder: values.get("reminder"),
+        cutoff: values.get("cutoff")
+      });
       delete form.dataset.dirty;
       ctx.toast("T\xFAra be\xE1ll\xEDt\xE1sai elmentve.");
       await ctx.load();
@@ -42,11 +48,15 @@ function createStaffSettingsActions(ctx) {
       await ctx.load();
     },
     invite(email) {
-      ctx.confirm("C\xE9ges munkat\xE1rs megh\xEDv\xE1sa", async () => {
-        await ctx.api("invitations", { email });
-        await ctx.load();
-        ctx.toast("A megh\xEDv\xF3t \xE1tadtuk a levelez\u0151szervernek.");
-      }, { email });
+      ctx.confirm(
+        "C\xE9ges munkat\xE1rs megh\xEDv\xE1sa",
+        async () => {
+          await ctx.api("invitations", { email });
+          await ctx.load();
+          ctx.toast("A megh\xEDv\xF3t \xE1tadtuk a levelez\u0151szervernek.");
+        },
+        { email }
+      );
     },
     revoke(id) {
       ctx.confirm("Megh\xEDv\xF3 visszavon\xE1sa", async () => {
@@ -57,11 +67,15 @@ function createStaffSettingsActions(ctx) {
     },
     accountStatus(id) {
       const user = ctx.getData().accounts.find((u) => u.id === id), status = user.status === "disabled" ? "approved" : "disabled";
-      ctx.confirm(status === "disabled" ? "Fi\xF3k letilt\xE1sa" : "Hozz\xE1f\xE9r\xE9s vissza\xE1ll\xEDt\xE1sa", async () => {
-        await ctx.api("accounts", { id: user.id, status });
-        await ctx.load();
-        ctx.toast("Hozz\xE1f\xE9r\xE9s m\xF3dos\xEDtva.");
-      }, { name: user.company || user.username });
+      ctx.confirm(
+        status === "disabled" ? "Fi\xF3k letilt\xE1sa" : "Hozz\xE1f\xE9r\xE9s vissza\xE1ll\xEDt\xE1sa",
+        async () => {
+          await ctx.api("accounts", { id: user.id, status });
+          await ctx.load();
+          ctx.toast("Hozz\xE1f\xE9r\xE9s m\xF3dos\xEDtva.");
+        },
+        { name: user.company || user.username }
+      );
     },
     extend: ctx.openSessionRenewal
   };
