@@ -1,3 +1,6 @@
+if (window.KebproReactAuth) {
+  window.KebproReactAuth.mountLogin(document.querySelector('.login-card'));
+} else {
 const base = document.body.dataset.base;
 const message = document.getElementById('login-error');
 document.querySelectorAll('[data-auth-tab]').forEach(button=>button.addEventListener('click',()=>{
@@ -26,3 +29,5 @@ document.querySelectorAll('form').forEach(form=>form.addEventListener('submit',a
 function showForgot(show){document.getElementById('login-form').hidden=show;document.getElementById('forgot-form').hidden=!show;const register=document.getElementById('register-form');if(register)register.hidden=true;message.textContent='';document.querySelectorAll('[data-auth-tab]').forEach(b=>b.setAttribute('aria-pressed',String(!show && b.dataset.authTab==='login')));}
 document.getElementById('forgot-password').onclick=()=>showForgot(true);
 document.getElementById('back-login').onclick=()=>showForgot(false);
+
+}

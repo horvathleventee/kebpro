@@ -7,12 +7,14 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "partner:preview": "node scripts/partner-preview.js",
-    "test:partner": "node --test tests/partner.test.js tests/drafts.test.js tests/operations.test.js tests/postgres.test.js tests/staging.test.js tests/portal-updates.test.js",
+    "test:partner": "node --test tests/partner.test.js tests/drafts.test.js tests/operations.test.js tests/postgres.test.js tests/staging.test.js tests/portal-updates.test.js tests/portal-client-api.test.js tests/portal-client-pricing.test.js tests/portal-client-order-actions.test.js tests/portal-client-loader.test.js tests/portal-client-draft.test.js tests/portal-client-session-push.test.js tests/portal-client-state.test.js tests/portal-client-staff-settings.test.js tests/portal-client-audit.test.js",
     "partner:monitor": "node scripts/partner-monitor.js",
     "partner:import-postgres": "node scripts/partner-import-postgres.js",
     "partner:https": "node scripts/partner-https.cjs",
     "test:partner:load": "node scripts/partner-load-test.cjs",
-    "test:partner:postgres-local": "node scripts/partner-postgres-local.cjs"
+    "test:partner:postgres-local": "node scripts/partner-postgres-local.cjs",
+    "build:partner-react": "npm run typecheck:partner && node scripts/build-partner-react.cjs",
+    "typecheck:partner": "tsc --project tsconfig.partner.json"
   },
   "keywords": [
     "express",
@@ -32,11 +34,17 @@
     "multer": "^2.5.0",
     "nodemailer": "^10.1.7",
     "pg": "^8.20.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "sqlite3": "^6.0.1",
     "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.28.2",
+    "nodemon": "^3.1.14",
+    "typescript": "^7.0.2"
   },
   "overrides": {
     "body-parser": "^2.4.0"

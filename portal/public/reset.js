@@ -1,3 +1,6 @@
+if (window.KebproReactAuth) {
+  window.KebproReactAuth.mountToken(document.querySelector('.login-card'),'reset');
+} else {
 const token=location.hash.slice(1);
 history.replaceState(null,'',location.pathname);
 const form=document.getElementById('reset-form'), message=document.getElementById('reset-message');
@@ -11,3 +14,5 @@ form.addEventListener('submit',async event=>{
   form.reset();form.hidden=true;message.textContent='A jelszavad elmentettük. Minden korábbi belépésedet lezártuk; az új jelszóval jelentkezz be. Ha a regisztrációd még jóváhagyásra vár, ezután is szükséges a céges jóváhagyás.';
  }catch(error){message.textContent=error.message;}finally{button.disabled=false;}
 });
+
+}

@@ -7,7 +7,7 @@ test('Empty completed draft removes persisted data; edits retain revision and re
 test('Corrupt drafts and storage quota failures are surfaced, not reported as saved',()=>{const s=storage(),d=create(s,'a');s.setItem('kebpro-order-draft-v1:a','{bad');assert.throws(()=>d.read());const failing=create({setItem(){throw Error('quota');}},'a');assert.throws(()=>failing.save(draft()));});
 function controller(saved,history=[],s=storage()){
  if(saved)create(s,'a').save(saved);
- const source=fs.readFileSync(require.resolve('../portal/public/portal.js'),'utf8').split('const esc =')[0];
+ const source=fs.readFileSync(require.resolve('../portal/public/portal-legacy-controller.js'),'utf8').split('const esc =')[0];
  const c=vm.createContext({KebproDrafts:{create},localStorage:s,crypto:require('node:crypto'),document:{body:{dataset:{role:'partner'}},querySelector:()=>({content:'csrf'}),getElementById:()=>null},console});
  vm.runInContext(source+`;function chosenDelivery(){return {date:orderDate||'2026-10-23',open:true};}function toast(){};data={id:'a',history:${JSON.stringify(history)}};restoreDraft();`,c);return {c,s};
 }

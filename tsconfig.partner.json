@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "portal/client/ts/**/*.ts",
+    "tests/types/**/*.ts",
+    "portal/react/PortalView.tsx",
+    "portal/react/DraftStatus.tsx",
+    "tests/types/**/*.tsx",
+    "portal/react/News.tsx",
+    "portal/react/Heading.tsx",
+    "portal/react/Calls.tsx",
+    "portal/react/Packing.tsx",
+    "portal/react/Confirmation.tsx",
+    "portal/react/Navigation.tsx",
+    "portal/react/Applications.tsx",
+    "portal/react/StaffNews.tsx",
+    "portal/react/ComplaintDialogs.tsx",
+    "portal/react/ProductPicker.tsx",
+    "portal/react/SessionExplanation.tsx",
+    "portal/react/SessionDialogs.tsx",
+    "portal/react/AuthTokenForm.tsx",
+    "portal/react/shared.tsx",
+    "portal/react/Reports.tsx",
+    "portal/react/PartnerSettings.tsx",
+    "portal/react/Home.tsx",
+    "portal/react/AuthLogin.tsx",
+    "portal/react/Notifications.tsx",
+    "portal/react/History.tsx",
+    "portal/react/StaffComplaints.tsx",
+    "portal/react/Dashboard.tsx",
+    "portal/react/Order.tsx",
+    "portal/react/Products.tsx",
+    "portal/react/StaffSettings.tsx",
+    "portal/react/auth.tsx",
+    "portal/react/screens.tsx"
+  ]
+}

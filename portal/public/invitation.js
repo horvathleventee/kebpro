@@ -1,3 +1,6 @@
+if (window.KebproReactAuth) {
+  window.KebproReactAuth.mountToken(document.querySelector('.login-card'),'invitation');
+} else {
 const token=location.hash.slice(1);
 history.replaceState(null,'',location.pathname);
 const form=document.getElementById('invitation-form'),message=document.getElementById('invitation-message');
@@ -11,3 +14,5 @@ form.addEventListener('submit',async event=>{
   form.reset();form.hidden=true;message.textContent='A céges fiókod elkészült, az e-mail-címed igazolva. Most már bejelentkezhetsz a saját adataiddal.';
  }catch(error){message.textContent=error.message;}finally{button.disabled=false;}
 });
+
+}

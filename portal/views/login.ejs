@@ -2,7 +2,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10243f">
 <title>Kebpro · <%= admin ? 'Céges belépés' : 'Partnerbelépés' %></title>
 <meta name="apple-mobile-web-app-title" content="Kebpro <%= admin ? 'Admin' : 'Partner' %>"><link rel="icon" type="image/png" href="/partner/assets/<%= admin ? 'admin' : 'partner' %>-v2-192.png"><link rel="apple-touch-icon" sizes="180x180" href="<%= base %>/apple-touch-icon.png?v=3"><link rel="manifest" href="<%= base %>/manifest.webmanifest"><link rel="stylesheet" href="/partner/assets/portal.css">
-<script src="/partner/assets/login.js" defer></script><script src="/partner/assets/install.js" defer></script>
+<script src="/partner/assets/react-auth.js" defer></script><script src="/partner/assets/login.js" defer></script><script src="/partner/assets/install.js" defer></script>
 </head><body class="login-body" data-base="<%= base %>"><main class="login-layout">
 <section class="login-intro"><img src="/partner/logo.png" alt="Kebpro" width="170" height="79"><span class="eyebrow"><%= admin ? 'CÉGES KEZELŐFELÜLET' : 'KEBPRO PARTNER' %></span>
 <h1><%= admin ? 'Minden rendelés. Egy helyen.' : 'A következő rendelés. Egy kicsit egyszerűbben.' %></h1>
