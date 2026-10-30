@@ -22,6 +22,7 @@ interface DashboardOrder {
   address: string;
   date: string;
   routeId: string;
+  sameDayOrderCount?: number;
   createdAt: string;
   modifiedAt?: string | null;
   archivedAt?: string | null;
@@ -225,6 +226,11 @@ function Dashboard({
               <span className="muted small">#{r.id.slice(0, 8).toUpperCase()}</span>
             </div>
             <h2>{r.partnerName}</h2>
+            {(r.sameDayOrderCount || 0) > 1 && (
+              <p className="notice warning">
+                Ennek a partnernek ezen a napon {r.sameDayOrderCount} külön rendelése van.
+              </p>
+            )}
             <p className="muted">{r.address}</p>
             <p className="order-meta">
               <strong>Kiszállítás: {dateLabel(r.date)}</strong>

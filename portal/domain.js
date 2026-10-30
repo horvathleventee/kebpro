@@ -54,7 +54,16 @@ function partnerRoutes(state, partner) {
   return state.routes.filter((r) => (partner.routeIds || [partner.routeId]).includes(r.id));
 }
 function routeFor(state, partner, date) {
-  return partnerRoutes(state, partner).find((r) => !date || deliveryOn(r, date));
+  const routes = partnerRoutes(state, partner).filter((r) => !date || deliveryOn(r, date));
+  if (!date) return routes[0];
+  const response = (state.responses || []).find(
+    (item) => item.partnerId === partner.id && item.date === date,
+  );
+  return (
+    routes.find((r) => r.id === response?.routeId) ||
+    routes.find((r) => r.reschedules?.some((entry) => entry.to === date)) ||
+    routes[0]
+  );
 }
 function deliveries(state, partner, now = new Date()) {
   const current = localTime(now),
@@ -63,7 +72,7 @@ function deliveries(state, partner, now = new Date()) {
     const date = addDays(current.date, day),
       route = routeFor(state, partner, date);
     if (!route) continue;
-    const cutoffDate = orderCutoffDate(date),
+    const cutoffDate = orderCutoffDate(date, route),
       cutoff = '14:00';
     result.push({
       date,
@@ -76,8 +85,9 @@ function deliveries(state, partner, now = new Date()) {
   }
   return result;
 }
-function orderCutoffDate(date) {
-  return addDays(date, new Date(date + 'T12:00:00Z').getUTCDay() === 1 ? -3 : -1);
+function orderCutoffDate(date, route) {
+  const moved = route?.reschedules?.some((entry) => entry.to === date);
+  return addDays(date, !moved && new Date(date + 'T12:00:00Z').getUTCDay() === 1 ? -3 : -1);
 }
 function callDeliveryDates(now = new Date()) {
   const today = localTime(now).date;
@@ -85,12 +95,15 @@ function callDeliveryDates(now = new Date()) {
 }
 function callSchedule(state, now = new Date()) {
   const groups = [];
-  for (const date of callDeliveryDates(now)) {
+  const today = localTime(now).date;
+  for (const date of [1, 2, 3].map((n) => addDays(today, n))) {
     const routes = [];
-    for (const route of state.routes.filter((r) => deliveryOn(r, date))) {
+    for (const route of state.routes.filter(
+      (r) => deliveryOn(r, date) && orderCutoffDate(date, r) === today,
+    )) {
       const people = state.partners.filter(
         (p) =>
-          (p.routeIds || [p.routeId]).includes(route.id) &&
+          routeFor(state, p, date)?.id === route.id &&
           !state.users?.some((u) => u.partnerId === p.id && u.status === 'disabled'),
       );
       if (!people.length) continue;
@@ -113,7 +126,11 @@ function callSchedule(state, now = new Date()) {
   return groups;
 }
 function deliveryOn(route, date) {
-  return validDate(date) && route.days.includes(new Date(date + 'T12:00:00Z').getUTCDay());
+  if (!validDate(date)) return false;
+  const changes = route.reschedules || [];
+  if (changes.some((entry) => entry.from === date)) return false;
+  if (changes.some((entry) => entry.to === date)) return true;
+  return route.days.includes(new Date(date + 'T12:00:00Z').getUTCDay());
 }
 function nextDelivery(state, partner, now = new Date()) {
   const next = deliveries(state, partner, now)[0];
@@ -328,7 +345,30 @@ function pricedItems(state, partner, items) {
 function submitResponse(state, partnerId, input, now = new Date()) {
   const partner = state.partners.find((p) => p.id === partnerId);
   assert(partner, 'Ismeretlen partner.', 403);
-  const delivery = deliveries(state, partner, now).find((d) => d.date === input.date);
+  const selected = input.responseId
+    ? state.responses.find((r) => r.id === input.responseId && r.partnerId === partnerId)
+    : null;
+  assert(!input.responseId || selected, 'Ismeretlen saját rendelés.', 404);
+  const selectedRoute =
+    selected && partnerRoutes(state, partner).find((r) => r.id === selected.routeId);
+  const normalDelivery = deliveries(state, partner, now).find((d) => d.date === input.date);
+  let delivery = normalDelivery;
+  if (
+    selected &&
+    selectedRoute &&
+    selected.date === input.date &&
+    deliveryOn(selectedRoute, input.date)
+  ) {
+    const current = localTime(now),
+      cutoffDate = orderCutoffDate(input.date, selectedRoute);
+    delivery = {
+      date: input.date,
+      routeId: selectedRoute.id,
+      cutoffDate,
+      cutoff: '14:00',
+      open: current.date < cutoffDate || (current.date === cutoffDate && current.time < '14:00'),
+    };
+  }
   assert(delivery, 'Erre a napra nem rendelhetsz.', 409);
   assert(
     input.date === delivery.date,
@@ -337,9 +377,8 @@ function submitResponse(state, partnerId, input, now = new Date()) {
   );
   assert(delivery.open, 'A rendelési határidő lejárt. Kérjük, egyeztess telefonon.', 409);
   assert(input.kind === 'order' || input.kind === 'skip', 'Érvénytelen válasz.');
-  const existing = state.responses.find(
-    (r) => r.partnerId === partnerId && r.date === delivery.date,
-  );
+  const existing =
+    selected || state.responses.find((r) => r.partnerId === partnerId && r.date === delivery.date);
   // One response per partner and delivery. A repeat request cannot create duplicates.
   if (
     existing &&
@@ -351,7 +390,11 @@ function submitResponse(state, partnerId, input, now = new Date()) {
     'A rendelés időközben változott, vagy már válaszoltál. Nyisd meg újra a módosítást.',
     409,
   );
-  assert(!input.responseId || existing?.id === input.responseId, 'Ismeretlen saját rendelés.', 404);
+  assert(
+    !selected || selected.date === input.date,
+    'A rendelés kiszállítási napja megváltozott. Frissítsd az oldalt.',
+    409,
+  );
   assert(
     typeof input.requestId === 'string' && /^[a-f0-9-]{36}$/.test(input.requestId),
     'Érvénytelen kérésazonosító.',
@@ -660,6 +703,72 @@ function updateRoute(state, input) {
     cutoff: input.cutoff,
   });
 }
+function rescheduleRoute(state, input, now = new Date()) {
+  const route = state.routes.find((r) => r.id === input.routeId);
+  assert(route, 'Ismeretlen túra.', 404);
+  assert(validDate(input.from) && validDate(input.to), 'Adj meg két érvényes dátumot.');
+  const today = localTime(now);
+  assert(
+    input.from > today.date && input.to > today.date,
+    'Csak jövőbeli túra helyezhető át.',
+    409,
+  );
+  assert(input.from !== input.to, 'Az új nap legyen eltérő.');
+  assert(deliveryOn(route, input.from), 'Ezen a napon nincs ilyen túra.', 409);
+  assert(!deliveryOn(route, input.to), 'A kiválasztott túra az új napon már szerepel.', 409);
+  assert(
+    !(route.reschedules || []).some(
+      (entry) =>
+        [entry.from, entry.to].includes(input.from) || [entry.from, entry.to].includes(input.to),
+    ),
+    'A dátum már szerepel egy áthelyezésben.',
+    409,
+  );
+  const cutoffDate = addDays(input.to, -1);
+  assert(
+    today.date < cutoffDate || (today.date === cutoffDate && today.time < '14:00'),
+    'Az új határidő már lejárt.',
+    409,
+  );
+  const partners = state.partners.filter((p) => (p.routeIds || [p.routeId]).includes(route.id));
+  const ids = new Set(partners.map((partner) => partner.id));
+  const moving = state.responses.filter(
+    (response) =>
+      response.date === input.from &&
+      (response.routeId === route.id || (!response.routeId && ids.has(response.partnerId))),
+  );
+  assert(
+    !state.responses.some((response) =>
+      moving.some(
+        (item) =>
+          item.partnerId === response.partnerId &&
+          response.date === input.to &&
+          (!response.routeId || !item.routeId || response.routeId === item.routeId),
+      ),
+    ),
+    'Az új napon ehhez a túrához már tartozik rendelés vagy nem azonosítható a túrája. Az áthelyezés nem történt meg.',
+    409,
+  );
+  for (const response of moving) {
+    response.changes ||= [];
+    response.changes.push({
+      revision: response.revision || 1,
+      date: response.date,
+      items: response.items,
+      total: response.total ?? null,
+      note: response.note,
+      kind: response.kind,
+      status: response.status,
+      archivedAt: response.archivedAt || null,
+      changedAt: now.toISOString(),
+      reason: 'route-reschedule',
+    });
+    response.date = input.to;
+    response.revision = (response.revision || 1) + 1;
+    response.modifiedAt = now.toISOString();
+  }
+  (route.reschedules ||= []).push({ from: input.from, to: input.to });
+}
 function updatePartner(state, input) {
   const partner = state.partners.find((p) => p.id === input.id);
   const routeIds = input.routeIds || [input.routeId];
@@ -711,11 +820,23 @@ function safePartner(state, partner, now, listing) {
   const today = localTime(now).date,
     own = state.responses.filter((r) => r.partnerId === partner.id);
   const page = state._history || (listing ? require('./listing').select(own, listing) : null);
-  const present = (r) => ({
-    ...r,
-    status: r.kind === 'skip' ? 'skip' : r.archivedAt ? 'archived' : 'received',
-    canEdit: openDates.has(r.date),
-  });
+  const present = (r) => {
+    const route = partnerRoutes(state, partner).find((entry) => entry.id === r.routeId);
+    const cutoffDate = route && deliveryOn(route, r.date) ? orderCutoffDate(r.date, route) : null;
+    const current = localTime(now);
+    const open = cutoffDate
+      ? current.date < cutoffDate || (current.date === cutoffDate && current.time < '14:00')
+      : openDates.has(r.date);
+    return {
+      ...r,
+      routeName: route?.name,
+      delivery: cutoffDate
+        ? { date: r.date, route: route.name, cutoffDate, cutoff: '14:00', open }
+        : undefined,
+      status: r.kind === 'skip' ? 'skip' : r.archivedAt ? 'archived' : 'received',
+      canEdit: open,
+    };
+  };
   return {
     historyPage: page?.pagination,
     currentResponses: own.filter((r) => r.date >= today).map(present),
@@ -748,7 +869,7 @@ function adminView(state, date, routeId, listing) {
   assert(validDate(date), 'Érvénytelen dátum.');
   const relevant = state.routes.filter((r) => !routeId || r.id === routeId);
   const partners = state.partners.filter((p) =>
-    relevant.some((r) => (p.routeIds || [p.routeId]).includes(r.id) && deliveryOn(r, date)),
+    relevant.some((r) => routeFor(state, p, date)?.id === r.id),
   );
   // Retain already submitted orders on their original route when schedules later change.
   const responses = state.responses.filter(
@@ -878,6 +999,7 @@ module.exports = {
   publishNews,
   runReminders,
   updateRoute,
+  rescheduleRoute,
   updatePartner,
   archiveOrder,
   safePartner,

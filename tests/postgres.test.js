@@ -63,6 +63,57 @@ test(
       second = createPostgresStore({ connectionString: url });
     try {
       await Promise.all([first.ready, second.ready]);
+      // Simulate an existing v3 installation and verify that migration keeps its orders.
+      await first.change((s) => {
+        s.responses.push({
+          id: 'migration-order',
+          partnerId: 'migration-partner',
+          routeId: 'a',
+          date: '2026-11-02',
+          kind: 'order',
+          items: [],
+          createdAt: '2026-10-01T10:00:00Z',
+        });
+      });
+      const migrationClient = await admin.connect();
+      try {
+        await migrationClient.query('BEGIN');
+        await migrationClient.query('DROP INDEX kebpro_portal.order_partner_day_route_unique');
+        await migrationClient.query(
+          "CREATE UNIQUE INDEX order_partner_day_unique ON kebpro_portal.orders ((body->>'partnerId'), (body->>'date'))",
+        );
+        await migrationClient.query('DELETE FROM kebpro_portal.schema_version WHERE version=4');
+        await require('../portal/postgres/schema').migrate(migrationClient);
+        await migrationClient.query('COMMIT');
+      } catch (error) {
+        await migrationClient.query('ROLLBACK');
+        throw error;
+      } finally {
+        migrationClient.release();
+      }
+      await first.change((s) => {
+        s.responses.push({
+          id: 'migration-order-2',
+          partnerId: 'migration-partner',
+          routeId: 'b',
+          date: '2026-11-02',
+          kind: 'order',
+          items: [],
+          createdAt: '2026-10-01T10:00:00Z',
+        });
+      });
+      assert.equal(
+        (await first.read()).responses.filter((r) => r.partnerId === 'migration-partner').length,
+        2,
+      );
+      const migratedPage = await require('../portal/listing').sqlPage(
+        admin,
+        require('../portal/listing').options(),
+      );
+      assert.equal(migratedPage.rows.find((r) => r.id === 'migration-order').sameDayOrderCount, 2);
+      await first.change((s) => {
+        s.responses = [];
+      });
       await first.change((s) => (s.counter = 0));
       await Promise.all(
         Array.from({ length: 8 }, (_, i) =>

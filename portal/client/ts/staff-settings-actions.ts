@@ -42,6 +42,17 @@ export function createStaffSettingsActions(ctx: StaffSettingsContext) {
       ctx.toast('Kiszállítási napok mentve.');
       await ctx.load();
     },
+    async reschedule(values: FormData, form: HTMLFormElement) {
+      await ctx.api('route-reschedule', {
+        routeId: values.get('routeId'),
+        from: values.get('from'),
+        to: values.get('to'),
+      });
+      delete form.dataset.dirty;
+      form.reset();
+      ctx.toast('A túra áthelyezését elmentettük.');
+      await ctx.load();
+    },
     invite(email: string) {
       ctx.confirm(
         'Céges munkatárs meghívása',

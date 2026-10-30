@@ -3,9 +3,9 @@ const crypto = require('node:crypto');
 const context = new AsyncLocalStorage();
 const fields = {
   products: ['name', 'active', 'prices', 'promotions'],
-  routes: ['name', 'days', 'reminder', 'cutoff'],
+  routes: ['name', 'days', 'reminder', 'cutoff', 'reschedules'],
   partners: ['name', 'routeId', 'routeIds', 'prices'],
-  responses: ['status', 'archivedAt', 'archivedBy', 'revision'],
+  responses: ['status', 'archivedAt', 'archivedBy', 'revision', 'date', 'routeId'],
   news: ['title', 'body', 'kind'],
   users: ['username', 'role', 'status', 'partnerId'],
   staffInvitations: ['email', 'status', 'invitedBy'],

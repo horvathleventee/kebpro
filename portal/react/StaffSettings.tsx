@@ -78,6 +78,7 @@ interface Route {
   id: string;
   name: string;
   fixedDay: number;
+  reschedules?: { from: string; to: string }[];
 }
 interface Partner {
   id: string;
@@ -163,6 +164,7 @@ function StaffSettings({
       if (form.dataset.routeForm) await actions.saveRoute(form.dataset.routeForm, values, form);
       else if (form.dataset.partnerDays)
         await actions.savePartnerDays(form.dataset.partnerDays, values, form);
+      else if (form.id === 'route-reschedule') await actions.reschedule(values, form);
       else if (form.id === 'invite-staff') actions.invite(values.get('email') as string);
     } catch (error) {
       actions.error(error as Error);
@@ -223,6 +225,50 @@ function StaffSettings({
             </section>
           ))}
         </div>
+      </details>
+      <details className="card section-gap" id="route-reschedules">
+        <summary>Túra egyszeri áthelyezése</summary>
+        <p className="muted">
+          A heti menetrend megmarad. Az új határidő az új kiszállítás előtti nap 14:00, az
+          emlékeztetők ehhez igazodnak.
+        </p>
+        <p className="small muted">
+          Az érintett túrára már leadott rendelések és válaszok átkerülnek az új napra. Ha egy
+          partner mindkét napra már válaszolt, a válaszok külön megmaradnak.
+        </p>
+        <form id="route-reschedule" className="stack section-gap">
+          <label>
+            Túra
+            <select name="routeId" required defaultValue="">
+              <option value="" disabled>
+                Válassz túrát
+              </option>
+              {data.routes.map((route) => (
+                <option key={route.id} value={route.id}>
+                  {route.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Eredeti kiszállítási nap
+            <input name="from" type="date" required />
+          </label>
+          <label>
+            Új kiszállítási nap
+            <input name="to" type="date" required />
+          </label>
+          <button className="button primary" disabled={busy}>
+            Áthelyezés mentése
+          </button>
+        </form>
+        {data.routes.flatMap((route) =>
+          (route.reschedules || []).map((change) => (
+            <p key={route.id + change.from} className="section-gap">
+              {route.name}: {change.from} → {change.to}
+            </p>
+          )),
+        )}
       </details>
       <details
         id="partner-days-settings"

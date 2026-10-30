@@ -26,10 +26,10 @@ function eligible(state, message, now) {
     const match = /^reminder:(\d{4}-\d{2}-\d{2})(?::(evening|morning))?$/.exec(message.key);
     if (!match) return false;
     const date = match[1],
-      phase = match[2] || 'morning',
-      cutoffDate = orderCutoffDate(date);
+      phase = match[2] || 'morning';
     const current = localTime(now);
     const route = routeFor(state, partner, date);
+    const cutoffDate = orderCutoffDate(date, route);
     return (
       partner.preferences.reminders &&
       route &&

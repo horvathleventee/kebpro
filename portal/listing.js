@@ -46,7 +46,12 @@ function select(rows, o) {
     .sort((a, b) => b[field].localeCompare(a[field]) || b.id.localeCompare(a.id));
   const pagination = pageInfo(filtered.length, o);
   return {
-    rows: filtered.slice((pagination.page - 1) * o.size, pagination.page * o.size),
+    rows: filtered.slice((pagination.page - 1) * o.size, pagination.page * o.size).map((r) => ({
+      ...r,
+      sameDayOrderCount: rows.filter(
+        (other) => other.partnerId === r.partnerId && other.date === r.date && isOrder(other),
+      ).length,
+    })),
     pagination,
     counts,
   };
@@ -107,6 +112,18 @@ async function sqlPage(client, o, partnerId) {
     );
     counts = totals.rows[0];
   }
-  return { rows: result.rows.map((r) => r.body), pagination, counts };
+  const rows = result.rows.map((r) => r.body);
+  if (rows.length) {
+    const matches = await client.query(
+      "SELECT body->>'partnerId' AS partner, body->>'date' AS date, count(*)::int AS n FROM kebpro_portal.orders WHERE " +
+        order +
+        " AND body->>'partnerId'=ANY($1::text[]) AND body->>'date'=ANY($2::text[]) GROUP BY 1,2",
+      [[...new Set(rows.map((r) => r.partnerId))], [...new Set(rows.map((r) => r.date))]],
+    );
+    for (const row of rows)
+      row.sameDayOrderCount =
+        matches.rows.find((m) => m.partner === row.partnerId && m.date === row.date)?.n || 0;
+  }
+  return { rows, pagination, counts };
 }
 module.exports = { options, select, sqlPage, isOrder };

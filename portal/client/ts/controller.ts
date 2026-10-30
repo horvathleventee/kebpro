@@ -79,6 +79,7 @@ type ResponseItem = {
   canEdit?: boolean;
   requestId?: string;
   changeIds?: string[];
+  delivery?: { date: string; route: string; cutoffDate: string; cutoff: string; open: boolean };
 };
 type StoreState = {
   data: PortalData;
@@ -301,6 +302,13 @@ export function startPortalController(screens: PortalScreens) {
 
   function chosenDelivery() {
     if (!appState.state.orderDate) appState.state.orderDate = appState.state.data.nextDelivery.date;
+    const editing = appState.state.editing;
+    const edited =
+      editing &&
+      [...(appState.state.data.currentResponses || []), ...appState.state.data.history].find(
+        (r) => r.id === editing.id,
+      );
+    if (edited?.delivery && edited.date === appState.state.orderDate) return edited.delivery;
     return (
       appState.state.data.deliveryOptions.find((d) => d.date === appState.state.orderDate) || {
         date: appState.state.orderDate,
@@ -312,8 +320,10 @@ export function startPortalController(screens: PortalScreens) {
     );
   }
   function currentResponse() {
-    return (appState.state.data.currentResponses || appState.state.data.history).find(
-      (r) => r.date === chosenDelivery().date,
+    return (appState.state.data.currentResponses || appState.state.data.history).find((r) =>
+      appState.state.editing
+        ? r.id === appState.state.editing.id
+        : r.date === chosenDelivery().date,
     );
   }
   function startEdit(response: ResponseItem) {

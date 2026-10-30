@@ -5,9 +5,9 @@ async function migrate(client) {
     'CREATE TABLE IF NOT EXISTS kebpro_portal.schema_version (version integer PRIMARY KEY, installed_at timestamptz NOT NULL DEFAULT now())',
   );
   const v = await client.query('SELECT max(version) AS version FROM kebpro_portal.schema_version');
-  if (Number(v.rows[0].version || 0) > 3)
+  if (Number(v.rows[0].version || 0) > 4)
     throw Error('Portal schema is newer than this application');
-  if (Number(v.rows[0].version || 0) === 3) return;
+  if (Number(v.rows[0].version || 0) === 4) return;
   if (Number(v.rows[0].version || 0) < 1) {
     await client.query(
       'CREATE TABLE kebpro_portal.metadata (key text PRIMARY KEY, body jsonb NOT NULL)',
@@ -52,9 +52,16 @@ async function migrate(client) {
     );
     await client.query('INSERT INTO kebpro_portal.schema_version(version) VALUES(2)');
   }
+  if (Number(v.rows[0].version || 0) < 3) {
+    await client.query(
+      "CREATE TABLE IF NOT EXISTS kebpro_portal.complaint_photos (id text PRIMARY KEY, position integer NOT NULL, body jsonb NOT NULL CHECK(jsonb_typeof(body)='object'))",
+    );
+    await client.query('INSERT INTO kebpro_portal.schema_version(version) VALUES(3)');
+  }
+  await client.query('DROP INDEX kebpro_portal.order_partner_day_unique');
   await client.query(
-    "CREATE TABLE IF NOT EXISTS kebpro_portal.complaint_photos (id text PRIMARY KEY, position integer NOT NULL, body jsonb NOT NULL CHECK(jsonb_typeof(body)='object'))",
+    "CREATE UNIQUE INDEX order_partner_day_route_unique ON kebpro_portal.orders ((body->>'partnerId'), (body->>'date'), (COALESCE(body->>'routeId', '')))",
   );
-  await client.query('INSERT INTO kebpro_portal.schema_version(version) VALUES(3)');
+  await client.query('INSERT INTO kebpro_portal.schema_version(version) VALUES(4)');
 }
 module.exports = { migrate };

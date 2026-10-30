@@ -47,6 +47,17 @@ function createStaffSettingsActions(ctx) {
       ctx.toast("Kisz\xE1ll\xEDt\xE1si napok mentve.");
       await ctx.load();
     },
+    async reschedule(values, form) {
+      await ctx.api("route-reschedule", {
+        routeId: values.get("routeId"),
+        from: values.get("from"),
+        to: values.get("to")
+      });
+      delete form.dataset.dirty;
+      form.reset();
+      ctx.toast("A t\xFAra \xE1thelyez\xE9s\xE9t elmentett\xFCk.");
+      await ctx.load();
+    },
     invite(email) {
       ctx.confirm(
         "C\xE9ges munkat\xE1rs megh\xEDv\xE1sa",

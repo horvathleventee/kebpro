@@ -112,6 +112,8 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
         description={
           'Kisz\xE1ll\xEDt\xE1s: ' +
           dateLabel(next.date) +
+          ' · ' +
+          next.route +
           ' \xB7 Hat\xE1rid\u0151: ' +
           dateShort(next.cutoffDate) +
           ' ' +

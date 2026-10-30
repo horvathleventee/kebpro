@@ -645,6 +645,10 @@ function createPortalApp({
     await store.change((state) => domain.updateRoute(state, req.body));
     res.json({ ok: true });
   });
+  app.post('/partner-admin/api/route-reschedule', requireSession, staff, async (req, res) => {
+    await store.change((state) => domain.rescheduleRoute(state, req.body, now()));
+    res.json({ ok: true });
+  });
   app.post('/partner-admin/api/partners', requireSession, staff, async (req, res) => {
     await store.change((state) => domain.updatePartner(state, req.body));
     res.json({ ok: true });

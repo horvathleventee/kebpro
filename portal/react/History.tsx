@@ -37,6 +37,8 @@ interface HistoryOrder {
   revision?: number;
   requestId?: string;
   changeIds?: string[];
+  routeName?: string;
+  delivery?: { date: string; route: string; cutoffDate: string; cutoff: string; open: boolean };
 }
 interface ComplaintActions {
   onSend(id: string, values: FormData): Promise<unknown>;
@@ -132,6 +134,7 @@ function History({
               <div>
                 <Badge status={r.status} />
                 <h3>{dateLabel(r.date)}</h3>
+                {r.routeName && <p className="muted small">Túra: {r.routeName}</p>}
                 <p className="muted small">Azonosító: {r.id.slice(0, 8).toUpperCase()}</p>
                 <OrderProgress order={r} />
                 {r.kind === 'order' ? (
