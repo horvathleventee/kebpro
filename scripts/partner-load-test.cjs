@@ -66,7 +66,7 @@ async function main(){
    if(actual.length!==total||actual.filter(r=>r.archivedAt).length!==total)failures.push({stage:concurrent,message:'Order count or archive count mismatch'});
   }
   const report={at:new Date().toISOString(),storage:url?'postgres':'sqlite-disk',scope:'Local HTTPS HTTP workload; not browser render or production capacity. Rate limits raised because all simulated users share one IP. No emails or push sent.',tls:{certificateValidated:true,untrustedCertificateRejected:true,secureCookie:true,crossOriginRejected:true,csrfRejected:true},stages,failures};
-  const out=path.resolve(__dirname,'../output');fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'load-'+report.storage+'.json'),JSON.stringify(report,null,2));
+  const out=process.env.PORTAL_LOAD_OUTPUT_DIR ? path.resolve(process.env.PORTAL_LOAD_OUTPUT_DIR) : path.resolve(__dirname,'../output');fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'load-'+report.storage+'.json'),JSON.stringify(report,null,2));
   assert.equal(failures.length,0,'Load test failed; see output report');
  }finally{
   if(server)await new Promise(r=>server.close(r));

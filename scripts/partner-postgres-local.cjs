@@ -2,9 +2,9 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{execFile,spawn}=require('node:child_process'),{promisify}=require('node:util');
 const root=path.resolve(__dirname,'..');
 function exec(file,args,options={}){return new Promise((resolve,reject)=>{
- const child=spawn(file,args,{windowsHide:true,stdio:'ignore'});
+ const child=spawn(file,args,{windowsHide:true,stdio:['ignore','ignore','pipe']});let stderr='';child.stderr.on('data',chunk=>{stderr=(stderr+chunk.toString()).slice(-2000);});
  const timer=setTimeout(()=>{child.kill();reject(Error(path.basename(file)+' timed out'));},options.timeout||60000);
- child.on('error',error=>{clearTimeout(timer);reject(error);});child.on('exit',code=>{clearTimeout(timer);code===0?resolve():reject(Error(path.basename(file)+' exited '+code));});
+ child.on('error',error=>{clearTimeout(timer);reject(error);});child.on('exit',code=>{clearTimeout(timer);code===0?resolve():reject(Error(path.basename(file)+' exited '+code+(stderr?': '+stderr.trim():'')));});
 });}
 async function main(){
  const bin=path.join(root,'.local-tests/runtime/node_modules/@embedded-postgres/windows-x64/native/bin');
@@ -15,7 +15,7 @@ async function main(){
  let started=false;
  try{
   await exec(path.join(bin,'initdb.exe'),['-D',path.join(dir,'data'),'-U','portaltest','--pwfile',pwfile,'--auth=scram-sha-256','--encoding=UTF8','--locale=C'],{windowsHide:true,timeout:60000});
-  started=true;await exec(path.join(bin,'pg_ctl.exe'),['-D',path.join(dir,'data'),'-l',path.join(dir,'postgres.log'),'-o','-h 127.0.0.1 -p '+port,'-w','start'],{windowsHide:true,timeout:60000});started=true;
+  await exec(path.join(bin,'pg_ctl.exe'),['-D',path.join(dir,'data'),'-l',path.join(dir,'postgres.log'),'-o','-h 127.0.0.1 -p '+port,'-w','start'],{windowsHide:true,timeout:60000});started=true;
   const {Client}=require('pg'),client=new Client({host:'127.0.0.1',port,user:'portaltest',password,database:'postgres'});
   await client.connect();try{await client.query('CREATE DATABASE kebpro_test_validation');console.log('Local PostgreSQL:',(await client.query('SELECT version()')).rows[0].version.split(',')[0]);}finally{await client.end();}
   const env={...process.env,PORTAL_TEST_DATABASE_URL:'postgresql://portaltest:'+password+'@127.0.0.1:'+port+'/kebpro_test_validation'};
@@ -23,8 +23,8 @@ async function main(){
   await run(['--test','tests/partner.test.js','tests/drafts.test.js','tests/operations.test.js','tests/postgres.test.js','tests/staging.test.js','tests/portal-updates.test.js']);
   await run(['scripts/partner-load-test.cjs']);
  }finally{
-  if(started)await exec(path.join(bin,'pg_ctl.exe'),['-D',path.join(dir,'data'),'-m','fast','-w','stop'],{windowsHide:true,timeout:30000});
-  fs.rmSync(pwfile,{force:true});
+  try{if(started)await exec(path.join(bin,'pg_ctl.exe'),['-D',path.join(dir,'data'),'-m','fast','-w','stop'],{windowsHide:true,timeout:30000});}
+  finally{fs.rmSync(pwfile,{force:true});}
  }
 }
 main().catch(error=>{console.error('Local PostgreSQL validation failed:',error.message.replace(/postgres(?:ql)?:\/\/[^\s]+/g,'[database URL]'));process.exitCode=1;});
