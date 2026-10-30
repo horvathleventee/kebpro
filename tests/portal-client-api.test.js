@@ -77,3 +77,22 @@ test('API reports offline errors without changing order draft for unrelated requ
   assert.equal(seen.saves, 0);
   assert.equal(seen.end, 1);
 });
+test('HTML error pages show a helpful message and an unclear order response preserves the draft', async () => {
+  let attempt = setup(async () => ({
+    status: 404,
+    ok: false,
+    json: async () => {
+      throw new SyntaxError('Unexpected token <');
+    },
+  }));
+  await assert.rejects(attempt.request('route-reschedule', {}), /frissített alkalmazást/);
+  attempt = setup(async () => ({
+    status: 200,
+    ok: true,
+    json: async () => {
+      throw new SyntaxError('Unexpected token <');
+    },
+  }));
+  await assert.rejects(attempt.request('responses', { requestId: 'one' }), /piszkozat megmaradt/i);
+  assert.equal(attempt.seen.saves, 2);
+});

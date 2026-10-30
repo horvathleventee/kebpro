@@ -69,7 +69,20 @@ function createPortalApi({
         "Az alkalmaz\xE1s kiszolg\xE1l\xF3ja \xE1tmenetileg nem el\xE9rhet\u0151. Pr\xF3b\xE1ld \xFAjra k\xE9s\u0151bb." + (path === "responses" ? " A piszkozat megmaradt; ellen\u0151rizd a Rendel\xE9seim oldalt az \xFAjrapr\xF3b\xE1l\xE1s el\u0151tt." : "")
       );
     }
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      if (path === "responses") {
+        saveDraft();
+        throw new Error(
+          "Nem kaptunk \xE9rtelmezhet\u0151 visszaigazol\xE1st. A piszkozat megmaradt. Ellen\u0151rizd a Rendel\xE9seim oldalt az \xFAjrapr\xF3b\xE1l\xE1s el\u0151tt."
+        );
+      }
+      throw new Error(
+        response.status === 404 ? "Ez a funkci\xF3 ezen a szerveren nem \xE9rhet\u0151 el. Nyisd meg a friss\xEDtett alkalmaz\xE1st, vagy friss\xEDtsd az oldalt." : "A kiszolg\xE1l\xF3 v\xE1lasza nem \xE9rtelmezhet\u0151. Friss\xEDtsd az oldalt, \xE9s pr\xF3b\xE1ld \xFAjra."
+      );
+    }
     if (!response.ok) throw new Error(result.error || "Nem siker\xFClt menteni.");
     return result;
   };

@@ -68,7 +68,22 @@ export function createPortalApi({
             : ''),
       );
     }
-    const result = await response.json();
+    let result: { error?: string };
+    try {
+      result = await response.json();
+    } catch {
+      if (path === 'responses') {
+        saveDraft();
+        throw new Error(
+          'Nem kaptunk értelmezhető visszaigazolást. A piszkozat megmaradt. Ellenőrizd a Rendeléseim oldalt az újrapróbálás előtt.',
+        );
+      }
+      throw new Error(
+        response.status === 404
+          ? 'Ez a funkció ezen a szerveren nem érhető el. Nyisd meg a frissített alkalmazást, vagy frissítsd az oldalt.'
+          : 'A kiszolgáló válasza nem értelmezhető. Frissítsd az oldalt, és próbáld újra.',
+      );
+    }
     if (!response.ok) throw new Error(result.error || 'Nem sikerült menteni.');
     return result as T;
   };
