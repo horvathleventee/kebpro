@@ -7,7 +7,7 @@ import { createStaffSettingsActions } from './staff-settings-actions';
 import * as orderPricing from './order-pricing';
 import * as navigation from './navigation';
 import { compressComplaintPhoto } from './photo';
-import { createPushController } from './push-controller';
+import { createPushController, logoutWithPushCleanup } from './push-controller';
 import { createSessionController } from './session-controller';
 import { createAuditFormatter } from './audit';
 import type { PortalScreens } from '../../react/screens';
@@ -999,18 +999,11 @@ export function startPortalController(screens: PortalScreens) {
   }
   document.getElementById('logout')!.addEventListener('click', async () => {
     try {
-      let endpoint;
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.getRegistration(
-          role === 'partner' ? '/partner/' : '/partner-admin/',
-        );
-        const subscription = await reg?.pushManager?.getSubscription();
-        if (subscription) {
-          endpoint = subscription.endpoint;
-          await subscription.unsubscribe();
-        }
-      }
-      await api('logout', { endpoint });
+      await logoutWithPushCleanup(
+        'serviceWorker' in navigator ? navigator.serviceWorker : undefined,
+        base,
+        (body) => api('logout', body),
+      );
       location.href = base + '/login';
     } catch (err) {
       toast(err instanceof Error ? err.message : 'A művelet nem sikerült.');

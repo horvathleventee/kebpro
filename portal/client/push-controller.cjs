@@ -19,7 +19,8 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // portal/client/ts/push-controller.ts
 var push_controller_exports = {};
 __export(push_controller_exports, {
-  createPushController: () => createPushController
+  createPushController: () => createPushController,
+  logoutWithPushCleanup: () => logoutWithPushCleanup
 });
 module.exports = __toCommonJS(push_controller_exports);
 function createPushController(ctx) {
@@ -31,7 +32,25 @@ function createPushController(ctx) {
       throw new Error(
         "Ez a b\xF6ng\xE9sz\u0151 most nem t\xE1mogatja a push \xE9rtes\xEDt\xE9st. iPhone-on a f\u0151k\xE9perny\u0151re telep\xEDtett appb\xF3l pr\xF3b\xE1ld."
       );
-    return navigator.serviceWorker.ready;
+    const base = role === "staff" ? "/partner-admin" : "/partner";
+    let timer;
+    try {
+      return await Promise.race([
+        (async () => {
+          await navigator.serviceWorker.register(base + "/sw.js", { scope: base + "/" });
+          return navigator.serviceWorker.ready;
+        })(),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error("Service worker activation timed out")), 1e4);
+        })
+      ]);
+    } catch {
+      throw new Error(
+        "Az \xE9rtes\xEDt\xE9si szolg\xE1ltat\xE1s nem indult el. Friss\xEDtsd az oldalt, \xE9s pr\xF3b\xE1ld \xFAjra."
+      );
+    } finally {
+      clearTimeout(timer);
+    }
   }
   function keyBytes(value) {
     const raw = atob(
@@ -88,4 +107,17 @@ function createPushController(ctx) {
     });
   }
   return { registration, keyBytes, enablePartnerPush, offerPushSetup };
+}
+async function logoutWithPushCleanup(serviceWorker, base, logout) {
+  let subscription;
+  try {
+    const reg = await serviceWorker?.getRegistration(base + "/");
+    subscription = await reg?.pushManager?.getSubscription();
+  } catch {
+  }
+  await logout({ endpoint: subscription?.endpoint });
+  try {
+    await subscription?.unsubscribe();
+  } catch {
+  }
 }

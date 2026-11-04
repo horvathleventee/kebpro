@@ -35,7 +35,25 @@ export function createPushController(ctx: PushContext) {
       throw new Error(
         'Ez a böngésző most nem támogatja a push értesítést. iPhone-on a főképernyőre telepített appból próbáld.',
       );
-    return navigator.serviceWorker.ready;
+    const base = role === 'staff' ? '/partner-admin' : '/partner';
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        (async () => {
+          await navigator.serviceWorker.register(base + '/sw.js', { scope: base + '/' });
+          return navigator.serviceWorker.ready;
+        })(),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new Error('Service worker activation timed out')), 10000);
+        }),
+      ]);
+    } catch {
+      throw new Error(
+        'Az értesítési szolgáltatás nem indult el. Frissítsd az oldalt, és próbáld újra.',
+      );
+    } finally {
+      clearTimeout(timer);
+    }
   }
   function keyBytes(value: string) {
     const raw = atob(
@@ -101,4 +119,24 @@ export function createPushController(ctx: PushContext) {
   }
 
   return { registration, keyBytes, enablePartnerPush, offerPushSetup };
+}
+
+export async function logoutWithPushCleanup(
+  serviceWorker: ServiceWorkerContainer | undefined,
+  base: string,
+  logout: (body: { endpoint?: string }) => Promise<unknown>,
+) {
+  let subscription: PushSubscription | null | undefined;
+  try {
+    const reg = await serviceWorker?.getRegistration(base + '/');
+    subscription = await reg?.pushManager?.getSubscription();
+  } catch {
+    // Logout must remain available if browser push APIs fail.
+  }
+  await logout({ endpoint: subscription?.endpoint });
+  try {
+    await subscription?.unsubscribe();
+  } catch {
+    // The server no longer sends to this endpoint; logout already succeeded.
+  }
 }

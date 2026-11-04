@@ -2,7 +2,10 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { createSessionController } = require('../portal/client/session-controller.cjs');
-const { createPushController } = require('../portal/client/push-controller.cjs');
+const {
+  createPushController,
+  logoutWithPushCleanup,
+} = require('../portal/client/push-controller.cjs');
 const { currentTab } = require('../portal/client/navigation.cjs');
 
 function storage() {
@@ -105,6 +108,7 @@ test('partner push enables news and reuses an existing subscription', async () =
     document: { querySelector: () => null },
     navigator: {
       serviceWorker: {
+        register: async () => ({}),
         ready: Promise.resolve({
           pushManager: {
             getSubscription: async () => subscription,
@@ -122,6 +126,95 @@ test('partner push enables news and reuses an existing subscription', async () =
   assert.equal(posted.path, 'subscription');
   assert.equal(posted.body.enableNews, true);
   assert.equal(loads, 1);
+});
+test('failed worker registration reports an error instead of waiting for ready', async () => {
+  const c = createPushController({
+    role: 'partner',
+    appState: { state: { data: { id: 'p', publicKey: 'YQ' } } },
+    screens: {},
+    api: async () => {},
+    load: async () => {},
+    toast: () => {},
+    window: { atob, PushManager: {}, Notification: { requestPermission: async () => 'granted' } },
+    document: { querySelector: () => null },
+    navigator: {
+      serviceWorker: {
+        register: async () => {
+          throw Error('failed');
+        },
+        ready: new Promise(() => {}),
+      },
+    },
+    localStorage: storage(),
+  });
+  await assert.rejects(c.enablePartnerPush(), /nem indult el/);
+});
+test('staff push registers the admin worker and reports activation timeout', async () => {
+  let scope;
+  const c = createPushController({
+    role: 'staff',
+    appState: { state: { data: { id: 's', publicKey: 'YQ' } } },
+    screens: {},
+    api: async () => {},
+    load: async () => {},
+    toast: () => {},
+    window: { atob, PushManager: {}, Notification: {} },
+    document: { querySelector: () => null },
+    navigator: {
+      serviceWorker: {
+        register: async (url, options) => {
+          scope = [url, options.scope];
+        },
+        ready: new Promise(() => {}),
+      },
+    },
+    localStorage: storage(),
+  });
+  await assert.rejects(c.registration(), /nem indult el/);
+  assert.deepEqual(scope, ['/partner-admin/sw.js', '/partner-admin/']);
+});
+test('logout preserves push on failed server request and cleans it up after success', async () => {
+  const events = [];
+  const subscription = {
+    endpoint: 'endpoint',
+    unsubscribe: async () => {
+      events.push('unsubscribe');
+    },
+  };
+  const sw = {
+    getRegistration: async () => ({ pushManager: { getSubscription: async () => subscription } }),
+  };
+  await assert.rejects(
+    logoutWithPushCleanup(sw, '/partner', async () => {
+      throw Error('offline');
+    }),
+    /offline/,
+  );
+  assert.deepEqual(events, []);
+  await logoutWithPushCleanup(sw, '/partner', async (body) => {
+    assert.equal(body.endpoint, 'endpoint');
+    events.push('logout');
+  });
+  assert.deepEqual(events, ['logout', 'unsubscribe']);
+});
+test('logout succeeds when browser push cleanup fails', async () => {
+  const sw = {
+    getRegistration: async () => ({
+      pushManager: {
+        getSubscription: async () => ({
+          endpoint: 'e',
+          unsubscribe: async () => {
+            throw Error('failed');
+          },
+        }),
+      },
+    }),
+  };
+  let sent;
+  await logoutWithPushCleanup(sw, '/partner', async (body) => {
+    sent = body;
+  });
+  assert.equal(sent.endpoint, 'e');
 });
 test('denied push permission never creates a subscription', async () => {
   let posted = false;
