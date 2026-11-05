@@ -691,7 +691,16 @@ function createPortalApp({
   });
   app.use((err, req, res, next) => {
     if (!(err instanceof domain.InputError)) {
-      console.error('[partner] Unexpected server error');
+      const reference = crypto.randomUUID();
+      const details = require('./staging').stagingErrorDetails(err);
+      console.error('[partner] Unexpected server error:', JSON.stringify({ reference, details }));
+      if (req.adminArea) {
+        const first = details[0];
+        res.setHeader(
+          'X-Kebpro-Diagnostic',
+          ['ERROR', reference, first?.name, first?.code].filter(Boolean).join('-'),
+        );
+      }
       lastServerErrorAt = Date.now();
     }
     res.status(err.status || 500).json({

@@ -64,7 +64,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Opt-in private staging: failures are confined to partner routes, not the website.
 let portalStaging = null,
-  portalStagingReady = false;
+  portalStagingReady = false,
+  portalStagingDiagnostic = 'PORTAL_STARTING';
 let portalDiagnose = () => 'UNKNOWN';
 let portalErrorDetails = () => [];
 function recordPortalStagingStatus(code, phase, error) {
@@ -98,17 +99,26 @@ if (process.env.PORTAL_STAGING_ENABLED === 'true') {
     portalStaging.ready
       .then(() => {
         portalStagingReady = true;
+        portalStagingDiagnostic = 'PORTAL_READY';
         recordPortalStagingStatus('READY', 'ready');
       })
       .catch((error) => {
         const code = diagnoseStagingError(error);
+        portalStagingDiagnostic = 'STARTUP_' + code;
         recordPortalStagingStatus(code, 'startup', error);
-        console.error('[partner staging] Startup failed: ' + code);
+        console.error(
+          '[partner staging] Startup failed:',
+          JSON.stringify({ code, details: portalErrorDetails(error) }),
+        );
       });
   } catch (error) {
     const code = portalDiagnose(error);
+    portalStagingDiagnostic = 'CONFIG_' + code;
     recordPortalStagingStatus(code, 'configuration', error);
-    console.error('[partner staging] Invalid configuration: ' + code);
+    console.error(
+      '[partner staging] Invalid configuration:',
+      JSON.stringify({ code, details: portalErrorDetails(error) }),
+    );
   }
 }
 app.use((req, res, next) => {
@@ -117,8 +127,20 @@ app.use((req, res, next) => {
     process.env.PORTAL_STAGING_ENABLED !== 'true'
   )
     return next();
-  if (!portalStagingReady)
+  if (!portalStagingReady) {
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Kebpro-Diagnostic', portalStagingDiagnostic);
+    if (req.path.startsWith('/partner-admin/'))
+      return res
+        .status(503)
+        .send(
+          'Teszt diagnosztika: HTTP 503 · ' +
+            portalStagingDiagnostic +
+            ' · ' +
+            new Date().toISOString(),
+        );
     return res.status(503).send('Partner tesztkörnyezet átmenetileg nem érhető el.');
+  }
   return portalStaging.app.handle(req, res, next);
 });
 

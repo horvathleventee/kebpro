@@ -157,11 +157,7 @@ const { createPortalApp } = require('../portal/app'),
       }),
     );
     await admin.locator('#publish-news button').click();
-    await admin
-      .getByText('Az alkalmazás kiszolgálója átmenetileg nem elérhető. Próbáld újra később.', {
-        exact: true,
-      })
-      .waitFor();
+    await admin.getByText(/Ideiglenes diagnosztika: HTTP 503/).waitFor();
     assert.equal(await admin.locator('#news-title').inputValue(), 'Próbahír React');
     assert.equal(await admin.locator('#news-body').inputValue(), 'Üzenet teszteléshez');
     await admin.unroute('**/partner-admin/api/news');
@@ -371,6 +367,11 @@ const { createPortalApp } = require('../portal/app'),
     await admin.locator('#mobile-more summary').click();
     await admin.locator('.mobile-more-panel [data-nav=products]').click();
     await admin.locator('#price-partner-filter').selectOption('partner-1');
+    await admin
+      .locator('[data-price-product]')
+      .first()
+      .getByRole('button', { name: 'Ár beállítása' })
+      .click();
     assert.ok(
       await admin
         .locator('[data-price-product]')
@@ -383,7 +384,11 @@ const { createPortalApp } = require('../portal/app'),
     await admin.route('**/partner-admin/api/prices', (route) =>
       route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }),
     );
-    await admin.locator('[data-price-product]').first().locator('button').click();
+    await admin
+      .locator('[data-price-product]')
+      .first()
+      .getByRole('button', { name: 'Ár mentése' })
+      .click();
     await admin
       .getByText('Az alkalmazás kiszolgálója átmenetileg nem elérhető. Próbáld újra később.')
       .waitFor();
@@ -396,17 +401,17 @@ const { createPortalApp } = require('../portal/app'),
     assert.equal(await admin.locator('#price-partner-filter').inputValue(), 'partner-1');
     await admin.getByRole('button', { name: 'Maradok' }).click();
     await admin.unroute('**/partner-admin/api/prices');
-    await admin.locator('[data-price-product]').first().locator('button').click();
+    await admin
+      .locator('[data-price-product]')
+      .first()
+      .getByRole('button', { name: 'Ár mentése' })
+      .click();
     await admin.locator('[data-price-card]').first().getByText('Ár elmentve.').waitFor();
     const productCard = admin.locator('[data-price-card]').first();
+    await productCard.getByRole('button', { name: 'Akció beállítása' }).click();
     await productCard.locator('[data-promotion-product] input[value=discount]').check();
     await productCard.locator('[data-promotion-product] input[name=value]').first().fill('200');
-    await productCard
-      .locator(
-        '[data-promotion-product] button[type=submit], [data-promotion-product] button:not([type])',
-      )
-      .first()
-      .click();
+    await productCard.getByRole('button', { name: 'Akció mentése' }).click();
     await admin.getByText('Általános akció elmentve.').waitFor();
     await admin
       .locator('[data-price-card]')

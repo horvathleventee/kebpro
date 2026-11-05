@@ -96,3 +96,27 @@ test('HTML error pages show a helpful message and an unclear order response pres
   await assert.rejects(attempt.request('responses', { requestId: 'one' }), /piszkozat megmaradt/i);
   assert.equal(attempt.seen.saves, 2);
 });
+
+test('Admin server errors expose safe diagnostics without changing partner errors', async () => {
+  const make = (base, value) =>
+    createPortalApi({
+      base,
+      csrf: 'test',
+      isOnline: () => true,
+      saveDraft() {},
+      onMutationStart() {},
+      onMutationEnd() {},
+      onUnauthorized() {},
+      fetchImpl: async () =>
+        new Response('', { status: 503, headers: { 'X-Kebpro-Diagnostic': value } }),
+    });
+  await assert.rejects(
+    make('/partner-admin', 'PORTAL_STARTING')('admin'),
+    /HTTP 503; kód: PORTAL_STARTING/,
+  );
+  await assert.rejects(make('/partner-admin', '<unsafe>')('admin'), /NEM_ADTA_MEG_A_KISZOLGALO/);
+  await assert.rejects(
+    make('/partner', 'PORTAL_STARTING')('me'),
+    (error) => !error.message.includes('PORTAL_STARTING'),
+  );
+});
