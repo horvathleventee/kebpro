@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heading } from './Heading';
+import { NewsPager, useNewsPage } from './NewsPagination';
 interface NewsItem {
   id: string;
   kind: string;
@@ -17,6 +18,7 @@ interface StaffNewsProps {
   onError(error: unknown): void;
 }
 function StaffNews({ data, onPublish, onError }: StaffNewsProps) {
+  const pagination = useNewsPage(data.news);
   const [sending, setSending] = React.useState(false),
     inFlight = React.useRef(false);
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -105,7 +107,7 @@ function StaffNews({ data, onPublish, onError }: StaffNewsProps) {
           {!data.news.length && (
             <p className="card staff-empty-copy">Még nincs megjelent közlemény.</p>
           )}
-          {data.news.map((item) => (
+          {pagination.items.map((item) => (
             <article className="card news-card" key={item.id}>
               <div className="news-meta">
                 <span className={'badge ' + (item.kind === 'Akci\xF3' ? 'amber' : 'blue')}>
@@ -117,6 +119,7 @@ function StaffNews({ data, onPublish, onError }: StaffNewsProps) {
               <p className="news-body">{item.body}</p>
             </article>
           ))}
+          <NewsPager {...pagination} />
         </div>
       </div>
     </div>

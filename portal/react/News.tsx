@@ -1,4 +1,5 @@
 import React from 'react';
+import { NewsPager, useNewsPage } from './NewsPagination';
 interface NewsItem {
   id: string;
   kind: string;
@@ -11,6 +12,7 @@ interface NewsProps {
   onRefresh(): void;
 }
 function News({ news, onRefresh }: NewsProps) {
+  const pagination = useNewsPage(news);
   const dateShort2 = (value: string) =>
     new Intl.DateTimeFormat('hu-HU', {
       year: 'numeric',
@@ -31,7 +33,8 @@ function News({ news, onRefresh }: NewsProps) {
         </button>
       </div>
       <div className="news-list">
-        {news.map((item) => (
+        {!news.length && <p className="card">Még nincs megjelent hír.</p>}
+        {pagination.items.map((item) => (
           <article className="card news-card" key={item.id}>
             <div className="news-meta">
               <span className={'badge ' + (item.kind === 'Akci\xF3' ? 'amber' : 'blue')}>
@@ -44,6 +47,7 @@ function News({ news, onRefresh }: NewsProps) {
           </article>
         ))}
       </div>
+      <NewsPager {...pagination} />
     </>
   );
 }

@@ -28,6 +28,13 @@ function purge(state, now = new Date()) {
     (r) => !(r.archivedAt && Date.parse(r.archivedAt) < threshold && r.date < day),
   );
   const deleted = before - state.responses.length;
+  const newsBefore = (state.news || []).length;
+  if (state.news)
+    state.news = state.news.filter((item) => {
+      const created = Date.parse(item.createdAt || '');
+      return !Number.isFinite(created) || created > threshold;
+    });
+  const newsDeleted = newsBefore - (state.news || []).length;
   const expiredIds = new Set();
   let complaintsDeleted = 0;
   for (const partner of state.partners || []) {
@@ -60,6 +67,8 @@ function purge(state, now = new Date()) {
     lastRun: now.toISOString(),
     deleted,
     totalDeleted: (state.retention?.totalDeleted || 0) + deleted,
+    newsDeleted,
+    totalNewsDeleted: (state.retention?.totalNewsDeleted || 0) + newsDeleted,
     complaintsDeleted,
     totalComplaintsDeleted: (state.retention?.totalComplaintsDeleted || 0) + complaintsDeleted,
   };

@@ -442,6 +442,38 @@ main#content {
   flex-wrap: wrap;
   gap: 10px;
 }
+.news-pagination {
+  display: grid;
+  grid-template-columns: max-content max-content max-content;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+.news-pagination .button {
+  width: auto;
+  min-height: 44px;
+  padding: 10px 16px;
+  white-space: nowrap;
+}
+.news-pagination-count {
+  min-width: 76px;
+  text-align: center;
+  color: #52677f;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.news-pagination-count strong {
+  color: #102640;
+}
+@media (max-width: 360px) {
+  .news-pagination {
+    gap: 6px;
+  }
+  .news-pagination .button {
+    padding-inline: 10px;
+  }
+}
 .delivery-card .secondary {
   background: #ffffff0b;
   border-color: #ffffff40;
