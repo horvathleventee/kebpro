@@ -36,7 +36,11 @@ function createPortalApp({
   const ready = auth
     .initialize(store, adminCredentials, { requireExplicit: Boolean(staging) })
     .then(async (credentials) => {
-      await store.change((state) => require('./migrations').migrateDailyRoutes(state, now()));
+      await store.change((state) => {
+        require('./migrations').migrateDailyRoutes(state, now());
+        require('./migrations').migrateChickenVariants(state);
+        require('./migrations').migrateContactPhones(state);
+      });
       return credentials;
     });
   const recovery = require('./recovery').createRecovery({ store, sendEmail, origin: publicOrigin });
@@ -512,6 +516,15 @@ function createPortalApp({
     await store.change((state) => {
       const person = state.partners.find((p) => p.id === req.portalSession.partnerId);
       person.preferences = { news: req.body.news, reminders: req.body.reminders };
+    });
+    res.json({ ok: true });
+  });
+  app.post('/partner/api/contact-phone', requireSession, partner, async (req, res) => {
+    const clean = require('./phone').normalizeMobilePhone(req.body.phone);
+    await store.change((state) => {
+      const person = state.partners.find((p) => p.id === req.portalSession.partnerId);
+      domain.assert(person, 'Ismeretlen partner.', 403);
+      person.phone = clean;
     });
     res.json({ ok: true });
   });

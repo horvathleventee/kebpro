@@ -11,6 +11,8 @@ interface ReportProps {
 export function Reports({ data, onSend, onRefresh, onPhoto, onError }: ReportProps) {
   const [busy, setBusy] = useState(false),
     [dirty, setDirty] = useState(false),
+    [success, setSuccess] = useState(false),
+    [errorMessage, setErrorMessage] = useState(''),
     pending = useRef(false);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,16 +21,28 @@ export function Reports({ data, onSend, onRefresh, onPhoto, onError }: ReportPro
       values = new FormData(form);
     pending.current = true;
     setBusy(true);
+    setSuccess(false);
+    setErrorMessage('');
     try {
       await onSend(values);
       form.reset();
       setDirty(false);
-      await onRefresh();
+      setSuccess(true);
     } catch (error) {
+      setErrorMessage(
+        (error instanceof Error ? error.message : 'A küldés nem sikerült.') +
+          ' Az üzenet és a kiválasztott kép megmaradt; ellenőrizd az adatokat, majd próbáld újra.',
+      );
       onError(error);
+      return;
     } finally {
       pending.current = false;
       setBusy(false);
+    }
+    try {
+      await onRefresh();
+    } catch (error) {
+      onError(error);
     }
   }
   return (
@@ -52,6 +66,11 @@ export function Reports({ data, onSend, onRefresh, onPhoto, onError }: ReportPro
       </section>
       <section className="card section-gap">
         <h2>Általános visszajelzés</h2>
+        {success && (
+          <p className="complaint-submit-success" role="status">
+            ✓ A bejelentésedet sikeresen elküldtük.
+          </p>
+        )}
         <form
           data-general-report="true"
           data-dirty={dirty ? 'true' : undefined}
@@ -60,14 +79,19 @@ export function Reports({ data, onSend, onRefresh, onPhoto, onError }: ReportPro
         >
           <label>
             Üzenet
-            <textarea name="message" maxLength={2000} required rows={4} />
+            <textarea name="message" maxLength={2000} required rows={4} disabled={busy} />
           </label>
           <label>
             Kép (nem kötelező)
-            <input name="photo" type="file" accept="image/*" />
+            <input name="photo" type="file" accept="image/*" disabled={busy} />
           </label>
+          {errorMessage && (
+            <p className="notice warning" role="alert">
+              {errorMessage}
+            </p>
+          )}
           <button className="button primary" disabled={busy}>
-            Üzenet elküldése
+            {busy ? 'Küldés…' : 'Üzenet elküldése'}
           </button>
         </form>
       </section>

@@ -1,3 +1,4 @@
+import { isSpit, spitPriceKey } from './order-assessment';
 import type { PricedOrderItem, PricedProduct, ProductSelection } from './types';
 
 export const formatMoney = (value: number | null | undefined): string =>
@@ -9,7 +10,11 @@ export const getUnitPrice = (
   products: readonly PricedProduct[],
   item: ProductSelection,
 ): number | null =>
-  products.find((product) => product.id === item.productId)?.prices?.[item.unit] ?? null;
+  isSpit(item.productId) && !item.spitWeight
+    ? null
+    : (products.find((product) => product.id === item.productId)?.prices?.[
+        isSpit(item.productId) ? spitPriceKey(item.spitWeight!) : item.unit
+      ] ?? null);
 
 export function getLinePrice(
   products: readonly PricedProduct[],

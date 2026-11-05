@@ -1,13 +1,15 @@
+import { isSpit, spitSizes } from './order-assessment';
 import type { OrderUnit } from './types';
 interface OrderItem {
   productId: string;
   name: string;
   quantity: number;
   unit: OrderUnit;
+  spitWeight?: number;
 }
 interface OrderState {
   data: {
-    products: { id: string; name: string }[];
+    products: { id: string; name: string; orderUnit?: OrderUnit | null }[];
     templates: { id: string; items: OrderItem[] }[];
   };
   cart: OrderItem[];
@@ -43,25 +45,41 @@ export function createOrderActions(ctx: OrderContext) {
         const { data, cart } = state(),
           product = data.products.find((p) => p.id === values.get('productId')),
           amount = Number(values.get('quantity')),
-          unit = values.get('unit');
+          unit = values.get('unit'),
+          spitWeight = Number(values.get('spitWeight'));
         if (
           !product ||
-          (unit !== 'kg' && unit !== 'db' && unit !== 'karton') ||
+          (unit !== 'kg' &&
+            unit !== 'db' &&
+            unit !== 'karton' &&
+            unit !== 'zacskó' &&
+            unit !== 'csomag') ||
+          (isSpit(product.id) && !spitSizes.some((size) => size === spitWeight)) ||
+          (product.orderUnit != null && unit !== product.orderUnit) ||
           !Number.isFinite(amount) ||
           amount <= 0 ||
           amount > 10000 ||
           (unit !== 'kg' && !Number.isInteger(amount))
         )
           throw Error(
-            'Ellenőrizd a terméket és a mennyiséget. Darab és karton csak egész szám lehet.',
+            'Ellenőrizd a terméket és a mennyiséget. A kilogrammon kívüli egységek csak egész számok lehetnek.',
           );
-        const existing = cart.find((i) => i.productId === product.id);
+        const existing = cart.find(
+          (i) => i.productId === product.id && (!isSpit(product.id) || i.spitWeight === spitWeight),
+        );
         if (existing) {
           if (existing.unit !== unit)
             throw Error('Ez a termék már szerepel más mértékegységgel. Előbb távolítsd el.');
           if (existing.quantity + amount > 10000) throw Error('Túl nagy mennyiség.');
           existing.quantity = Math.round((existing.quantity + amount) * 100) / 100;
-        } else cart.push({ productId: product.id, name: product.name, quantity: amount, unit });
+        } else
+          cart.push({
+            productId: product.id,
+            name: product.name,
+            quantity: amount,
+            unit,
+            ...(isSpit(product.id) ? { spitWeight } : {}),
+          });
         update({ requestId: newRequest() });
         ctx.render();
         return true;

@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const webpush = require('web-push');
 const { getOrderProductOptions } = require('../utils/i18n');
+const orderUnits = require('./order-units.json');
+const { assessOrder, isSpit, spitSizes, spitPriceKey } = require('./client/order-assessment.cjs');
 const id = () => crypto.randomUUID();
 class InputError extends Error {
   constructor(message, status = 400) {
@@ -111,7 +113,7 @@ function callSchedule(state, now = new Date()) {
         id: p.id,
         name: p.name,
         address: p.address,
-        phone: p.phone || state.users?.find((u) => u.partnerId === p.id)?.phone || '',
+        phone: p.phone ?? state.users?.find((u) => u.partnerId === p.id)?.phone ?? '',
         response: state.responses.find((r) => r.partnerId === p.id && r.date === date) || null,
       }));
       routes.push({
@@ -260,9 +262,16 @@ function validateItems(state, items) {
   const used = new Set();
   return input.items.map((item) => {
     const product = state.products.find((p) => p.id === item.productId);
-    assert(product && !used.has(item.productId), 'Ismeretlen vagy ismétlődő termék.');
+    const identity = isSpit(item.productId)
+      ? item.productId + ':' + item.spitWeight
+      : item.productId;
+    assert(product && !used.has(identity), 'Ismeretlen vagy ismétlődő termék.');
     assert(product.active, product.name + ' átmenetileg nem rendelhető. Távolítsd el a kosárból.');
-    used.add(item.productId);
+    used.add(identity);
+    assert(
+      !isSpit(item.productId) || spitSizes.includes(item.spitWeight),
+      'Válassz érvényes nyárs méretet.',
+    );
     assert(
       typeof item.quantity === 'number' &&
         Number.isFinite(item.quantity) &&
@@ -271,18 +280,37 @@ function validateItems(state, items) {
         Math.abs(item.quantity * 100 - Math.round(item.quantity * 100)) < 0.000001,
       'Hibás mennyiség (0,01–10 000).',
     );
-    assert(['kg', 'db', 'karton'].includes(item.unit), 'Válassz mértékegységet.');
+    assert(priceUnits.includes(item.unit), 'Válassz mértékegységet.');
+    const unit = product.orderUnit || orderUnits[product.name];
+    assert(!unit || item.unit === unit, product.name + ' rendelési egysége: ' + unit + '.');
     assert(
       item.unit === 'kg' || Number.isInteger(item.quantity),
-      'Darab és karton csak egész mennyiség lehet.',
+      'A kilogrammon kívüli egységek csak egész mennyiségek lehetnek.',
     );
-    return { productId: product.id, name: product.name, quantity: item.quantity, unit: item.unit };
+    return {
+      productId: product.id,
+      name: product.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      ...(isSpit(product.id)
+        ? { spitWeight: item.spitWeight, totalWeight: item.spitWeight * item.quantity }
+        : {}),
+    };
   });
 }
-const priceUnits = ['kg', 'db', 'karton'];
+const orderPriceUnits = ['kg', 'db', 'karton', 'zacskó', 'csomag'];
+const priceUnits = [...orderPriceUnits, ...spitSizes.map(spitPriceKey)];
+function availablePriceUnits(product) {
+  if (isSpit(product.id)) return spitSizes.map(spitPriceKey);
+  const unit = product.orderUnit || orderUnits[product.name];
+  return unit ? [unit] : orderPriceUnits;
+}
 function updatePrice(state, input) {
   const product = state.products.find((p) => p.id === input.productId);
-  assert(product && priceUnits.includes(input.unit), 'Ismeretlen termék vagy mértékegység.');
+  assert(
+    product && availablePriceUnits(product).includes(input.unit),
+    'Ismeretlen termék vagy mértékegység.',
+  );
   const partner = input.partnerId ? state.partners.find((p) => p.id === input.partnerId) : null;
   assert(!input.partnerId || partner, 'Ismeretlen partner.');
   assert(
@@ -304,7 +332,10 @@ function updatePrice(state, input) {
 }
 function updatePromotion(state, input) {
   const product = state.products.find((p) => p.id === input.productId);
-  assert(product && ['kg', 'db'].includes(input.unit), 'Ismeretlen termék vagy mértékegység.');
+  assert(
+    product && availablePriceUnits(product).includes(input.unit),
+    'Ismeretlen termék vagy mértékegység.',
+  );
   assert(['none', 'discount', 'fixed'].includes(input.kind), 'Érvénytelen akciótípus.');
   product.promotions ||= {};
   if (input.kind === 'none') {
@@ -332,7 +363,7 @@ function pricedItems(state, partner, items) {
     const price = priceFor(
       state.products.find((p) => p.id === item.productId),
       partner,
-      item.unit,
+      isSpit(item.productId) ? spitPriceKey(item.spitWeight) : item.unit,
     );
     return {
       ...item,
@@ -439,6 +470,7 @@ function submitResponse(state, partnerId, input, now = new Date()) {
     const wasSkip = existing.kind === 'skip';
     Object.assign(existing, {
       items,
+      followUp: input.kind === 'order' ? assessOrder(items) : null,
       total,
       note: (input.note || '').trim(),
       kind: input.kind,
@@ -472,6 +504,7 @@ function submitResponse(state, partnerId, input, now = new Date()) {
     date: delivery.date,
     kind: input.kind,
     items,
+    followUp: input.kind === 'order' ? assessOrder(items) : null,
     total,
     note: (input.note || '').trim(),
     status: input.kind === 'skip' ? 'skip' : 'received',
@@ -502,7 +535,24 @@ function submitComplaint(state, partnerId, input, now = new Date()) {
     'Érvénytelen kérésazonosító.',
   );
   const existing = (partner.complaints || []).find((c) => c.requestId === input.requestId);
-  if (existing) return existing;
+  if (existing) {
+    const photoMatches = (photo, photoId) => {
+      if (!photoId) return !photo;
+      const stored = (state.complaintPhotos || []).find((item) => item.id === photoId);
+      return Boolean(stored && photo === 'data:image/jpeg;base64,' + stored.data);
+    };
+    assert(
+      (input.kind === 'general' ? 'general' : 'complaint') === existing.kind &&
+        (existing.kind === 'general' || input.orderId === existing.orderId) &&
+        typeof input.message === 'string' &&
+        input.message.trim() === existing.message &&
+        photoMatches(input.photo, existing.photoId) &&
+        photoMatches(input.labelPhoto, existing.labelPhotoId),
+      'A korábbi küldés már beérkezett, de azóta módosítottad az adatokat. Ellenőrizd a Bejelentéseim oldalon a korábbi üzenetet.',
+      409,
+    );
+    return existing;
+  }
   const general = input.kind === 'general';
   const order = general
     ? null
@@ -850,6 +900,7 @@ function safePartner(state, partner, now, listing) {
       .map((p) => ({
         id: p.id,
         name: p.name,
+        orderUnit: p.orderUnit || orderUnits[p.name] || null,
         active: p.active,
         prices: Object.fromEntries(priceUnits.map((unit) => [unit, priceFor(p, partner, unit)])),
       })),
@@ -878,32 +929,45 @@ function adminView(state, date, routeId, listing) {
   const totals = new Map();
   for (const response of responses.filter((r) => r.kind === 'order'))
     for (const item of response.items) {
-      const key = item.productId + ':' + item.unit;
-      const old = totals.get(key) || { name: item.name, quantity: 0, unit: item.unit };
+      const key = item.productId + ':' + item.unit + ':' + (item.spitWeight || '');
+      const old = totals.get(key) || {
+        name: item.name + (item.spitWeight ? ' · ' + item.spitWeight + ' kg/nyárs' : ''),
+        quantity: 0,
+        unit: item.unit,
+      };
       old.quantity = Math.round((old.quantity + item.quantity) * 100) / 100;
       totals.set(key, old);
     }
   const page =
     state._orders || (listing ? require('./listing').select(state.responses, listing) : null);
+  const presentStaffOrder = (order) => ({
+    ...order,
+    followUp: order.kind === 'order' ? order.followUp || 'unknown' : null,
+    contactPhone: state.partners.find((p) => p.id === order.partnerId)?.phone || '',
+  });
   return {
     orderPage: page?.pagination,
     orderCounts: page?.counts,
-    products: state.products,
+    products: state.products.map((product) => ({
+      ...product,
+      availablePriceUnits: availablePriceUnits(product),
+    })),
     routes: state.routes,
     allPartners: state.partners,
     news: state.news,
     partners: partners.map((p) => ({
       ...p,
       disabled: state.users?.some((u) => u.partnerId === p.id && u.status === 'disabled') || false,
-      phone: p.phone || state.users?.find((u) => u.partnerId === p.id)?.phone || '',
+      phone: p.phone ?? state.users?.find((u) => u.partnerId === p.id)?.phone ?? '',
       response: responses.find((r) => r.partnerId === p.id) || null,
     })),
-    allOrders: page
+    allOrders: (page
       ? page.rows
       : state.responses.filter(
           (r) => r.kind === 'order' || (r.modifiedAt && r.changes?.some((c) => c.kind === 'order')),
-        ),
-    responses,
+        )
+    ).map(presentStaffOrder),
+    responses: responses.map(presentStaffOrder),
     totals: [...totals.values()],
     outbox: state.outbox.slice(-100).reverse(),
     subscribedPartners: state.partners.filter((p) => p.preferences.news).length,

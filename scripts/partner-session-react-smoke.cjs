@@ -15,7 +15,7 @@ const { createPortalApp } = require('../portal/app'),
     password: 'Password123',
     company: 'Partner',
     contact: 'Teszt',
-    phone: '123456789',
+    phone: '+36301234567',
     address: 'Teszt',
   });
   await portal.store.change((s) => {

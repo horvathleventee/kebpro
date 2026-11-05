@@ -5,7 +5,7 @@
   <meta name="theme-color" content="#10243f"><meta name="csrf-token" content="<%= csrf %>">
   <title>Kebpro · <%= role === 'staff' ? 'Céges kezelőfelület' : 'Partnerfelület' %></title>
   <meta name="apple-mobile-web-app-title" content="Kebpro <%= role === 'staff' ? 'Admin' : 'Partner' %>"><link rel="apple-touch-icon" sizes="180x180" href="<%= role === 'staff' ? '/partner-admin' : '/partner' %>/apple-touch-icon.png?v=3"><link rel="manifest" href="<%= role === 'staff' ? '/partner-admin' : '/partner' %>/manifest.webmanifest"><link rel="icon" type="image/png" href="/partner/assets/<%= role === 'staff' ? 'admin' : 'partner' %>-v2-192.png">
-  <link rel="stylesheet" href="/partner/assets/portal.css"><script src="/partner/assets/drafts.js" defer></script><script src="/partner/assets/react-screens.js" defer></script><script src="/partner/assets/portal.js" defer></script><script src="/partner/assets/install.js" defer></script>
+  <link rel="stylesheet" href="/partner/assets/portal.css"><script src="/partner/assets/drafts.js" defer></script><script src="/partner/assets/react-screens.js" defer></script><script src="/partner/assets/portal.js" defer></script><script src="/partner/assets/install.js" defer></script><script src="/partner/assets/legal-dialog.js" defer></script>
 </head>
 <body data-role="<%= role %>">
   <aside class="sidebar">
@@ -55,9 +55,10 @@
     <header class="topbar"><span id="identity"><%= role === 'staff' ? 'Kebpro munkatárs' : 'Partner betöltése…' %></span><div class="top-actions"><button class="button text-button" data-install-help>Telepítési segítség</button><button class="button text-button" id="install-app" hidden>Telepítés</button><button class="button text-button" id="logout">Kijelentkezés</button></div></header>
     <div class="demo-banner"><strong><%= portalStaging ? 'Tesztkörnyezet' : 'Helyi bemutató' %></strong><span><%= portalStaging ? 'Csak tesztadatokat használj.' : 'Mintapartnerek · nem éles rendelések' %></span></div>
     <p id="sync-status" class="sync-status" role="status">Kapcsolódás…</p><main id="content" tabindex="-1"><p class="loading">Adatok betöltése…</p></main>
-    <% if (role === 'partner') { %><div class="legal-links"><a href="/partner/legal/terms/<%= terms.version %>" target="_blank" rel="noopener">Használati feltételek</a><a href="/partner/legal/privacy/<%= privacy.version %>" target="_blank" rel="noopener">Adatkezelési tájékoztató</a></div><% } %>
+    <% if (role === 'partner') { %><div class="legal-links" data-legal-links><a href="/partner/legal/terms/<%= terms.version %>" target="_blank" rel="noopener">Használati feltételek</a><a href="/partner/legal/privacy/<%= privacy.version %>" target="_blank" rel="noopener">Adatkezelési tájékoztató</a></div><% } %>
     <p class="app-footer">Halasi Kebpro Kft. · Az időpontok magyarországi idő szerint értendők.</p>
   </div>
+  <% if (role === 'partner') { %><dialog id="legal-dialog" aria-labelledby="legal-dialog-title"><div class="legal-dialog-header"><h2 id="legal-dialog-title">Dokumentum</h2><button type="button" class="button secondary" id="close-legal-dialog">Bezárás</button></div><div id="legal-dialog-content" aria-live="polite"></div></dialog><% } %>
   <div id="toast" role="status" aria-live="polite" hidden></div>
   <dialog id="confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title"></h2><div id="confirm-content"></div><div class="dialog-actions"><button class="button secondary" id="cancel-confirm">Vissza</button><button class="button primary" id="submit-confirm">Véglegesítés</button></div><p id="confirm-error" role="alert"></p></dialog>
 </body></html>

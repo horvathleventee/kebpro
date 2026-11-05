@@ -48,15 +48,16 @@ function StaffNews({ data, onPublish, onError }: StaffNewsProps) {
       timeZone: 'Europe/Budapest',
     }).format(new Date(value));
   return (
-    <>
+    <div className="staff-workspace staff-news-page">
       <Heading
         eyebrow="KOMMUNIKÁCIÓ"
         title="Hírek és akciók"
         description="A megjelent híreket minden partner láthatja; push azoknak készül, akik kérték."
       />
-      <div className="grid equal-col">
-        <section className="card">
-          <h2>Új közlemény</h2>
+      <div className="staff-news-layout">
+        <section className="card staff-news-compose">
+          <span className="staff-kicker">ÚJ KÖZLEMÉNY</span>
+          <h2>Ossz meg hírt a partnerekkel</h2>
           <form id="publish-news" className="section-gap" onSubmit={submit}>
             <div className="field">
               <label htmlFor="news-kind">Típus</label>
@@ -97,6 +98,13 @@ function StaffNews({ data, onPublish, onError }: StaffNewsProps) {
           </form>
         </section>
         <div className="news-list">
+          <div className="staff-section-title">
+            <h2>Megjelent közlemények</h2>
+            <span className="staff-count">{data.news.length}</span>
+          </div>
+          {!data.news.length && (
+            <p className="card staff-empty-copy">Még nincs megjelent közlemény.</p>
+          )}
           {data.news.map((item) => (
             <article className="card news-card" key={item.id}>
               <div className="news-meta">
@@ -111,7 +119,7 @@ function StaffNews({ data, onPublish, onError }: StaffNewsProps) {
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 export { StaffNews };

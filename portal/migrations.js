@@ -36,4 +36,30 @@ function migrateDailyRoutes(state, now = new Date()) {
   }
   state.dailyRoutesVersion = 1;
 }
-module.exports = { migrateDailyRoutes };
+function migrateContactPhones(state) {
+  for (const partner of state.partners) {
+    if (partner.phone === undefined)
+      partner.phone = state.users?.find((user) => user.partnerId === partner.id)?.phone || '';
+  }
+}
+function migrateChickenVariants(state) {
+  const old = state.products.find(
+    (p) => p.id === 'product-9' && p.name === 'Gy.f. sült csirke comb kebab',
+  );
+  if (!old) return;
+  if (state.chickenAvailabilityVersion !== 1) {
+    old.active = true;
+    state.chickenAvailabilityVersion = 1;
+  }
+  for (const variant of [
+    { id: 'frozen-chicken-1kg', name: 'Gy.f. sült csirke comb kebab · 1 kg/zacskó, 10 kg/karton' },
+    {
+      id: 'frozen-chicken-1_5kg',
+      name: 'Gy.f. sült csirke comb kebab · 1,5 kg/zacskó, 9 kg/karton',
+    },
+  ]) {
+    if (!state.products.some((p) => p.id === variant.id))
+      state.products.push({ ...variant, active: true, orderUnit: 'karton' });
+  }
+}
+module.exports = { migrateDailyRoutes, migrateChickenVariants, migrateContactPhones };

@@ -20,14 +20,14 @@ const legalInput = () => {
 };
 const morning = new Date('2026-10-14T08:00:00Z'); // Wednesday 10:00 Budapest
 const payload = (state) => {
-  state.products[0].prices ||= {};
-  if (state.products[0].prices.kg === undefined) state.products[0].prices.kg = 1000;
+  state.products[31].prices ||= {};
+  if (state.products[31].prices.kg === undefined) state.products[31].prices.kg = 1000;
   return {
-    expectedPrices: [state.products[0].prices.kg],
+    expectedPrices: [state.products[31].prices.kg],
     kind: 'order',
     date: '2026-10-15',
     requestId: d.id(),
-    items: [{ productId: state.products[0].id, quantity: 2.5, unit: 'kg' }],
+    items: [{ productId: state.products[31].id, quantity: 2.5, unit: 'kg' }],
     note: 'Kérem külön csomagolni.',
   };
 };
@@ -53,7 +53,7 @@ test('Responses are price-free, server-named, idempotent and limited to one deli
   const a = d.submitResponse(state, 'partner-1', input, morning);
   assert.equal(d.submitResponse(state, 'partner-1', input, morning).id, a.id);
   assert.equal(state.responses.length, 1);
-  assert.equal(a.items[0].name, state.products[0].name);
+  assert.equal(a.items[0].name, state.products[31].name);
   assert.equal('price' in a.items[0], false);
   assert.throws(
     () => d.submitResponse(state, 'partner-1', { ...input, requestId: d.id() }, morning),
@@ -64,10 +64,10 @@ test('Responses are price-free, server-named, idempotent and limited to one deli
 test('Invalid quantities, product ids, units and late orders fail', () => {
   const state = d.seed();
   for (const item of [
-    { productId: state.products[0].id, quantity: 0, unit: 'kg' },
-    { productId: state.products[0].id, quantity: 1.5, unit: 'db' },
+    { productId: state.products[31].id, quantity: 0, unit: 'kg' },
+    { productId: state.products[31].id, quantity: 1.5, unit: 'db' },
     { productId: 'missing', quantity: 1, unit: 'kg' },
-    { productId: state.products[0].id, quantity: 2, unit: 'money' },
+    { productId: state.products[31].id, quantity: 2, unit: 'money' },
   ])
     assert.throws(
       () => d.submitResponse(state, 'partner-1', { ...payload(state), items: [item] }, morning),
@@ -91,7 +91,7 @@ test('Skip removes a partner from pending; totals never mix units', () => {
   const view = d.adminView(state, '2026-10-15', 'route-2');
   assert.equal(view.partners.filter((p) => !p.response).length, 0);
   assert.equal(view.responses.length, 2);
-  assert.deepEqual(view.totals, [{ name: state.products[0].name, quantity: 2.5, unit: 'kg' }]);
+  assert.deepEqual(view.totals, [{ name: state.products[31].name, quantity: 2.5, unit: 'kg' }]);
   assert.equal(d.adminView(state, '2026-10-15', 'route-1').responses.length, 0);
 });
 test('News notifications respect explicit preferences and publishing retries are idempotent', () => {
@@ -196,7 +196,7 @@ test('HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
         password: 'test-partner-password',
         company: 'Test',
         contact: 'Test',
-        phone: '123',
+        phone: '+36301234567',
         address: 'Test',
       });
       await store.change((s) => {
@@ -244,6 +244,15 @@ test('HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
     const one = await login({ role: 'partner', partnerId: 'partner-1' });
     const two = await login({ role: 'partner', partnerId: 'partner-2' });
     const admin = await login({ role: 'staff' });
+    assert.equal((await call('contact-phone', one, { phone: '+36 30 123 4567' })).status, 200);
+    assert.equal((await call('contact-phone', one, { phone: 'invalid' })).status, 400);
+    for (const phone of ['+3630123456', '+363012345678', '+36401234567', '+44301234567'])
+      assert.equal((await call('contact-phone', one, { phone })).status, 400);
+    assert.equal((await (await call('me', one)).json()).phone, '+36301234567');
+    assert.notEqual((await (await call('me', two)).json()).phone, '+36301234567');
+    assert.equal((await call('contact-phone', one, { phone: '' })).status, 400);
+    assert.equal((await call('contact-phone', one, { phone: '   ' })).status, 400);
+    assert.equal((await (await call('me', one)).json()).phone, '+36301234567');
     assert.equal((await call('admin', one)).status, 401);
     assert.equal((await call('news', one, { title: 'Bad' })).status, 403);
     assert.equal(
@@ -256,7 +265,7 @@ test('HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
       403,
     );
     await store.change((s) => {
-      s.products[0].prices = { kg: 1000 };
+      s.products[31].prices = { kg: 1000 };
     });
     let state = await store.read();
     const input = payload(state);
@@ -499,7 +508,7 @@ test('Registration requires approval; staff and partner sessions are separate; P
     password: 'long-partner-test-password',
     company: 'Teszt üzlet',
     contact: 'Teszt Elek',
-    phone: '123',
+    phone: '+36301234567',
     address: 'Teszt cím',
     role: 'staff',
     status: 'approved',
@@ -640,7 +649,7 @@ test('Password recovery: 8 characters, email isolation, expiry, one use and sess
     password: '12345678',
     company: 'Test',
     contact: 'Test',
-    phone: '123',
+    phone: '+36301234567',
     address: 'Test',
   };
   try {
@@ -712,7 +721,7 @@ test('Recovery HTTP endpoints work without login and enforce origin; SMTP errors
       password: '12345678',
       company: 'Test',
       contact: 'Test',
-      phone: '123',
+      phone: '+36301234567',
       address: 'Test',
     };
     assert.equal((await post('register', body)).status, 201);
@@ -962,7 +971,7 @@ test('Registration emails contain saved public fields only; duplicates and inval
     for (const value of [
       'Teszt Cég',
       'Teszt Elek',
-      '+36 30 1234567',
+      '+36301234567',
       'Teszt utca 1.',
       'mailpartner',
       'céges jóváhagyásra vár',
@@ -1004,7 +1013,7 @@ test('SMTP failure does not roll back registration or invite the user to registe
         password: '12345678',
         company: 'Test',
         contact: 'Test',
-        phone: '123',
+        phone: '+36301234567',
         address: 'Test',
       }),
     });
@@ -1206,7 +1215,7 @@ test('Favorite and template endpoints are session-scoped and reject other partne
       password: '12345678',
       company: 'Test',
       contact: 'Test',
-      phone: '123',
+      phone: '+36301234567',
       address: 'Test',
     });
     await store.change((s) => {
@@ -1407,7 +1416,7 @@ test('Disabled HTTP account loses existing session and cannot log in; staff acti
     password: '12345678',
     company: 'Test',
     contact: 'Test',
-    phone: '123',
+    phone: '+36301234567',
     address: 'Test',
   });
   await store.change((s) => {
@@ -1501,7 +1510,7 @@ test('Partner login persists 90 days while staff login lasts seven days', async 
     password: '12345678',
     company: 'Test',
     contact: 'Test',
-    phone: '123',
+    phone: '+36301234567',
     address: 'Test',
   });
   await store.change((s) => {
@@ -1570,7 +1579,7 @@ test('Renewal HTTP endpoint requires partner CSRF and extends only this session 
     password: '12345678',
     company: 'Test',
     contact: 'Test',
-    phone: '123',
+    phone: '+36301234567',
     address: 'Test',
   });
   await store.change((s) => {
@@ -1776,7 +1785,7 @@ test('Product availability is staff-only, audited and enforced for existing cart
   });
   await portal.ready;
   await portal.store.change((s) => {
-    s.products[0].prices = { kg: 1000 };
+    s.products[31].prices = { kg: 1000 };
   });
   const server = portal.app.listen(0, '127.0.0.1');
   await new Promise((r) => server.on('listening', r));
@@ -1803,7 +1812,7 @@ test('Product availability is staff-only, audited and enforced for existing cart
       ).text(),
       csrf = html.match(/name="csrf-token" content="([^"]+)"/)[1];
     let state = await portal.store.read();
-    const id = state.products[0].id,
+    const id = state.products[31].id,
       input = payload(state);
     assert.equal(
       (await post('/partner-admin/api/products', { id, active: false }, cookie, 'bad')).status,
@@ -1831,7 +1840,7 @@ test('Product availability is staff-only, audited and enforced for existing cart
     assert.equal((await post('/partner-admin/api/prices', price, cookie, 'bad')).status, 403);
     assert.equal((await post('/partner-admin/api/prices', price, cookie, csrf)).status, 200);
     state = await portal.store.read();
-    assert.equal(state.products[0].prices.kg, 2200);
+    assert.equal(state.products[31].prices.kg, 2200);
     assert.equal(state.auditLog.at(-1).changes[0].collection, 'products');
     const view = await (
       await fetch(origin + '/partner-admin/api/admin?page=1', { headers: { Cookie: cookie } })
@@ -1891,15 +1900,23 @@ test('Worker backs up before retention and preserves saved lists through restart
 
 test('Partner pricing uses unit-specific overrides, protects historical totals and rejects stale confirmation', () => {
   const state = d.seed(),
-    product = state.products[0],
+    product = state.products[31],
     partner = state.partners[0],
     other = state.partners[1];
   d.updatePrice(state, { productId: product.id, unit: 'kg', price: 2000 });
   d.updatePrice(state, { productId: product.id, unit: 'kg', partnerId: partner.id, price: 1500 });
-  d.updatePrice(state, { productId: product.id, unit: 'db', price: 300 });
-  assert.equal(d.safePartner(state, partner, morning).products[0].prices.kg, 1500);
-  assert.equal(d.safePartner(state, other, morning).products[0].prices.kg, 2000);
-  assert.equal(d.safePartner(state, other, morning).products[0].prices.db, 300);
+  assert.throws(
+    () => d.updatePrice(state, { productId: product.id, unit: 'db', price: 300 }),
+    d.InputError,
+  );
+  assert.equal(
+    d.safePartner(state, partner, morning).products.find((p) => p.id === product.id).prices.kg,
+    1500,
+  );
+  assert.equal(
+    d.safePartner(state, other, morning).products.find((p) => p.id === product.id).prices.kg,
+    2000,
+  );
   assert.equal(JSON.stringify(d.safePartner(state, other, morning)).includes('1500'), false);
   const input = { ...payload(state), expectedPrices: [1500] };
   const order = d.submitResponse(state, partner.id, input, morning);

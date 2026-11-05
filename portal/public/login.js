@@ -3,6 +3,12 @@ if (window.KebproReactAuth) {
 } else {
   const base = document.body.dataset.base;
   const message = document.getElementById('login-error');
+  document.querySelector('[name="phoneNumber"]')?.addEventListener('input', (event) => {
+    event.target.value = event.target.value.replace(/\D/g, '').slice(0, 7);
+  });
+  document.querySelector('[name="phonePrefix"]')?.addEventListener('input', (event) => {
+    event.target.value = event.target.value.replace(/\D/g, '').slice(0, 2);
+  });
   document.querySelectorAll('[data-auth-tab]').forEach((button) =>
     button.addEventListener('click', () => {
       const register = button.dataset.authTab === 'register';
@@ -29,6 +35,11 @@ if (window.KebproReactAuth) {
         const registering = form.id === 'register-form',
           forgetting = form.id === 'forgot-form';
         if (registering) values.termsAccepted = values.termsAccepted === 'on';
+        if (registering) {
+          values.phone = '+36' + values.phonePrefix + values.phoneNumber;
+          delete values.phonePrefix;
+          delete values.phoneNumber;
+        }
         if (registering && values.password !== values.confirmation)
           throw new Error('A két jelszó nem egyezik.');
         delete values.confirmation;

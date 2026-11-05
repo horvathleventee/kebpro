@@ -1335,9 +1335,9 @@ function auditChange(change) {
 function auditPanel() {
   const events = data.auditLog || [];
   let groups = '';
-  for (let start = 0; start < events.length; start += 50) {
-    const group = String(start / 50),
-      chunk = events.slice(start, start + 50);
+  for (let start = 0; start < events.length; start += 20) {
+    const group = String(start / 20),
+      chunk = events.slice(start, start + 20);
     groups +=
       '<details data-audit-group="' +
       group +
@@ -1365,7 +1365,7 @@ function auditPanel() {
       '</details>';
   }
   return (
-    '<section class="card section-gap"><h2>Munkatársi eseménynapló</h2><p class="muted">Legfeljebb 400 esemény, legfrissebb elöl, 50-es csoportokban.</p>' +
+    '<section class="card section-gap"><h2>Munkatársi eseménynapló</h2><p class="muted">Legfeljebb 400 esemény, legfrissebb elöl, 20-as csoportokban.</p>' +
     (groups || '<p>Még nincs naplózott módosítás.</p>') +
     '</section>'
   );
@@ -1398,39 +1398,7 @@ function notifications() {
     '<section class="card section-gap"><h2>Admin értesítések ezen az eszközön</h2><p>Új rendelésről, bejelentésről és regisztrációról értesítést kaphatsz. iPhone-on előbb add az adminfelületet a főképernyőhöz, és onnan nyisd meg.</p><div class="settings-actions"><button class="button primary" data-action="staff-enable-push">Admin értesítések bekapcsolása</button><button class="button secondary" data-action="staff-disable-push">Értesítések kikapcsolása ezen az eszközön</button></div><p class="small muted">A háttérben küldés állapotát lent ellenőrizheted.</p></section>' +
     '<p class="notice">A még nem válaszoló partnerek a rendelési nap előtti este 17:00-kor és a rendelési napon 10:00-kor kapnak emlékeztetőt. Hétfői kiszállításnál a rendelési nap péntek. A kézbesítés a háttérfolyamat és az eszköz működésétől függ.</p>' +
     retentionPanel() +
-    operationsPanel() +
-    '<div class="card table-wrap"><table><thead><tr><th>Partner</th><th>Értesítés</th><th>Időpont</th><th>Állapot</th></tr></thead><tbody>' +
-    data.outbox
-      .map(
-        (n) =>
-          '<tr><td>' +
-          esc(
-            n.staffUserId
-              ? 'Céges munkatárs'
-              : data.allPartners.find((p) => p.id === n.partnerId)?.name,
-          ) +
-          '</td><td><strong>' +
-          esc(n.title) +
-          '</strong>' +
-          esc(n.body) +
-          '</td><td>' +
-          esc(dateShort(n.createdAt)) +
-          '</td><td><span class="badge amber">' +
-          esc(
-            {
-              simulation: 'Helyi próba',
-              pending: 'Küldésre vár',
-              complete: 'Küldési kísérletek lezárva',
-              cancelled: 'Visszavonva',
-              no_devices: 'Nincs feliratkozott eszköz',
-            }[n.status] || n.status,
-          ) +
-          ' </span></td></tr>',
-      )
-      .join('') +
-    '</tbody></table>' +
-    (!data.outbox.length ? '<div class="empty">Még nem készült értesítés.</div>' : '') +
-    '</div>'
+    operationsPanel()
   );
 }
 

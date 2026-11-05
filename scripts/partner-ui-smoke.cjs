@@ -17,14 +17,14 @@ const { createPortalApp } = require('../portal/app'),
     password: 'Password123',
     company: 'Teszt partner',
     contact: 'Teszt',
-    phone: '123456789',
+    phone: '+36301234567',
     address: 'Teszt utca',
   });
   await portal.store.change((s) => {
     let u = s.users.find((x) => x.username === 'uitestpartner');
     u.status = 'approved';
     u.partnerId = 'partner-1';
-    s.products[0].prices = { kg: 2000 };
+    s.products[0].prices = { 'nyars-5': 2000 };
   });
   const server = portal.app.listen(0, '127.0.0.1');
   await new Promise((r) => server.on('listening', r));
@@ -67,13 +67,14 @@ const { createPortalApp } = require('../portal/app'),
       company: 'Próba Kft',
       contact: 'Próba',
       email: 'new@example.invalid',
-      phone: '123456789',
+      phoneNumber: '1234567',
       address: 'Teszt cím',
       username: 'newuitest',
       password: 'Password123',
       confirmation: 'Password123',
     }))
       await form.locator('[name="' + name + '"]').fill(value);
+    await form.locator('[name=phonePrefix]').fill('30');
     assert.equal(await form.locator('[name=termsAccepted]').isChecked(), false);
     await form.locator('button[type=submit],button:not([type])').last().click();
     assert.equal(
@@ -194,7 +195,7 @@ const { createPortalApp } = require('../portal/app'),
     await partner.locator('#react-partner-settings-root').waitFor();
     await partner.locator('#preferences [name=news]').uncheck();
     await partner.locator('#preferences button').click();
-    await partner.getByText('Beállítások elmentve.').waitFor();
+    await partner.getByText('Értesítési beállítások elmentve.', { exact: true }).waitFor();
     assert.equal(
       (await portal.store.read()).partners.find((p) => p.id === 'partner-1').preferences.news,
       false,
@@ -207,6 +208,7 @@ const { createPortalApp } = require('../portal/app'),
     await partner.locator('.product-picker [data-product]').first().waitFor();
     await partner.locator('#product-search').fill('');
     await partner.locator('.product-picker [data-product]').first().click();
+    await partner.locator('#spitWeight').selectOption('5');
     await partner.locator('#add-product button[type=submit]').click();
     assert.match(await partner.locator('#cart-total').innerText(), /2[\s\u00a0]?000/);
     await partner.locator('[data-cart-quantity]').fill('2');
@@ -262,6 +264,8 @@ const { createPortalApp } = require('../portal/app'),
       .first()
       .setInputFiles('public/images/optimized/products/kebab-nyars-640.jpg');
     await partner.locator('[data-complaint-order] button').first().click();
+    await partner.getByText('A bejelentésedet sikeresen elküldtük.').waitFor();
+    await partner.locator('[data-nav=reports]').click();
     await partner.getByText('Teszt: hiányzó áru').waitFor();
     await partner.locator('.complaint-photo').first().waitFor();
     assert.ok(
@@ -344,8 +348,12 @@ const { createPortalApp } = require('../portal/app'),
     await admin.locator('.complaint-photo-viewer').waitFor({ state: 'detached' });
     await admin.locator('[data-complaint-reply] textarea').fill('A problémát rendezzük.');
     await admin.locator('[data-complaint-reply] select').selectOption('resolved');
-    await admin.locator('[data-complaint-reply] button').click();
-    await admin.locator('.badge').filter({ hasText: 'Lezárva' }).waitFor();
+    await admin
+      .locator('[data-complaint-reply]')
+      .getByRole('button', { name: 'Válasz és állapot mentése' })
+      .click();
+    await admin.getByRole('button', { name: /Lezárt bejelentések/ }).click();
+    await admin.locator('.badge').filter({ hasText: 'Lezárt' }).waitFor();
     await partner.reload();
     await partner.getByText('A problémát rendezzük.').waitFor();
     assert.equal(await admin.locator('#mobile-more-count').innerText(), '1');
@@ -356,13 +364,13 @@ const { createPortalApp } = require('../portal/app'),
     await admin.locator('main#content').click({ position: { x: 5, y: 5 } });
     assert.equal(await admin.locator('#mobile-more').evaluate((e) => e.open), false);
     await admin.locator('.staff-mobile-nav [data-nav=packing]').click();
-    await admin.getByText('Összesen · 1 rendelés').waitFor();
+    await admin.getByRole('heading', { name: 'Termékek összesen' }).waitFor();
+    await admin.locator('.packing-summary').getByText('1 rendelés').waitFor();
     assert.equal(await admin.locator('#react-packing-root').count(), 1);
     await admin.screenshot({ path: 'output/ui-smoke-mobile-packing.png', fullPage: true });
     await admin.locator('#mobile-more summary').click();
     await admin.locator('.mobile-more-panel [data-nav=products]').click();
     await admin.locator('#price-partner-filter').selectOption('partner-1');
-    await admin.locator('[data-price-card]').first().locator('summary').first().click();
     assert.ok(
       await admin
         .locator('[data-price-product]')
@@ -384,17 +392,14 @@ const { createPortalApp } = require('../portal/app'),
       '1800',
     );
     await admin.locator('#price-partner-filter').selectOption('');
-    await admin.getByText('Előbb mentsd az elkezdett ármódosítást.').waitFor();
+    await admin.getByText('Nem mentett módosítások', { exact: true }).waitFor();
     assert.equal(await admin.locator('#price-partner-filter').inputValue(), 'partner-1');
+    await admin.getByRole('button', { name: 'Maradok' }).click();
     await admin.unroute('**/partner-admin/api/prices');
     await admin.locator('[data-price-product]').first().locator('button').click();
-    await admin.getByText('Ár elmentve.').waitFor();
+    await admin.locator('[data-price-card]').first().getByText('Ár elmentve.').waitFor();
     const productCard = admin.locator('[data-price-card]').first();
-    await productCard.locator('summary').nth(1).click();
-    await productCard
-      .locator('[data-promotion-product] select[name=kind]')
-      .first()
-      .selectOption('discount');
+    await productCard.locator('[data-promotion-product] input[value=discount]').check();
     await productCard.locator('[data-promotion-product] input[name=value]').first().fill('200');
     await productCard
       .locator(
@@ -406,12 +411,7 @@ const { createPortalApp } = require('../portal/app'),
     await admin
       .locator('[data-price-card]')
       .first()
-      .getByText(/Akció aktív/)
-      .waitFor();
-    await admin
-      .locator('[data-price-card]')
-      .first()
-      .getByRole('button', { name: 'Akció levétele' })
+      .getByRole('button', { name: 'Akció megszüntetése' })
       .click();
     await admin.locator('#submit-confirm').click();
     await admin.getByText('Akció megszüntetve.').waitFor();
@@ -420,6 +420,7 @@ const { createPortalApp } = require('../portal/app'),
       0,
     );
     await partner.reload();
+    await partner.locator('[data-nav=history]').click();
     assert.match(await partner.locator('.history-items').first().innerText(), /2[\s\u00a0]?000/);
     await admin.locator('#mobile-more summary').click();
     await admin.locator('.mobile-more-panel [data-nav=applications]').click();
@@ -455,8 +456,15 @@ const { createPortalApp } = require('../portal/app'),
     await admin.locator('#mobile-more summary').click();
     await admin.locator('.mobile-more-panel [data-nav=notifications]').click();
     await admin.locator('[data-audit-group]').first().waitFor();
-    assert.equal(await admin.locator('[data-audit-group]').count(), 8);
+    assert.equal(await admin.locator('[data-audit-group]').count(), 20);
     assert.equal(await admin.locator('.audit-entry').count(), 400);
+    if (
+      !(await admin
+        .locator('[data-audit-group]')
+        .first()
+        .evaluate((e) => e.open))
+    )
+      await admin.locator('[data-audit-group]').first().locator('summary').first().click();
     await admin.locator('.audit-entry').first().locator('summary').click();
     assert.match(await admin.locator('.audit-entry').first().innerText(), /Régi/);
     assert.equal(await admin.locator('.audit-entry').first().locator('pre').count(), 0);

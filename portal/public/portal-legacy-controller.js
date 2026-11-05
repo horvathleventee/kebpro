@@ -533,7 +533,7 @@ const accountNameOrder = new Intl.Collator('hu', { sensitivity: 'base', numeric:
 function operationTime(value) {
   return new Date(value).toLocaleString('hu-HU', { timeZone: 'Europe/Budapest' });
 }
-const openAuditGroups = new Set(['0']);
+const openAuditGroups = new Set();
 const auditNames = {
   products: 'Termék',
   routes: 'Túra',
@@ -1441,6 +1441,7 @@ if (role === 'staff') {
   });
 }
 window.addEventListener('hashchange', () => {
+  openAuditGroups.clear();
   if (data) {
     if (role === 'partner' && ['home', 'order'].includes(currentTab()) && historyPage !== 1) {
       historyPage = 1;

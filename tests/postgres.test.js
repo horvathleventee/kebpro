@@ -189,10 +189,10 @@ test(
       assert.equal(history.responses.length, 0);
       let complaintId;
       await first.change((s) => {
-        domain.updatePrice(s, { productId: s.products[0].id, unit: 'kg', price: 1900 });
+        domain.updatePrice(s, { productId: s.products[0].id, unit: 'nyars-5', price: 1900 });
         domain.updatePrice(s, {
           productId: s.products[0].id,
-          unit: 'kg',
+          unit: 'nyars-5',
           partnerId: 'paging',
           price: 1200,
         });
@@ -226,7 +226,7 @@ test(
         new Date('2026-10-20T10:00:00Z'),
         listing.options({ page: 1 }, true),
       );
-      assert.equal(partnerView.products[0].prices.kg, 1200);
+      assert.equal(partnerView.products[0].prices['nyars-5'], 1200);
       assert.equal(partnerView.complaints[0].reply, 'Handled');
       assert.equal(partnerView.complaints[0].status, 'resolved');
       assert.ok(
@@ -272,7 +272,7 @@ test(
           password: 'Password123',
           company: 'Test',
           contact: 'Test',
-          phone: '123',
+          phone: '+36301234567',
           address: 'Test',
         },
         evidence,

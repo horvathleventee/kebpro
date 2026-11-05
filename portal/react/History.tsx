@@ -10,7 +10,6 @@ import {
   money,
   quantity,
   ComplaintPhotos,
-  PartnerComplaints,
   Pager,
   SessionSettings,
 } from './shared';
@@ -18,6 +17,7 @@ interface HistoryItem {
   productId: string;
   name: string;
   quantity: number;
+  spitWeight?: number;
   unit: import('../client/ts/types').OrderUnit;
   unitPrice?: number | null;
   lineTotal?: number | null;
@@ -53,6 +53,8 @@ function ComplaintForm({
 }: ComplaintActions & { orderId: string }) {
   const [busy, setBusy] = React.useState(false),
     [dirty, setDirty] = React.useState(false),
+    [success, setSuccess] = React.useState(false),
+    [errorMessage, setErrorMessage] = React.useState(''),
     pending = React.useRef(false);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,16 +63,28 @@ function ComplaintForm({
       values = new FormData(form);
     pending.current = true;
     setBusy(true);
+    setSuccess(false);
+    setErrorMessage('');
     try {
       await onSend(orderId, values);
       form.reset();
       setDirty(false);
-      await onRefresh();
+      setSuccess(true);
     } catch (error) {
+      setErrorMessage(
+        (error instanceof Error ? error.message : 'A küldés nem sikerült.') +
+          ' Az üzenet és a kiválasztott képek megmaradtak; ellenőrizd az adatokat, majd próbáld újra.',
+      );
       onError(error);
+      return;
     } finally {
       pending.current = false;
       setBusy(false);
+    }
+    try {
+      await onRefresh();
+    } catch (error) {
+      onError(error);
     }
   }
   return (
@@ -81,21 +95,31 @@ function ComplaintForm({
       onChange={() => setDirty(true)}
       onSubmit={submit}
     >
+      {success && (
+        <p className="complaint-submit-success" role="status">
+          ✓ A bejelentésedet sikeresen elküldtük.
+        </p>
+      )}
       <label>
         Írd le, mi volt a probléma
-        <textarea name="message" maxLength={2000} required rows={4} />
+        <textarea name="message" maxLength={2000} required rows={4} disabled={busy} />
       </label>
       <label>
         Kép a termékről vagy a problémáról
-        <input name="photo" type="file" accept="image/*" required />
+        <input name="photo" type="file" accept="image/*" required disabled={busy} />
       </label>
       <label>
         Kép a termékjelölő címkéről
-        <input name="labelPhoto" type="file" accept="image/*" required />
+        <input name="labelPhoto" type="file" accept="image/*" required disabled={busy} />
         <small>A képeket feltöltés előtt automatikusan tömörítjük.</small>
       </label>
+      {errorMessage && (
+        <p className="notice warning" role="alert">
+          {errorMessage}
+        </p>
+      )}
       <button className="button primary" disabled={busy}>
-        Bejelentés elküldése
+        {busy ? 'Küldés…' : 'Bejelentés elküldése'}
       </button>
     </form>
   );
@@ -105,7 +129,6 @@ function History({
   onEdit,
   onRepeat,
   onPage,
-  onPhoto,
   onSend,
   onRefresh,
   onError,
@@ -113,12 +136,11 @@ function History({
   data: {
     history: HistoryOrder[];
     historyPage: React.ComponentProps<typeof Pager>['info'];
-    complaints: React.ComponentProps<typeof PartnerComplaints>['complaints'];
+    complaints?: { orderId?: string | null }[];
   };
   onEdit(id: string): void;
   onRepeat(id: string): void;
   onPage(page: number): void;
-  onPhoto(id: string, label: string): void;
 }) {
   return (
     <>
@@ -132,7 +154,12 @@ function History({
           data.history.map((r) => (
             <article className="card history-card" key={r.id}>
               <div>
-                <Badge status={r.status} />
+                <div className="history-badges">
+                  <Badge status={r.status} />
+                  {data.complaints?.some((complaint) => complaint.orderId === r.id) && (
+                    <span className="badge amber">Bejelentve</span>
+                  )}
+                </div>
                 <h3>{dateLabel(r.date)}</h3>
                 {r.routeName && <p className="muted small">Túra: {r.routeName}</p>}
                 <p className="muted small">Azonosító: {r.id.slice(0, 8).toUpperCase()}</p>
@@ -141,12 +168,16 @@ function History({
                   <ul className="history-items">
                     {r.items.map((item, index) => (
                       <li key={index}>
-                        {item.name} · {quantity(item.quantity)} {item.unit} ·{' '}
+                        {item.name} · {quantity(item.quantity)}{' '}
+                        {item.spitWeight
+                          ? `nyárs · ${item.spitWeight} kg / nyárs · ${item.spitWeight * item.quantity} kg`
+                          : item.unit}{' '}
+                        ·{' '}
                         {item.unitPrice === null || item.unitPrice === void 0
                           ? '\xC1r egyeztetend\u0151'
                           : money(item.unitPrice) +
                             ' / ' +
-                            item.unit +
+                            (item.spitWeight ? 'nyárs' : item.unit) +
                             ' \xB7 ' +
                             money(item.lineTotal)}
                       </li>
@@ -208,7 +239,6 @@ function History({
         )}
       </div>
       <Pager info={data.historyPage} kind="history" onPage={onPage} />
-      <PartnerComplaints complaints={data.complaints} onView={onPhoto} />
     </>
   );
 }

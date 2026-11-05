@@ -1,5 +1,4 @@
 import React from 'react';
-import { dateShort } from './shared';
 interface AuditField {
   key: string;
   label: string;
@@ -48,20 +47,13 @@ function Notifications({
   const retention = data.retention || {},
     operations = data.operations || {},
     operationTime = (value: string) =>
-      new Date(value).toLocaleString('hu-HU', { timeZone: 'Europe/Budapest' }),
-    statuses: Record<string, string> = {
-      simulation: 'Helyi pr\xF3ba',
-      pending: 'K\xFCld\xE9sre v\xE1r',
-      complete: 'K\xFCld\xE9si k\xEDs\xE9rletek lez\xE1rva',
-      cancelled: 'Visszavonva',
-      no_devices: 'Nincs feliratkozott eszk\xF6z',
-    };
+      new Date(value).toLocaleString('hu-HU', { timeZone: 'Europe/Budapest' });
   return (
-    <>
+    <div className="staff-workspace notifications-page">
       <div className="page-heading">
         <div>
           <span className="eyebrow">ÉRTESÍTÉSI KÖZPONT</span>
-          <h1>Küldési napló</h1>
+          <h1>Értesítési napló</h1>
           <p>Itt követheted az elkészített értesítéseket és a küldési módot.</p>
         </div>
         <button className="button secondary" data-action="reminders" onClick={onReminder}>
@@ -127,11 +119,11 @@ function Notifications({
       </section>
       <section className="card section-gap">
         <h2>Munkatársi eseménynapló</h2>
-        <p className="muted">Legfeljebb 400 esemény, legfrissebb elöl, 50-es csoportokban.</p>
+        <p className="muted">Legfeljebb 400 esemény, legfrissebb elöl, 20-as csoportokban.</p>
         {audit.length ? (
-          Array.from({ length: Math.ceil(audit.length / 50) }, (_, index) => {
-            const start = index * 50,
-              chunk = audit.slice(start, start + 50),
+          Array.from({ length: Math.ceil(audit.length / 20) }, (_, index) => {
+            const start = index * 20,
+              chunk = audit.slice(start, start + 20),
               group = String(index);
             return (
               <details
@@ -179,39 +171,7 @@ function Notifications({
           <p>Még nincs naplózott módosítás.</p>
         )}
       </section>
-      <div className="card table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Partner</th>
-              <th>Értesítés</th>
-              <th>Időpont</th>
-              <th>Állapot</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.outbox.map((n) => (
-              <tr key={n.id}>
-                <td>
-                  {n.staffUserId
-                    ? 'C\xE9ges munkat\xE1rs'
-                    : data.allPartners.find((p) => p.id === n.partnerId)?.name}
-                </td>
-                <td>
-                  <strong>{n.title}</strong>
-                  {n.body}
-                </td>
-                <td>{dateShort(n.createdAt)}</td>
-                <td>
-                  <span className="badge amber">{statuses[n.status] || n.status} </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {!data.outbox.length && <div className="empty">Még nem készült értesítés.</div>}
-      </div>
-    </>
+    </div>
   );
 }
 export { Notifications };

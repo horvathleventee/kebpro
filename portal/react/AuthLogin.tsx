@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { PhoneFields } from './PhoneFields';
 function PasswordFields() {
   return (
     <>
@@ -45,6 +46,8 @@ function Login({
     [message, setMessage] = useState(''),
     [sending, setSending] = useState(false),
     inFlight = useRef(false);
+  const [phonePrefix, setPhonePrefix] = useState(''),
+    [phoneNumber, setPhoneNumber] = useState('');
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (inFlight.current) return;
@@ -57,6 +60,11 @@ function Login({
     setMessage('');
     try {
       if (registering) values.termsAccepted = values.termsAccepted === 'on';
+      if (registering) {
+        values.phone = '+36' + phonePrefix + phoneNumber;
+        delete values.phonePrefix;
+        delete values.phoneNumber;
+      }
       if (registering && values.password !== values.confirmation)
         throw new Error('A k\xE9t jelsz\xF3 nem egyezik.');
       delete values.confirmation;
@@ -75,6 +83,8 @@ function Login({
         setMessage(result.message);
       } else if (registering) {
         form.reset();
+        setPhonePrefix('');
+        setPhoneNumber('');
         setTab('login');
         setMessage(
           'A regisztr\xE1ci\xF3dat r\xF6gz\xEDtett\xFCk. A c\xE9ges j\xF3v\xE1hagy\xE1s ut\xE1n itt tudsz bejelentkezni. ' +
@@ -180,10 +190,12 @@ function Login({
               E-mail-cím
               <input name="email" type="email" autoComplete="email" required maxLength={254} />
             </label>
-            <label>
-              Telefonszám
-              <input name="phone" type="tel" autoComplete="tel" required maxLength={250} />
-            </label>
+            <PhoneFields
+              prefix={phonePrefix}
+              number={phoneNumber}
+              onPrefix={setPhonePrefix}
+              onNumber={setPhoneNumber}
+            />
             <label>
               Szállítási cím
               <input name="address" autoComplete="street-address" required maxLength={250} />

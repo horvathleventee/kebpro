@@ -22,6 +22,12 @@ __export(order_actions_exports, {
   createOrderActions: () => createOrderActions
 });
 module.exports = __toCommonJS(order_actions_exports);
+
+// portal/client/ts/order-assessment.ts
+var spitSizes = [5, 10, 15, 20, 30, 40, 50, 60];
+var isSpit = (id) => ["product-1", "product-2", "product-3"].includes(id);
+
+// portal/client/ts/order-actions.ts
 function createOrderActions(ctx) {
   const state = () => ctx.getState();
   const update = (changes) => ctx.setState(changes);
@@ -29,18 +35,27 @@ function createOrderActions(ctx) {
   return {
     add(values) {
       try {
-        const { data, cart } = state(), product = data.products.find((p) => p.id === values.get("productId")), amount = Number(values.get("quantity")), unit = values.get("unit");
-        if (!product || unit !== "kg" && unit !== "db" && unit !== "karton" || !Number.isFinite(amount) || amount <= 0 || amount > 1e4 || unit !== "kg" && !Number.isInteger(amount))
+        const { data, cart } = state(), product = data.products.find((p) => p.id === values.get("productId")), amount = Number(values.get("quantity")), unit = values.get("unit"), spitWeight = Number(values.get("spitWeight"));
+        if (!product || unit !== "kg" && unit !== "db" && unit !== "karton" && unit !== "zacsk\xF3" && unit !== "csomag" || isSpit(product.id) && !spitSizes.some((size) => size === spitWeight) || product.orderUnit != null && unit !== product.orderUnit || !Number.isFinite(amount) || amount <= 0 || amount > 1e4 || unit !== "kg" && !Number.isInteger(amount))
           throw Error(
-            "Ellen\u0151rizd a term\xE9ket \xE9s a mennyis\xE9get. Darab \xE9s karton csak eg\xE9sz sz\xE1m lehet."
+            "Ellen\u0151rizd a term\xE9ket \xE9s a mennyis\xE9get. A kilogrammon k\xEDv\xFCli egys\xE9gek csak eg\xE9sz sz\xE1mok lehetnek."
           );
-        const existing = cart.find((i) => i.productId === product.id);
+        const existing = cart.find(
+          (i) => i.productId === product.id && (!isSpit(product.id) || i.spitWeight === spitWeight)
+        );
         if (existing) {
           if (existing.unit !== unit)
             throw Error("Ez a term\xE9k m\xE1r szerepel m\xE1s m\xE9rt\xE9kegys\xE9ggel. El\u0151bb t\xE1vol\xEDtsd el.");
           if (existing.quantity + amount > 1e4) throw Error("T\xFAl nagy mennyis\xE9g.");
           existing.quantity = Math.round((existing.quantity + amount) * 100) / 100;
-        } else cart.push({ productId: product.id, name: product.name, quantity: amount, unit });
+        } else
+          cart.push({
+            productId: product.id,
+            name: product.name,
+            quantity: amount,
+            unit,
+            ...isSpit(product.id) ? { spitWeight } : {}
+          });
         update({ requestId: newRequest() });
         ctx.render();
         return true;

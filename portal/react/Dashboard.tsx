@@ -19,6 +19,8 @@ interface DashboardOrder {
   status: string;
   id: string;
   partnerName: string;
+  contactPhone?: string;
+  followUp?: string | null;
   address: string;
   date: string;
   routeId: string;
@@ -31,6 +33,7 @@ interface DashboardOrder {
     name: string;
     quantity: number;
     unit: string;
+    spitWeight?: number;
     unitPrice?: number | null;
     lineTotal?: number | null;
   }[];
@@ -81,7 +84,7 @@ function Dashboard({
     archived = orderView === 'archived',
     t = data.todo || {},
     complaints = data.allPartners.flatMap((p) => p.complaints || []),
-    open = complaints.filter((c) => c.status === 'open' && c.orderId).length,
+    open = complaints.filter((c) => c.status === 'open').length,
     expiring = complaints.filter(
       (c) =>
         c.status === 'resolved' &&
@@ -90,13 +93,17 @@ function Dashboard({
     ).length;
   return (
     <>
-      <section className="section-gap">
-        <h2>Napi teendők</h2>
-        <p className="muted">Mai rendelési nap: {t.date ? dateLabel(t.date) : ''}</p>
+      <section className="section-gap dashboard-overview">
+        <h2>Napi áttekintés</h2>
+        <p className="muted">Ma: {t.date ? dateLabel(t.date) : ''}</p>
         <div className="todo-grid">
           <button className="card todo-card" data-action="todo-new" onClick={() => onView('new')}>
-            <strong>{data.orderCounts?.new || 0}</strong>
-            <span>Feldolgozatlan rendelés</span>
+            <span className="todo-icon" aria-hidden="true">
+              ▤
+            </span>
+            <span>
+              <strong>{data.orderCounts?.new || 0}</strong>Feldolgozatlan rendelés
+            </span>
           </button>
           <button
             className="card todo-card"
@@ -106,12 +113,29 @@ function Dashboard({
               onCalls();
             }}
           >
-            <strong>{t.missing || 0}</strong>
-            <span>Mai rendelési határidőre nem válaszolt</span>
+            <span className="todo-icon" aria-hidden="true">
+              ☎
+            </span>
+            <span>
+              <strong>{t.missing || 0}</strong>Még nem érkezett válasz a ma 14:00-kor záruló
+              rendelésre
+            </span>
           </button>
           <a className="card todo-card" href="#applications">
-            <strong>{t.pending || 0}</strong>
-            <span>Jóváhagyásra váró regisztráció</span>
+            <span className="todo-icon" aria-hidden="true">
+              ♙
+            </span>
+            <span>
+              <strong>{t.pending || 0}</strong>Jóváhagyásra váró regisztráció
+            </span>
+          </a>
+          <a className="card todo-card" href="#complaints">
+            <span className="todo-icon" aria-hidden="true">
+              !
+            </span>
+            <span>
+              <strong>{open}</strong>Nyitott bejelentés
+            </span>
           </a>
         </div>
       </section>
@@ -121,16 +145,6 @@ function Dashboard({
           <a href="#complaints">Nézd át és szükség esetén töltsd le →</a>
         </p>
       )}
-      <p className="section-gap">
-        <a className={open ? 'complaint-dashboard-alert' : void 0} href="#complaints">
-          {open
-            ? '\u2757 ' + open + ' nyitott reklam\xE1ci\xF3'
-            : 'Bejelent\xE9sek: ' +
-              complaints.filter((c) => c.status === 'open').length +
-              ' nyitott'}{' '}
-          →
-        </a>
-      </p>
       <Heading
         eyebrow="RENDELÉSEK"
         title="Rendelések"
@@ -213,30 +227,58 @@ function Dashboard({
             className={'card order-card ' + (archived ? 'status-ready' : 'status-received')}
             key={r.id}
           >
-            <div className="card-header">
-              <span className={'badge ' + (archived ? 'green' : 'blue')}>
-                {archived
-                  ? 'Archiv\xE1lt'
-                  : r.kind === 'skip'
-                    ? 'M\xF3dos\xEDtva \xB7 Lemondva'
-                    : r.modifiedAt
-                      ? 'M\xF3dos\xEDtva'
-                      : '\xDAj rendel\xE9s'}
-              </span>
-              <span className="muted small">#{r.id.slice(0, 8).toUpperCase()}</span>
+            <div className="dashboard-order-heading">
+              <div>
+                <h2>{r.partnerName}</h2>
+                <span className="muted small">#{r.id.slice(0, 8).toUpperCase()}</span>
+              </div>
+              <div className="dashboard-order-status">
+                {archived && <span className="badge green">Archivált</span>}
+                {r.kind === 'skip' ? (
+                  <span className="badge dashboard-cancelled">Lemondva</span>
+                ) : r.modifiedAt ? (
+                  <span className="badge dashboard-modified">Módosítva</span>
+                ) : (
+                  !archived && <span className="badge blue">Új rendelés</span>
+                )}
+              </div>
             </div>
-            <h2>{r.partnerName}</h2>
             {(r.sameDayOrderCount || 0) > 1 && (
               <p className="notice warning">
                 Ennek a partnernek ezen a napon {r.sameDayOrderCount} külön rendelése van.
               </p>
             )}
-            <p className="muted">{r.address}</p>
+            <div className="dashboard-order-details">
+              <div>
+                <h3>Kiszállítás</h3>
+                <p>
+                  <strong>{dateLabel(r.date)}</strong>
+                  <br />
+                  {data.routes.find((route) => route.id === r.routeId)?.name}
+                </p>
+              </div>
+              <div>
+                <h3>Kapcsolat</h3>
+                <p>
+                  {r.address}
+                  <br />
+                  {r.contactPhone ? (
+                    <a href={'tel:' + r.contactPhone.replace(/[^+0-9]/g, '')}>{r.contactPhone}</a>
+                  ) : (
+                    'Nincs megadva telefonszám'
+                  )}
+                </p>
+              </div>
+            </div>
+            {r.followUp && r.followUp !== 'ok' && (
+              <p className="notice warning">
+                <strong>Telefonos egyeztetés szükséges lehet:</strong>{' '}
+                {r.followUp === 'below'
+                  ? 'a mennyiség várhatóan kevés'
+                  : 'a mennyiség ellenőrzést igényel'}
+              </p>
+            )}
             <p className="order-meta">
-              <strong>Kiszállítás: {dateLabel(r.date)}</strong>
-              <br />
-              {data.routes.find((t2) => t2.id === r.routeId)?.name}
-              <br />
               Rendelés: {timeLabel(r.createdAt)}
               {r.modifiedAt && (
                 <>
@@ -254,17 +296,26 @@ function Dashboard({
             <ul className="order-lines">
               {r.items.map((i, index) => (
                 <li key={index}>
-                  <span>{i.name}</span>
+                  <span>
+                    {i.name}
+                    {i.spitWeight
+                      ? ` · ${i.spitWeight} kg / nyárs · ${i.spitWeight * i.quantity} kg összesen`
+                      : ''}
+                  </span>
                   <strong>
-                    {quantity(i.quantity)} {i.unit} ·{' '}
+                    {quantity(i.quantity)} {i.spitWeight ? 'nyárs' : i.unit} ·{' '}
                     {i.unitPrice === null || i.unitPrice === void 0
                       ? '\xC1r egyeztetend\u0151'
-                      : money(i.unitPrice) + ' / ' + i.unit + ' \xB7 ' + money(i.lineTotal)}
+                      : money(i.unitPrice) +
+                        ' / ' +
+                        (i.spitWeight ? 'nyárs' : i.unit) +
+                        ' \xB7 ' +
+                        money(i.lineTotal)}
                   </strong>
                 </li>
               ))}
             </ul>
-            <p>
+            <p className="dashboard-order-total">
               <strong>Összesen: {money(r.total)}</strong>
             </p>
             {r.note && (

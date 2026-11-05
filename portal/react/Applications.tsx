@@ -45,7 +45,7 @@ function ApplicationCard({
     }
   }
   return (
-    <section className="card">
+    <section className="card application-card">
       <span className="badge amber">Jóváhagyásra vár</span>
       <h2>{user.company}</h2>
       <p>
@@ -61,15 +61,17 @@ function ApplicationCard({
         onChange={() => setDirty(true)}
         onSubmit={submit}
       >
-        <p>Kiszállítási napok (legalább egy)</p>
-        <div className="route-checks">
-          {routes.map((route) => (
-            <label className="check-line" key={route.id}>
-              <input type="checkbox" name="routeIds" value={route.id} />
-              {route.name}
-            </label>
-          ))}
-        </div>
+        <fieldset className="application-routes">
+          <legend>Kiszállítási napok (legalább egy)</legend>
+          <div className="route-checks">
+            {routes.map((route) => (
+              <label className="check-line" key={route.id}>
+                <input type="checkbox" name="routeIds" value={route.id} />
+                {route.name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <div className="button-row">
           <button className="button primary" disabled={busy}>
             Hozzáférés jóváhagyása
@@ -97,7 +99,7 @@ export function Applications({
 }: Actions & { data: { applications: Application[]; routes: Route[] } }) {
   const pending = data.applications.filter((u) => u.status === 'pending');
   return (
-    <>
+    <div className="staff-workspace applications-page">
       <Heading
         eyebrow="PARTNERHOZZÁFÉRÉSEK"
         title="Regisztrációk"
@@ -106,6 +108,10 @@ export function Applications({
           ' kérelem vár elbírálásra. Jóváhagyáskor jelöld ki a partner kiszállítási napjait.'
         }
       />
+      <div className="staff-section-title">
+        <h2>Elbírálásra vár</h2>
+        <span className="staff-count">{pending.length}</span>
+      </div>
       <div className="stack">
         {pending.length ? (
           pending.map((user) => (
@@ -122,8 +128,11 @@ export function Applications({
           <div className="card empty">Nincs jóváhagyásra váró regisztráció.</div>
         )}
       </div>
-      <section className="card section-gap">
+      <section className="card section-gap application-reviewed">
         <h2>Elbírált kérelmek</h2>
+        {!data.applications.some((u) => u.status !== 'pending') && (
+          <p className="muted">Még nincs elbírált kérelem.</p>
+        )}
         {data.applications
           .filter((u) => u.status !== 'pending')
           .map((u) => (
@@ -132,6 +141,6 @@ export function Applications({
             </p>
           ))}
       </section>
-    </>
+    </div>
   );
 }

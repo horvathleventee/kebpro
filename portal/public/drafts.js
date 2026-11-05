@@ -22,8 +22,9 @@
           if (
             typeof i.productId !== 'string' ||
             typeof i.name !== 'string' ||
-            !['kg', 'db', 'karton'].includes(i.unit) ||
-            (i.quantity !== null && !Number.isFinite(i.quantity))
+            !['kg', 'db', 'karton', 'zacskó', 'csomag'].includes(i.unit) ||
+            (i.quantity !== null && !Number.isFinite(i.quantity)) ||
+            (i.spitWeight !== undefined && ![5, 10, 15, 20, 30, 40, 50, 60].includes(i.spitWeight))
           )
             throw Error('Invalid draft item');
         if (

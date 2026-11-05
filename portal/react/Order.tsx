@@ -1,3 +1,4 @@
+import { assessOrder, assessmentMessage, isSpit, spitSizes } from '../client/ts/order-assessment';
 import React from 'react';
 import { getUnitPrice, getLinePrice, summarizeCart } from '../client/ts/order-pricing';
 import {
@@ -49,6 +50,7 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
   const price = (item: Item) => getUnitPrice(data.products, item);
   const line = (item: Item) => getLinePrice(data.products, item);
   const summary = summarizeCart(data.products, cart);
+  const warning = cart.length ? assessmentMessage(assessOrder(cart)) : '';
   return (
     <>
       <label className="card delivery-picker">
@@ -167,6 +169,7 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
               </button>
             </p>
           )}
+
           <div className="card">
             <form
               id="add-product"
@@ -200,7 +203,9 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
                 </button>
               </div>
               <div className="field">
-                <label htmlFor="quantity">Mennyiség</label>
+                <label htmlFor="quantity">
+                  {selectedProduct && isSpit(selectedProduct.id) ? 'nyárs darabszáma' : 'Mennyiség'}
+                </label>
                 <input
                   id="quantity"
                   name="quantity"
@@ -212,12 +217,32 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
                   required
                 />
               </div>
+              {selectedProduct && isSpit(selectedProduct.id) && (
+                <div className="field">
+                  <label htmlFor="spitWeight">nyárs mérete</label>
+                  <select id="spitWeight" name="spitWeight" defaultValue="">
+                    <option value="" disabled>
+                      Válassz méretet
+                    </option>
+                    {spitSizes.map((size) => (
+                      <option key={size} value={size}>
+                        {size} kg / nyárs
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="field">
                 <label htmlFor="unit">Egység</label>
-                <select id="unit" name="unit">
-                  <option>kg</option>
-                  <option>db</option>
-                  <option>karton</option>
+                <select id="unit" name="unit" key={selectedProduct?.id || ''}>
+                  {(selectedProduct?.orderUnit
+                    ? [selectedProduct.orderUnit]
+                    : ['kg', 'db', 'karton', 'zacskó', 'csomag']
+                  ).map((unit) => (
+                    <option key={unit} value={unit}>
+                      {selectedProduct && isSpit(selectedProduct.id) ? 'nyárs' : unit}
+                    </option>
+                  ))}
                 </select>
               </div>
               <button className="button primary" type="submit">
@@ -235,9 +260,16 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
                 cart.map((item, index) => (
                   <div
                     className="cart-line"
-                    key={item.productId + ':' + item.unit + ':' + cartRevision}
+                    key={
+                      item.productId + ':' + item.unit + ':' + item.spitWeight + ':' + cartRevision
+                    }
                   >
-                    <strong>{item.name}</strong>
+                    <strong>
+                      {item.name}
+                      {item.spitWeight
+                        ? ` · ${item.spitWeight} kg / nyárs · ${item.spitWeight * item.quantity} kg összesen`
+                        : ''}
+                    </strong>
                     <label>
                       Mennyiség
                       <input
@@ -255,9 +287,10 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
                         aria-label={item.name + ' mennyis\xE9ge'}
                       />
                     </label>
-                    <span>{item.unit}</span>
+                    <span>{item.spitWeight ? 'nyárs' : item.unit}</span>
                     <span data-line-price={index}>
-                      {money(price(item))} / {item.unit} · {money(line(item))}
+                      {money(price(item))} / {item.spitWeight ? 'nyárs' : item.unit} ·{' '}
+                      {money(line(item))}
                     </span>
                     <button
                       data-action="remove-item"
@@ -303,6 +336,11 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
             >
               ★ Kosár mentése listaként
             </button>
+            {warning && (
+              <p className="notice warning" role="status">
+                {warning}
+              </p>
+            )}
             <div className="cart-footer">
               <p>
                 {cart.length} különböző termék · <strong id="cart-total">{summary}</strong>

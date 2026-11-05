@@ -25,7 +25,7 @@ test('complaint photo is size-limited, isolated and accessible only to its partn
       email: n + '@example.invalid',
       company: n,
       contact: n,
-      phone: '123456789',
+      phone: '+36301234567',
       address: 'Teszt utca',
     });
     await portal.store.change((s) => {
@@ -115,6 +115,23 @@ test('complaint photo is size-limited, isolated and accessible only to its partn
     assert.ok(c.photoId);
     assert.ok(c.labelPhotoId);
     assert.notEqual(c.photoId, c.labelPhotoId);
+    const retry = {
+      orderId: 'order-one',
+      message: 'Próbabejelentés',
+      requestId: c.requestId,
+      photo,
+      labelPhoto: photo,
+    };
+    const repeated = await post('/partner/api/complaints', retry, a.cookie, a.csrf);
+    assert.equal(repeated.status, 200);
+    assert.equal((await repeated.json()).complaint.id, c.id);
+    const changed = await post(
+      '/partner/api/complaints',
+      { ...retry, message: 'Módosított üzenet' },
+      a.cookie,
+      a.csrf,
+    );
+    assert.equal(changed.status, 409);
     assert.equal(
       (
         await post(
@@ -211,13 +228,13 @@ test('new orders enqueue staff push once and dispatch only to active subscribed 
       createdAt: '2026-01-01T00:00:00Z',
     },
   ];
-  state.products[0].prices = { kg: 1000 };
+  state.products[31].prices = { kg: 1000 };
   const input = {
     kind: 'order',
     date: '2026-10-15',
     requestId: d.id(),
     expectedPrices: [1000],
-    items: [{ productId: state.products[0].id, quantity: 2, unit: 'kg' }],
+    items: [{ productId: state.products[31].id, quantity: 2, unit: 'kg' }],
   };
   d.submitResponse(state, 'partner-1', input, clock);
   d.submitResponse(state, 'partner-1', input, clock);
@@ -293,7 +310,7 @@ test('Monday deadline and two reminder windows use Budapest time and avoid dupli
 });
 test('Net promotions apply to individual and default prices; unpriced items cannot be ordered', () => {
   const s = d.seed(),
-    p = s.products[0],
+    p = s.products[31],
     a = s.partners[0],
     b = s.partners[1],
     request = {
@@ -401,7 +418,7 @@ test('new registrations and complaints queue private, deduplicated push to subsc
       email: 'test@example.invalid',
       company: 'Bizalmas név',
       contact: 'Teszt',
-      phone: '123',
+      phone: '+36301234567',
       address: 'Teszt cím',
     });
     await assert.rejects(
@@ -411,7 +428,7 @@ test('new registrations and complaints queue private, deduplicated push to subsc
         email: 'test@example.invalid',
         company: 'Teszt',
         contact: 'Teszt',
-        phone: '123',
+        phone: '+36301234567',
         address: 'Teszt cím',
       }),
     );
@@ -490,7 +507,7 @@ test('partner session remains valid after application restart using the same per
       email: 'restart@example.invalid',
       company: 'Test',
       contact: 'Test',
-      phone: '123',
+      phone: '+36301234567',
       address: 'Test',
     });
     await portal.store.change((s) => {

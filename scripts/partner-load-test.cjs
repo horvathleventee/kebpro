@@ -51,7 +51,7 @@ async function main() {
     });
     await portal.ready;
     await portal.store.change((s) => {
-      s.products[0].prices = { ...(s.products[0].prices || {}), kg: 2000 };
+      s.products[0].prices = { ...(s.products[0].prices || {}), 'nyars-5': 2000 };
     });
     server = https.createServer(tls, portal.app);
     await new Promise((resolve, reject) => {
@@ -186,7 +186,9 @@ async function main() {
               kind: 'order',
               date: first.json.nextDelivery.date,
               requestId: crypto.randomUUID(),
-              items: [{ productId: first.json.products[0].id, quantity: 2, unit: 'kg' }],
+              items: [
+                { productId: first.json.products[0].id, quantity: 2, unit: 'db', spitWeight: 5 },
+              ],
               expectedPrices: [2000],
               note: 'Synthetic load test',
             };

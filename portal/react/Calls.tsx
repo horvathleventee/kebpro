@@ -32,12 +32,14 @@ const sorted = (list: readonly Partner[]) =>
 function PartnerCard({ partner }: { partner: Partner }) {
   const phone = String(partner.phone || '').replace(/[^+0-9]/g, '');
   return (
-    <article className="card">
-      <h3>{partner.name}</h3>
-      <p>{partner.address}</p>
-      <p>{partner.phone || 'Nincs telefonsz\xE1m megadva'}</p>
+    <article className="card call-partner">
+      <div className="call-partner-info">
+        <h3>{partner.name}</h3>
+        <p>{partner.address}</p>
+        <p>{partner.phone || 'Nincs telefonsz\xE1m megadva'}</p>
+      </div>
       {/^[+]?[0-9]{6,15}$/.test(phone) && (
-        <a className="button primary full" href={'tel:' + phone}>
+        <a className="button primary" href={'tel:' + phone}>
           ☎ Partner hívása
         </a>
       )}
@@ -47,7 +49,7 @@ function PartnerCard({ partner }: { partner: Partner }) {
 function Pending({ people, empty }: { people: Partner[]; empty: string }) {
   const list = sorted(people);
   return (
-    <div className="order-grid section-gap">
+    <div className="call-partner-list section-gap">
       {list.length ? (
         list.map((p) => <PartnerCard key={p.id} partner={p} />)
       ) : (
@@ -100,14 +102,18 @@ function Calls({ data, mode, date, route, onMode, onFilter }: CallsProps) {
     const pending = data.partners.filter((p) => !p.disabled && !p.response),
       skipped = data.partners.filter((p) => p.response?.kind === 'skip');
     return (
-      <>
+      <div className="staff-workspace calls-page">
         <Heading
           eyebrow="PARTNEREK"
           title="Kit kell még hívni?"
           description="Válassz tetszőleges kiszállítási napot és túrát."
         />
         {switcher}
-        <form id="filters" className="filters section-gap" onSubmit={(e) => e.preventDefault()}>
+        <form
+          id="filters"
+          className="filters staff-filter-bar section-gap"
+          onSubmit={(e) => e.preventDefault()}
+        >
           <label>
             Kiszállítás napja
             <input
@@ -138,12 +144,12 @@ function Calls({ data, mode, date, route, onMode, onFilter }: CallsProps) {
           empty="Minden beosztott partner válaszolt, vagy nincs partner erre a kiválasztásra."
         />
         <Skipped people={skipped} always />
-      </>
+      </div>
     );
   }
   const groups = data.calls || [];
   return (
-    <>
+    <div className="staff-workspace calls-page">
       <Heading
         eyebrow="MAI RENDELÉSI NAP"
         title="Kit kell még hívni?"
@@ -172,7 +178,7 @@ function Calls({ data, mode, date, route, onMode, onFilter }: CallsProps) {
           választhatsz.
         </div>
       )}
-    </>
+    </div>
   );
 }
 export { Calls };

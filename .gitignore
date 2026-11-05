@@ -26,3 +26,6 @@ data/partner-staging-status.json
 # Private local TLS key and disposable test output
 .local-tests/
 output/npm-cache/
+
+# Generated reports, previews, and local test artifacts
+output/

@@ -1,3 +1,4 @@
+import { assessOrder, assessmentMessage } from './order-assessment';
 import { createApplicationState } from './application-state';
 import { createDraftController } from './draft-controller';
 import { createPortalLoader } from './loader';
@@ -67,7 +68,13 @@ type PortalData = DataOf<typeof Dashboard> &
       }[];
     }[];
   };
-type CartItem = { productId: string; name: string; quantity: number; unit: OrderUnit };
+type CartItem = {
+  productId: string;
+  name: string;
+  quantity: number;
+  unit: OrderUnit;
+  spitWeight?: number;
+};
 type ResponseItem = {
   id: string;
   date: string;
@@ -378,7 +385,7 @@ export function startPortalController(screens: PortalScreens) {
     document,
     localStorage,
   });
-  const openAuditGroups = new Set(['0']);
+  const openAuditGroups = new Set<string>();
   const { reactAuditEvents } = createAuditFormatter(() => appState.state.data);
   function editHistoryOrder(id: string) {
     const response = [
@@ -605,10 +612,6 @@ export function startPortalController(screens: PortalScreens) {
           partnerSearch = value;
         },
         onPartnerSelect: (value) => {
-          if (content.querySelector('form[data-price-product][data-dirty="true"]')) {
-            toast('Előbb mentsd az elkezdett ármódosítást.');
-            return;
-          }
           pricePartner = value;
           render();
         },
@@ -637,7 +640,10 @@ export function startPortalController(screens: PortalScreens) {
               await load();
               toast('Akció megszüntetve.');
             },
-            { product: product.name, unit },
+            {
+              product: product.name,
+              unit: unit.startsWith('nyars-') ? unit.slice(6) + ' kg / nyárs' : unit,
+            },
           ),
       });
     } else if (role === 'staff' && tab === 'notifications') {
@@ -776,6 +782,10 @@ export function startPortalController(screens: PortalScreens) {
         onError: (error) =>
           toast(error instanceof Error ? error.message : 'A művelet nem sikerült.'),
         onExtend: openSessionRenewal,
+        onPhone: async (phone) => {
+          await api('contact-phone', { phone });
+          await load();
+        },
         onPreferences: async (values) => {
           await api('preferences', values);
           toast('Beállítások elmentve.');
@@ -820,7 +830,6 @@ export function startPortalController(screens: PortalScreens) {
         data: appState.state.data,
         onError: (error) =>
           toast(error instanceof Error ? error.message : 'A művelet nem sikerült.'),
-        onPhoto: openComplaintPhoto,
         onEdit: (id) => {
           try {
             editHistoryOrder(id);
@@ -965,15 +974,22 @@ export function startPortalController(screens: PortalScreens) {
             ' · ' +
             quantity(i.quantity) +
             ' ' +
-            i.unit +
+            (i.spitWeight
+              ? 'nyárs · ' +
+                i.spitWeight +
+                ' kg / nyárs · ' +
+                i.spitWeight * i.quantity +
+                ' kg összesen'
+              : i.unit) +
             ' · ' +
             money(currentPrice(i)) +
             ' / ' +
-            i.unit +
+            (i.spitWeight ? 'nyárs' : i.unit) +
             ' · ' +
             money(currentLine(i)),
         ),
         total: cartSummary(),
+        warning: assessmentMessage(assessOrder(appState.state.cart)),
         note: appState.state.note,
       };
     if (title === 'Akció levétele')
@@ -1010,6 +1026,7 @@ export function startPortalController(screens: PortalScreens) {
     }
   });
   window.addEventListener('hashchange', () => {
+    openAuditGroups.clear();
     if (appState.state.data) {
       if (role === 'partner' && ['home', 'order'].includes(currentTab()) && historyPage !== 1) {
         historyPage = 1;

@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 type ConfirmationModel =
   | { type: 'template'; templates: { id: string; name: string }[] }
-  | { type: 'review'; date: string; lines: string[]; total: string; note: string }
+  | { type: 'review'; date: string; lines: string[]; total: string; note: string; warning: string }
   | { type: 'promotion'; product: string; unit: string }
   | { type: 'invite'; email: string }
   | { type: 'account'; name: string; disabled: boolean }
@@ -39,6 +39,7 @@ function ConfirmationBody({ model }: { model: ConfirmationModel }) {
         <p>
           <strong>{model.total}</strong>
         </p>
+        {model.warning && <p className="notice warning">{model.warning}</p>}
         {model.note && <p className="section-gap">{model.note}</p>}
       </>
     );

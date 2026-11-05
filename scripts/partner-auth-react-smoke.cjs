@@ -18,7 +18,7 @@ const { createRecovery } = require('../portal/recovery'),
     password: 'Password123',
     company: 'Teszt',
     contact: 'Teszt',
-    phone: '123456789',
+    phone: '+36301234567',
     address: 'Teszt cím',
   });
   await auth.register(portal.store, {
@@ -27,7 +27,7 @@ const { createRecovery } = require('../portal/recovery'),
     password: 'Password123',
     company: 'Tartalék partner',
     contact: 'Teszt',
-    phone: '123456789',
+    phone: '+36301234567',
     address: 'Teszt cím',
   });
   await portal.store.change((s) => {

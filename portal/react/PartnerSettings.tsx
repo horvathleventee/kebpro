@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Heading, SessionSettings } from './shared';
+import { PhoneFields, splitMobilePhone } from './PhoneFields';
 interface PartnerData {
   preferences: { reminders: boolean; news: boolean };
   loginSession: React.ComponentProps<typeof SessionSettings>['session'];
   name: string;
   address: string;
+  phone?: string;
   deliveryOptions: { route: string }[];
 }
 interface SettingsProps {
   data: PartnerData;
+  onPhone(phone: string): Promise<unknown>;
   onPreferences(values: { reminders: boolean; news: boolean }): Promise<unknown>;
   onEnable(): Promise<unknown>;
   onDisable(): Promise<unknown>;
@@ -19,6 +22,7 @@ interface SettingsProps {
 export function PartnerSettings({
   data,
   onPreferences,
+  onPhone,
   onEnable,
   onDisable,
   onTest,
@@ -30,6 +34,10 @@ export function PartnerSettings({
     [dirty, setDirty] = useState(false),
     [busy, setBusy] = useState(false),
     pending = useRef(false);
+  const [phonePrefix, setPhonePrefix] = useState(() => splitMobilePhone(data.phone || '').prefix);
+  const [phoneNumber, setPhoneNumber] = useState(() => splitMobilePhone(data.phone || '').number);
+  const [phoneMessage, setPhoneMessage] = useState('');
+  const [preferencesMessage, setPreferencesMessage] = useState('');
   useEffect(() => {
     if (!dirty && !busy) {
       setReminders(data.preferences.reminders);
@@ -53,19 +61,24 @@ export function PartnerSettings({
   }
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (await run(() => onPreferences({ reminders, news }))) setDirty(false);
+    setPreferencesMessage('');
+    if (await run(() => onPreferences({ reminders, news }))) {
+      setDirty(false);
+      setPreferencesMessage('Értesítési beállítások elmentve.');
+    }
   }
   return (
-    <>
+    <div className="partner-settings">
       <Heading
         eyebrow="SAJÁT BEÁLLÍTÁSOK"
-        title="Maradj képben"
-        description="Válaszd ki, miről szeretnél értesítést kapni."
+        title="Beállítások"
+        description="Kezeld a partneradataidat, az értesítéseket és a bejelentkezésedet egy helyen."
       />
-      <SessionSettings session={data.loginSession} onExtend={onExtend} />
-      <div className="grid equal-col">
-        <section className="card">
-          <h2>Értesítések</h2>
+      <div className="partner-settings-grid">
+        <section className="card settings-notifications">
+          <span className="partner-section-label">ÉRTESÍTÉSEK</span>
+          <h2>Miről értesítsünk?</h2>
+          <p className="muted settings-intro">Válaszd ki, milyen üzeneteket szeretnél kapni.</p>
           <form id="preferences" data-dirty={dirty ? 'true' : undefined} onSubmit={save}>
             <label className="check-line">
               <input
@@ -75,6 +88,7 @@ export function PartnerSettings({
                 onChange={(event) => {
                   setReminders(event.target.checked);
                   setDirty(true);
+                  setPreferencesMessage('');
                 }}
               />
               <span>
@@ -90,6 +104,7 @@ export function PartnerSettings({
                 onChange={(event) => {
                   setNews(event.target.checked);
                   setDirty(true);
+                  setPreferencesMessage('');
                 }}
               />
               <span>
@@ -99,8 +114,13 @@ export function PartnerSettings({
             <button className="button primary" disabled={busy}>
               Beállítások mentése
             </button>
+            {preferencesMessage && (
+              <p className="settings-success" role="status">
+                {preferencesMessage}
+              </p>
+            )}
           </form>
-          <div className="section-gap">
+          <div className="settings-device">
             <h3>Értesítés ezen az eszközön</h3>
             <p className="small muted section-gap">
               Az engedélyezéssel a hírek és akciók is bekapcsolódnak; ezek később külön
@@ -136,17 +156,49 @@ export function PartnerSettings({
         </section>
         <div className="stack">
           <section className="card">
+            <span className="partner-section-label">FIÓK</span>
             <h2>Partneradataid</h2>
             <p className="section-gap">
               <strong>{data.name}</strong>
               <br />
               <span className="muted">{data.address}</span>
             </p>
+            <form
+              onSubmit={async (event) => {
+                event.preventDefault();
+                setPhoneMessage('');
+                if (await run(() => onPhone('+36' + phonePrefix + phoneNumber)))
+                  setPhoneMessage('Telefonszám elmentve.');
+              }}
+            >
+              <PhoneFields
+                prefix={phonePrefix}
+                number={phoneNumber}
+                onPrefix={(value) => {
+                  setPhonePrefix(value);
+                  setPhoneMessage('');
+                }}
+                onNumber={(value) => {
+                  setPhoneNumber(value);
+                  setPhoneMessage('');
+                }}
+              />
+              {data.phone && !splitMobilePhone(data.phone).prefix && (
+                <p className="small muted">
+                  Korábbi mentett szám: {data.phone}. Frissítéskor adj meg magyar mobilszámot.
+                </p>
+              )}
+              <button className="button secondary" disabled={busy}>
+                Telefonszám mentése
+              </button>
+              {phoneMessage && <p role="status">{phoneMessage}</p>}
+            </form>
             <p className="small muted section-gap">
               Kiszállítási túra: {[...new Set(data.deliveryOptions.map((d) => d.route))].join(', ')}
             </p>
           </section>
           <section className="card">
+            <span className="partner-section-label">ALKALMAZÁS</span>
             <h2>Kebpro a kezdőképernyőn</h2>
             <p className="muted section-gap">
               Ha a böngésző felajánlja, válaszd a Telepítés lehetőséget. iPhone-on: Megosztás →
@@ -154,8 +206,9 @@ export function PartnerSettings({
               engedélyezd az értesítéseket.
             </p>
           </section>
+          <SessionSettings session={data.loginSession} onExtend={onExtend} />
         </div>
       </div>
-    </>
+    </div>
   );
 }

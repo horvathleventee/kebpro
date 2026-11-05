@@ -153,6 +153,13 @@ function StaffSettings({
       return next;
     });
   }
+  function jumpTo(id: string) {
+    if (id === 'route-settings') onRouteOpen(true);
+    if (id === 'partner-days-settings') onDaysOpen(true);
+    requestAnimationFrame(() =>
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+    );
+  }
   async function submit(event: React.FormEvent<HTMLDivElement>) {
     event.preventDefault();
     const form = event.target as HTMLFormElement,
@@ -175,6 +182,7 @@ function StaffSettings({
   }
   return (
     <div
+      className="staff-workspace staff-settings-page"
       onSubmit={submit}
       onInput={(event) => {
         const target = event.target as HTMLInputElement;
@@ -188,20 +196,91 @@ function StaffSettings({
       <Heading
         eyebrow="BEÁLLÍTÁSOK"
         title="Túrák és partnerek"
-        description="Határidő 14:00-kor az előző napon; hétfői kiszállításnál pénteken. Emlékeztető előző este 17:00-kor és a határidő napján 10:00-kor."
+        description="Kezeld a kiszállítási túrákat, a partnerek napjait és a céges hozzáféréseket egy helyen."
       />
+      <div className="settings-overview" aria-label="Áttekintés">
+        <div>
+          <span className="settings-overview-icon" aria-hidden="true">
+            ▦
+          </span>
+          <span>
+            <strong>{data.routes.length}</strong>Túra
+          </span>
+        </div>
+        <div>
+          <span className="settings-overview-icon" aria-hidden="true">
+            ♙
+          </span>
+          <span>
+            <strong>{data.allPartners.length}</strong>Partner
+          </span>
+        </div>
+        <div>
+          <span className="settings-overview-icon" aria-hidden="true">
+            ◷
+          </span>
+          <span>
+            <strong>14:00</strong>Rendelési határidő
+          </span>
+        </div>
+      </div>
+      <p className="settings-deadline">
+        A határidő általában a kiszállítás előtti nap 14:00; a szokásos hétfői kiszállításnál
+        péntek. Az egyszeri áthelyezés határideje az új kiszállítás előtti nap 14:00. Emlékeztetők a
+        határidő előtti este 17:00-kor és a határidő napján 10:00-kor.
+      </p>
+      <div className="settings-jump" role="navigation" aria-label="Oldal szakaszai">
+        <button type="button" onClick={() => jumpTo('route-settings')}>
+          Túrák
+        </button>
+        <button type="button" onClick={() => jumpTo('route-reschedules')}>
+          Áthelyezés
+        </button>
+        <button type="button" onClick={() => jumpTo('partner-days-settings')}>
+          Partnernapok
+        </button>
+        <button type="button" onClick={() => jumpTo('staff-invitations')}>
+          Munkatársak
+        </button>
+        <button type="button" onClick={() => jumpTo('account-access')}>
+          Hozzáférések
+        </button>
+      </div>
+      <div className="settings-section-heading">
+        <div>
+          <span className="staff-kicker">KISZÁLLÍTÁS</span>
+          <h2>Túrák és beosztások</h2>
+          <p>A heti menetrend és a partnerek kiszállítási napjai.</p>
+        </div>
+      </div>
       <details
         id="route-settings"
         className="card section-gap"
         open={routeOpen}
         onToggle={(event) => onRouteOpen(event.currentTarget.open)}
       >
-        <summary>Túrák szerkesztése ({data.routes.length})</summary>
+        <summary>
+          <span className="settings-summary-icon" aria-hidden="true">
+            ▦
+          </span>
+          <span>
+            <strong>Túrák szerkesztése</strong>
+            <small>A heti túrák elnevezése · {data.routes.length} túra</small>
+          </span>
+        </summary>
         <p className="muted small">Itt módosíthatod a túrák elnevezését.</p>
-        <div className="grid equal-col section-gap">
+        <div className="settings-route-grid section-gap">
           {data.routes.map((r) => (
-            <section className="card" key={r.id}>
-              <h2>{days[r.fixedDay] || r.name}</h2>
+            <section className="settings-route-card" key={r.id}>
+              <div className="settings-route-top">
+                <span className="settings-day-icon" aria-hidden="true">
+                  ▦
+                </span>
+                <div>
+                  <span className="staff-kicker">HETI TÚRA</span>
+                  <h3>{days[r.fixedDay] || r.name}</h3>
+                </div>
+              </div>
               <form data-route-form={r.id} key={r.name}>
                 <label htmlFor={'route-name-' + r.id}>Túra neve</label>
                 <input
@@ -212,10 +291,6 @@ function StaffSettings({
                   required
                 />
                 <input type="hidden" name="days" value={r.fixedDay} />
-                <p className="small muted section-gap">
-                  Emlékeztetők: a rendelési nap előtti este 17:00 és a rendelési napon 10:00.
-                  Határidő: 14:00; hétfői kiszállításhoz pénteken.
-                </p>
                 <input type="hidden" name="reminder" value="10:00" />
                 <input type="hidden" name="cutoff" value="14:00" />
                 <button className="button primary" disabled={busy}>
@@ -227,7 +302,15 @@ function StaffSettings({
         </div>
       </details>
       <details className="card section-gap" id="route-reschedules">
-        <summary>Túra egyszeri áthelyezése</summary>
+        <summary>
+          <span className="settings-summary-icon" aria-hidden="true">
+            ↗
+          </span>
+          <span>
+            <strong>Túra egyszeri áthelyezése</strong>
+            <small>Egy kiszállítási nap módosítása a heti menetrend megtartásával</small>
+          </span>
+        </summary>
         <p className="muted">
           A heti menetrend megmarad. Az új határidő az új kiszállítás előtti nap 14:00, az
           emlékeztetők ehhez igazodnak.
@@ -236,7 +319,7 @@ function StaffSettings({
           Az érintett túrára már leadott rendelések és válaszok átkerülnek az új napra. Ha egy
           partner mindkét napra már válaszolt, a válaszok külön megmaradnak.
         </p>
-        <form id="route-reschedule" className="stack section-gap">
+        <form id="route-reschedule" className="settings-reschedule-form section-gap">
           <label>
             Túra
             <select name="routeId" required defaultValue="">
@@ -276,7 +359,18 @@ function StaffSettings({
         open={daysOpen}
         onToggle={(event) => onDaysOpen(event.currentTarget.open)}
       >
-        <summary>Partnerek kiszállítási napjai ({data.allPartners.length})</summary>
+        <summary>
+          <span className="settings-summary-icon" aria-hidden="true">
+            ♙
+          </span>
+          <span>
+            <strong>Partnerek kiszállítási napjai</strong>
+            <small>Túrák hozzárendelése · {data.allPartners.length} partner</small>
+          </span>
+        </summary>
+        <p className="muted small">
+          Jelöld ki, mely túrákon kapjon kiszállítást a partner, majd mentsd a módosítást.
+        </p>
         <LimitedList
           items={data.allPartners}
           listKey="partner-delivery-days"
@@ -292,20 +386,31 @@ function StaffSettings({
               className="partner-days"
               key={p.id + JSON.stringify(p.routeIds || [p.routeId])}
             >
-              <h3>{p.name}</h3>
-              <div className="route-checks">
-                {data.routes.map((r) => (
-                  <label className="check-line" key={r.id}>
-                    <input
-                      type="checkbox"
-                      name="routeIds"
-                      value={r.id}
-                      defaultChecked={(p.routeIds || [p.routeId]).includes(r.id)}
-                    />
-                    {r.name}
-                  </label>
-                ))}
+              <div className="settings-partner-title">
+                <span className="settings-avatar" aria-hidden="true">
+                  {p.name.charAt(0).toLocaleUpperCase('hu')}
+                </span>
+                <div>
+                  <span className="staff-kicker">PARTNER</span>
+                  <h3>{p.name}</h3>
+                </div>
               </div>
+              <fieldset className="settings-partner-routes">
+                <legend>Kiszállítási túrák</legend>
+                <div className="route-checks">
+                  {data.routes.map((r) => (
+                    <label className="check-line" key={r.id}>
+                      <input
+                        type="checkbox"
+                        name="routeIds"
+                        value={r.id}
+                        defaultChecked={(p.routeIds || [p.routeId]).includes(r.id)}
+                      />
+                      {r.name}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
               <button className="button primary" disabled={busy}>
                 Kiszállítási napok mentése
               </button>
@@ -313,8 +418,23 @@ function StaffSettings({
           )}
         />
       </details>
-      <section className="card section-gap">
-        <h2>Céges munkatársak meghívása</h2>
+      <div className="settings-section-heading settings-access-heading">
+        <div>
+          <span className="staff-kicker">HOZZÁFÉRÉSEK</span>
+          <h2>Munkatársak és fiókok</h2>
+          <p>Meghívók és hozzáférések kezelése.</p>
+        </div>
+      </div>
+      <section id="staff-invitations" className="card section-gap settings-access-card">
+        <div className="settings-card-heading">
+          <span className="settings-summary-icon" aria-hidden="true">
+            ✉
+          </span>
+          <div>
+            <h2>Céges munkatársak meghívása</h2>
+            <p>Új munkatárs hozzáadása és meglévő meghívók követése.</p>
+          </div>
+        </div>
         <p className="muted">
           A meghívott teljes céges hozzáférést kap: rendeléseket, partnereket, híreket és
           meghívásokat kezelhet.
@@ -345,7 +465,7 @@ function StaffSettings({
           expanded={expandedLists}
           onToggle={toggle}
           renderItem={(u) => (
-            <p key={u.id}>
+            <p className="settings-account-row" key={u.id}>
               <strong>{u.username}</strong> · {u.email || 'Nincs e-mail-c\xEDm'}{' '}
               <span className="badge gray">
                 {u.emailVerified ? 'E-mail igazolva' : 'K\xFCl\xF6n l\xE9trehozott fi\xF3k'}
@@ -382,8 +502,16 @@ function StaffSettings({
           )}
         </div>
       </section>
-      <section className="card section-gap">
-        <h2>Fiókok hozzáférése</h2>
+      <section id="account-access" className="card section-gap settings-access-card">
+        <div className="settings-card-heading">
+          <span className="settings-summary-icon" aria-hidden="true">
+            ♙
+          </span>
+          <div>
+            <h2>Fiókok hozzáférése</h2>
+            <p>Az aktív és letiltott fiókok kezelése.</p>
+          </div>
+        </div>
         <p>
           A letiltás megszünteti a belépéseket és az eszközértesítéseket. A korábbi rendelések
           megmaradnak.

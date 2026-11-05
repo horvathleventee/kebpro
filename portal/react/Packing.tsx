@@ -5,12 +5,15 @@ interface Item {
   name: string;
   quantity: number;
   unit: string;
+  spitWeight?: number;
 }
 interface PackingData {
   responses: {
     id: string;
     kind: string;
     partnerName: string;
+    contactPhone?: string;
+    followUp?: string | null;
     address: string;
     items: Item[];
     note?: string;
@@ -29,13 +32,13 @@ function Packing({ data, date, route, onFilter }: PackingProps) {
   const quantity2 = (n: number) =>
     new Intl.NumberFormat('hu-HU', { maximumFractionDigits: 2 }).format(n);
   return (
-    <>
+    <div className="staff-workspace packing-page">
       <Heading
         eyebrow="KISZÁLLÍTÁS"
         title="Összekészítési lista"
         description="A kiválasztott nap és túra rendelései alapján, az archivált rendelésekkel együtt."
       />
-      <form id="filters" className="filters" onSubmit={(e) => e.preventDefault()}>
+      <form id="filters" className="filters staff-filter-bar" onSubmit={(e) => e.preventDefault()}>
         <label>
           Kiszállítás napja
           <input
@@ -60,8 +63,14 @@ function Packing({ data, date, route, onFilter }: PackingProps) {
           </select>
         </label>
       </form>
-      <section className="card section-gap">
-        <h2>Összesen · {responses.length} rendelés</h2>
+      <section className="card section-gap packing-summary">
+        <div className="staff-section-title">
+          <div>
+            <span className="staff-kicker">ÖSSZEKÉSZÍTENDŐ</span>
+            <h2>Termékek összesen</h2>
+          </div>
+          <span className="staff-count">{responses.length} rendelés</span>
+        </div>
         <div className="stack section-gap">
           {data.totals.length ? (
             data.totals.map((i) => (
@@ -73,20 +82,44 @@ function Packing({ data, date, route, onFilter }: PackingProps) {
               </div>
             ))
           ) : (
-            <p>Erre a kiválasztásra nincs rendelés.</p>
+            <p className="staff-empty-copy">
+              Erre a kiválasztásra nincs rendelés. Válassz másik napot vagy túrát.
+            </p>
           )}
         </div>
       </section>
-      <h2 className="section-gap">Partnerenként</h2>
+      <div className="staff-section-title section-gap">
+        <h2>Partnerenként</h2>
+        <span className="staff-count">{responses.length} rendelés</span>
+      </div>
       <div className="order-grid section-gap">
         {responses.map((r) => (
-          <article className="card" key={r.id}>
+          <article className="card packing-partner" key={r.id}>
             <h3>{r.partnerName}</h3>
             <p className="muted">{r.address}</p>
+            <p>
+              Kapcsolattartó:{' '}
+              {r.contactPhone ? (
+                <a href={'tel:' + r.contactPhone.replace(/[^+0-9]/g, '')}>{r.contactPhone}</a>
+              ) : (
+                'Nincs megadva telefonszám'
+              )}
+            </p>
+            {r.followUp && r.followUp !== 'ok' && (
+              <p className="notice warning">
+                <strong>Telefonos egyeztetés szükséges lehet:</strong>{' '}
+                {r.followUp === 'below'
+                  ? 'a mennyiség várhatóan kevés'
+                  : 'a mennyiség ellenőrzést igényel'}
+              </p>
+            )}
             <ul className="history-items">
               {r.items.map((i) => (
-                <li key={i.productId + ':' + i.unit}>
-                  {i.name} · {quantity2(i.quantity)} {i.unit}
+                <li key={i.productId + ':' + i.unit + ':' + i.spitWeight}>
+                  {i.name} · {quantity2(i.quantity)}{' '}
+                  {i.spitWeight
+                    ? `nyárs · ${i.spitWeight} kg / nyárs · ${i.spitWeight * i.quantity} kg`
+                    : i.unit}
                 </li>
               ))}
             </ul>
@@ -98,7 +131,7 @@ function Packing({ data, date, route, onFilter }: PackingProps) {
           </article>
         ))}
       </div>
-    </>
+    </div>
   );
 }
 export { Packing };

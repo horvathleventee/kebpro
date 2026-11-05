@@ -75,6 +75,7 @@ async function register(store, input, termsAcceptance) {
     );
     fields[key] = input[key].trim();
   }
+  fields.phone = require('./phone').normalizeMobilePhone(fields.phone);
   const digest = await passwordHash(input.password);
   await store.change((s) => {
     assert(!s.users.some((u) => u.username === name), 'Ez a felhasználónév már foglalt.', 409);

@@ -1,6 +1,8 @@
 const esbuild = require('esbuild');
 for (const name of [
   'order-pricing',
+  'order-assessment',
+  'available-units',
   'navigation',
   'api',
   'application-state',

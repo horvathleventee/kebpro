@@ -25,8 +25,14 @@ __export(order_pricing_exports, {
   summarizeCart: () => summarizeCart
 });
 module.exports = __toCommonJS(order_pricing_exports);
+
+// portal/client/ts/order-assessment.ts
+var isSpit = (id) => ["product-1", "product-2", "product-3"].includes(id);
+var spitPriceKey = (weight) => `nyars-${weight}`;
+
+// portal/client/ts/order-pricing.ts
 var formatMoney = (value) => value === null || value === void 0 ? "\xC1r egyeztetend\u0151" : new Intl.NumberFormat("hu-HU").format(value) + " Ft";
-var getUnitPrice = (products, item) => products.find((product) => product.id === item.productId)?.prices?.[item.unit] ?? null;
+var getUnitPrice = (products, item) => isSpit(item.productId) && !item.spitWeight ? null : products.find((product) => product.id === item.productId)?.prices?.[isSpit(item.productId) ? spitPriceKey(item.spitWeight) : item.unit] ?? null;
 function getLinePrice(products, item) {
   const price = getUnitPrice(products, item);
   return price === null ? null : Math.round(price * Math.round(item.quantity * 100) / 100);
