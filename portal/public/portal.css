@@ -3331,3 +3331,54 @@ body[data-role='partner'] .report-shortcut {
     height: 50px;
   }
 }
+
+.pricing-saved-summary {
+  background: #f2f6fa;
+  border: 1px solid #dce5ef;
+  border-radius: 9px;
+  padding: 0.65rem 0.85rem;
+  margin-top: 0.75rem;
+  color: #203a55;
+}
+.pricing-saved-summary p {
+  margin: 0;
+}
+.pricing-saved-summary p + p {
+  margin-top: 0.35rem;
+}
+.pricing-mobile-toggle {
+  display: none;
+}
+@media (max-width: 720px) {
+  .pricing-desktop-title {
+    display: none;
+  }
+  .pricing-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    min-height: 44px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    font: inherit;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .pricing-mobile-toggle:focus-visible {
+    outline: 3px solid #eea634;
+    outline-offset: 3px;
+  }
+  .pricing-mobile-toggle span:last-child {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+  .pricing-panel-body:not(.pricing-mobile-open) {
+    display: none;
+  }
+}

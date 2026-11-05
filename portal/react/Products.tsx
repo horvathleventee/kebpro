@@ -73,6 +73,7 @@ function ProductCard({
   const base = activeUnit ? (product.prices?.[activeUnit] ?? null) : null;
   const effectiveBase = override ?? base;
   const existing = activeUnit ? product.promotions?.[activeUnit] : undefined;
+  const [mobileEditor, setMobileEditor] = useState<'price' | 'promotion' | null>(null);
   const [price, setPrice] = useState('');
   const [kind, setKind] = useState('discount');
   const [promotion, setPromotion] = useState('');
@@ -179,6 +180,14 @@ function ProductCard({
         </p>
       </article>
     );
+  const savedEffective =
+    effectiveBase == null
+      ? null
+      : !existing
+        ? effectiveBase
+        : existing.kind === 'fixed'
+          ? existing.value
+          : Math.max(0, effectiveBase - existing.value);
   const parsedPromo = parseMoney(promotion);
   const preview =
     effectiveBase == null || parsedPromo == null
@@ -235,6 +244,28 @@ function ProductCard({
           Rendelési egység: <strong>{unitLabel(activeUnit)}</strong>
         </p>
       )}
+      <div className="pricing-saved-summary" aria-live="polite">
+        <p>
+          <strong>
+            {chosen ? (override != null ? 'Egyedi partnerár' : 'Örökölt alapár') : 'Alapár'}:
+          </strong>{' '}
+          {effectiveBase == null
+            ? 'Nincs beállított ár'
+            : money(effectiveBase) + ' / ' + unitLabel(activeUnit)}
+        </p>
+        {existing && (
+          <p>
+            <strong>Aktív akció:</strong>{' '}
+            {existing.kind === 'discount'
+              ? 'Kedvezmény ' + money(existing.value)
+              : 'Akciós ár ' + money(existing.value)}
+            {' · '}
+            {savedEffective == null
+              ? 'Nincs beállított ár, a termék nem rendelhető'
+              : 'Végső ár: ' + money(savedEffective) + ' / ' + unitLabel(activeUnit)}
+          </p>
+        )}
+      </div>
       <div className="pricing-panels">
         <form
           className="pricing-panel"
@@ -246,12 +277,32 @@ function ProductCard({
           }}
         >
           <div className="pricing-panel-heading">
-            <h3>Ár beállítása</h3>
+            <h3 className="pricing-desktop-title">Ár beállítása</h3>
+            <button
+              className="pricing-mobile-toggle"
+              type="button"
+              aria-expanded={mobileEditor === 'price'}
+              aria-controls={'price-editor-' + product.id}
+              disabled={busy}
+              onClick={() =>
+                change([product.id], () =>
+                  setMobileEditor(mobileEditor === 'price' ? null : 'price'),
+                )
+              }
+            >
+              <span>Ár beállítása</span>
+              <span aria-hidden="true">{mobileEditor === 'price' ? '−' : '+'}</span>
+            </button>
             <p>
               {chosen ? 'Partner: ' + chosen.name : 'Alapár'} · {unitLabel(activeUnit)}
             </p>
           </div>
-          <div className="pricing-panel-body">
+          <div
+            id={'price-editor-' + product.id}
+            className={
+              'pricing-panel-body' + (mobileEditor === 'price' ? ' pricing-mobile-open' : '')
+            }
+          >
             <p className="small muted">
               {chosen ? (override != null ? 'Egyedi partnerár' : 'Örökölt alapár') : 'Alapár'}:{' '}
               {money(effectiveBase)} / {unitLabel(activeUnit)}
@@ -322,10 +373,30 @@ function ProductCard({
           }}
         >
           <div className="pricing-panel-heading">
-            <h3>Akció beállítása</h3>
+            <h3 className="pricing-desktop-title">Akció beállítása</h3>
+            <button
+              className="pricing-mobile-toggle"
+              type="button"
+              aria-expanded={mobileEditor === 'promotion'}
+              aria-controls={'promotion-editor-' + product.id}
+              disabled={busy}
+              onClick={() =>
+                change([product.id], () =>
+                  setMobileEditor(mobileEditor === 'promotion' ? null : 'promotion'),
+                )
+              }
+            >
+              <span>Akció beállítása</span>
+              <span aria-hidden="true">{mobileEditor === 'promotion' ? '−' : '+'}</span>
+            </button>
             <p>Minden partnerre azonnal érvényes · {unitLabel(activeUnit)}</p>
           </div>
-          <div className="pricing-panel-body">
+          <div
+            id={'promotion-editor-' + product.id}
+            className={
+              'pricing-panel-body' + (mobileEditor === 'promotion' ? ' pricing-mobile-open' : '')
+            }
+          >
             <fieldset className="pricing-promotion-kind">
               <legend>Akció típusa</legend>
               <label>
