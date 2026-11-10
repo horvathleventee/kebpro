@@ -25,6 +25,7 @@ import { PartnerSettings } from './PartnerSettings';
 import { StaffSettings } from './StaffSettings';
 import { Products } from './Products';
 import { Notifications } from './Notifications';
+import { Fleet } from './Fleet';
 let root: Root | null = null,
   rootElement: HTMLElement | null = null,
   navRoot: Root | null = null,
@@ -40,6 +41,7 @@ const screenComponents = {
   Notifications: { component: Notifications, name: 'notifications' },
   PartnerSettings: { component: PartnerSettings, name: 'partner-settings' },
   Dashboard: { component: Dashboard, name: 'dashboard' },
+  Fleet: { component: Fleet, name: 'tracking' },
   Order: { component: Order, name: 'order' },
   StaffComplaints: { component: StaffComplaints, name: 'complaints' },
   History: { component: History, name: 'history' },

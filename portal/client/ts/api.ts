@@ -61,17 +61,10 @@ export function createPortalApi({
     }
     if (response.status >= 500) {
       if (path === 'responses') saveDraft();
-      const diagnostic = response.headers?.get?.('X-Kebpro-Diagnostic') || '';
-      const safeDiagnostic = /^[A-Za-z0-9_-]{1,100}$/.test(diagnostic)
-        ? diagnostic
-        : 'NEM_ADTA_MEG_A_KISZOLGALO';
       throw new Error(
         'Az alkalmazás kiszolgálója átmenetileg nem elérhető. Próbáld újra később.' +
           (path === 'responses'
             ? ' A piszkozat megmaradt; ellenőrizd a Rendeléseim oldalt az újrapróbálás előtt.'
-            : '') +
-          (base === '/partner-admin'
-            ? ` Ideiglenes diagnosztika: HTTP ${response.status}; kód: ${safeDiagnostic}; időpont (UTC): ${new Date().toISOString()}; kérés: admin API.`
             : ''),
       );
     }

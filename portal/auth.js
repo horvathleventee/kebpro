@@ -63,7 +63,7 @@ function validatePassword(value) {
     'A jelszó 8–128 karakter legyen.',
   );
 }
-async function register(store, input, termsAcceptance) {
+async function register(store, input, termsAcceptance, selectedPoint) {
   const name = username(input.username);
   validatePassword(input.password);
   const email = emailAddress(input.email);
@@ -94,6 +94,7 @@ async function register(store, input, termsAcceptance) {
       ...fields,
       ...(termsAcceptance ? { termsAcceptance } : {}),
       createdAt: new Date().toISOString(),
+      ...(selectedPoint ? { trackingAddressSuggestion: { id: crypto.randomUUID(), address: fields.address, latitude: selectedPoint.latitude, longitude: selectedPoint.longitude, submittedAt: new Date().toISOString(), source: 'registration' } } : {}),
     };
     s.users.push(user);
     require('./domain').queueStaffNotification(
@@ -131,6 +132,10 @@ function review(state, input) {
         routeIds.every((id) => state.routes.some((r) => r.id === id)),
       'Válassz kiszállítási túrát.',
     );
+    if (input.addressCheck) {
+      const check = input.addressCheck, suggestion = user.trackingAddressSuggestion;
+      assert(suggestion && suggestion.id === check.suggestionId && suggestion.address === user.address && check.address === user.address && require('./tracking').point(check), 'A szállítási pont időközben megváltozott. Frissítsd az oldalt.', 409);
+    }
     const partner = {
       id: id(),
       name: user.company,
@@ -140,8 +145,13 @@ function review(state, input) {
       routeId: routeIds[0],
       routeIds,
       preferences: { reminders: true, news: false },
+      trackingPointRequired: user.trackingAddressSuggestion?.source !== 'registration',
     };
+    if (user.trackingAddressSuggestion?.address === user.address)
+      partner.trackingAddressSuggestion = user.trackingAddressSuggestion;
+    delete user.trackingAddressSuggestion;
     state.partners.push(partner);
+    if (input.addressCheck) require('./tracking').verifyPartnerAddress(state, { partnerId: partner.id, address: partner.address, latitude: input.addressCheck.latitude, longitude: input.addressCheck.longitude });
     user.partnerId = partner.id;
   }
   user.status = input.status;

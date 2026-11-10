@@ -20,6 +20,11 @@ const keys = [
   'PORTAL_MONITOR_URL',
   'PORTAL_MONITOR_STATE',
   'PORTAL_TEST_DATABASE_URL',
+  'PORTAL_TRACKING_ENABLED',
+  'PORTAL_GEOAPIFY_API_KEY',
+  'HOLAZAUTO_ORIGIN',
+  'HOLAZAUTO_LOGIN',
+  'HOLAZAUTO_PASSWORD',
 ];
 function loadPortalConfig({
   env = process.env,

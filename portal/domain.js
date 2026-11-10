@@ -416,6 +416,8 @@ function submitResponse(state, partnerId, input, now = new Date()) {
     (existing.requestId === input.requestId || existing.changeIds?.includes(input.requestId))
   )
     return existing;
+  assert(input.kind !== 'order' || !partner.trackingPointRequired,
+    'A rendelés előtt jelöld meg a szállítási pontot a kezdőlapon vagy a beállításokban, és küldd be ellenőrzésre.', 409);
   assert(
     !existing || (input.responseId === existing.id && input.revision === (existing.revision || 1)),
     'A rendelés időközben változott, vagy már válaszoltál. Nyisd meg újra a módosítást.',
@@ -741,6 +743,8 @@ function updateRoute(state, input) {
   );
   const name = input.name === undefined ? route.name : text(input.name, 100, 'Túra neve');
   assert(name.length > 0, 'Add meg a túra nevét.');
+  if (input.trackingRadiusKm !== undefined)
+    assert(typeof input.trackingRadiusKm === 'number' && Number.isFinite(input.trackingRadiusKm) && input.trackingRadiusKm >= 1 && input.trackingRadiusKm <= 500, 'A követési távolság 1 és 500 km között legyen.');
   if (route.fixedDay !== undefined)
     assert(
       input.days.length === 1 && input.days[0] === route.fixedDay,
@@ -751,6 +755,7 @@ function updateRoute(state, input) {
     days: [...new Set(input.days)],
     reminder: input.reminder,
     cutoff: input.cutoff,
+    ...(input.trackingRadiusKm !== undefined ? { trackingRadiusKm: input.trackingRadiusKm } : {}),
   });
 }
 function rescheduleRoute(state, input, now = new Date()) {
@@ -871,6 +876,7 @@ function safePartner(state, partner, now, listing) {
     own = state.responses.filter((r) => r.partnerId === partner.id);
   const page = state._history || (listing ? require('./listing').select(own, listing) : null);
   const present = (r) => {
+    const { trackingAddress: _trackingAddress, ...safeResponse } = r;
     const route = partnerRoutes(state, partner).find((entry) => entry.id === r.routeId);
     const cutoffDate = route && deliveryOn(route, r.date) ? orderCutoffDate(r.date, route) : null;
     const current = localTime(now);
@@ -878,7 +884,7 @@ function safePartner(state, partner, now, listing) {
       ? current.date < cutoffDate || (current.date === cutoffDate && current.time < '14:00')
       : openDates.has(r.date);
     return {
-      ...r,
+      ...safeResponse,
       routeName: route?.name,
       delivery: cutoffDate
         ? { date: r.date, route: route.name, cutoffDate, cutoff: '14:00', open }
@@ -890,7 +896,7 @@ function safePartner(state, partner, now, listing) {
   return {
     historyPage: page?.pagination,
     currentResponses: own.filter((r) => r.date >= today).map(present),
-    ...partner,
+    ...Object.fromEntries(Object.entries(partner).filter(([key]) => !['trackingAddresses', 'trackingAddressSuggestion'].includes(key))),
     routeIds: partner.routeIds || [partner.routeId],
     deliveryOptions,
     templates: partner.templates || [],
@@ -911,7 +917,8 @@ function safePartner(state, partner, now, listing) {
     messages: state.outbox
       .filter((n) => n.partnerId === partner.id)
       .slice(-30)
-      .reverse(),
+      .reverse()
+      .map(({ trackingAssignmentId: _assignment, trackingOrderId: _order, ...message }) => message),
     subscriptionCount: state.subscriptions.filter((s) => s.partnerId === partner.id).length,
     publicKey: state.vapid.publicKey,
   };
@@ -1052,6 +1059,7 @@ module.exports = {
   partnerRoutes,
   routeFor,
   deliveries,
+  deliveryOn,
   updatePrice,
   updatePromotion,
   priceFor,

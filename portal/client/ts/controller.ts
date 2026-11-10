@@ -498,6 +498,10 @@ export function startPortalController(screens: PortalScreens) {
       root.id = 'react-app-root';
       content.replaceChildren(root);
     }
+    if (role === 'staff' && tab === 'tracking') {
+      screens.renderScreen('Fleet', document.getElementById('react-app-root')!, { active: true });
+      return;
+    }
     if (role === 'staff' && tab === 'dashboard') {
       screens.renderScreen('Dashboard', document.getElementById('react-app-root')!, {
         data: appState.state.data,
@@ -727,11 +731,12 @@ export function startPortalController(screens: PortalScreens) {
         data: appState.state.data,
         onError: (error) =>
           toast(error instanceof Error ? error.message : 'A művelet nem sikerült.'),
-        onApprove: async (id, routeIds) => {
+        onApprove: async (id, routeIds, addressCheck) => {
           const result = await api<{ emailSent: boolean }>('applications', {
             id,
             status: 'approved',
             routeIds,
+            ...(addressCheck ? { addressCheck } : {}),
           });
           await load();
           toast(

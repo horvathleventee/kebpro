@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Heading, SessionSettings } from './shared';
 import { PhoneFields, splitMobilePhone } from './PhoneFields';
+import { PartnerDeliveryPoint } from './PartnerDeliveryPoint';
 interface PartnerData {
   preferences: { reminders: boolean; news: boolean };
   loginSession: React.ComponentProps<typeof SessionSettings>['session'];
@@ -74,6 +75,7 @@ export function PartnerSettings({
         title="Beállítások"
         description="Kezeld a partneradataidat, az értesítéseket és a bejelentkezésedet egy helyen."
       />
+      <PartnerDeliveryPoint />
       <div className="partner-settings-grid">
         <section className="card settings-notifications">
           <span className="partner-section-label">ÉRTESÍTÉSEK</span>

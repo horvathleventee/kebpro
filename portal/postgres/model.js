@@ -26,6 +26,7 @@ function key(collection, row) {
   return value;
 }
 function split(state) {
+  require('../tracking').validateState(state);
   const records = {};
   for (const [name, table] of Object.entries(collections)) {
     records[table] = new Map();

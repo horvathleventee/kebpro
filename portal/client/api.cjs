@@ -65,10 +65,8 @@ function createPortalApi({
     }
     if (response.status >= 500) {
       if (path === "responses") saveDraft();
-      const diagnostic = response.headers?.get?.("X-Kebpro-Diagnostic") || "";
-      const safeDiagnostic = /^[A-Za-z0-9_-]{1,100}$/.test(diagnostic) ? diagnostic : "NEM_ADTA_MEG_A_KISZOLGALO";
       throw new Error(
-        "Az alkalmaz\xE1s kiszolg\xE1l\xF3ja \xE1tmenetileg nem el\xE9rhet\u0151. Pr\xF3b\xE1ld \xFAjra k\xE9s\u0151bb." + (path === "responses" ? " A piszkozat megmaradt; ellen\u0151rizd a Rendel\xE9seim oldalt az \xFAjrapr\xF3b\xE1l\xE1s el\u0151tt." : "") + (base === "/partner-admin" ? ` Ideiglenes diagnosztika: HTTP ${response.status}; k\xF3d: ${safeDiagnostic}; id\u0151pont (UTC): ${(/* @__PURE__ */ new Date()).toISOString()}; k\xE9r\xE9s: admin API.` : "")
+        "Az alkalmaz\xE1s kiszolg\xE1l\xF3ja \xE1tmenetileg nem el\xE9rhet\u0151. Pr\xF3b\xE1ld \xFAjra k\xE9s\u0151bb." + (path === "responses" ? " A piszkozat megmaradt; ellen\u0151rizd a Rendel\xE9seim oldalt az \xFAjrapr\xF3b\xE1l\xE1s el\u0151tt." : "")
       );
     }
     let result;

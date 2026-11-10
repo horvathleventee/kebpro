@@ -1,5 +1,7 @@
 # Partneralkalmazás adatkezelési tájékoztatója – részletes tervezet
 
+> **Korábbi, elavult változat.** A jelenlegi funkciókhoz igazított új tervezet: [Partnerfelület adatkezelési tájékoztatója, 2026-11-10](PARTNER-ADATKEZELESI-TAJEKOZTATO-2026-11-10.md). Az alábbi GPS-re, képekre és mentésekre vonatkozó adatok nem a jelenlegi működést írják le.
+
 **Tervezet jogi és céges felülvizsgálatra.** A szögletes zárójelben szereplő adatok és jogalapok nem véglegesek. Ez a szöveg nem a jelenleg közzétett adatkezelési tájékoztató helyettesítője. Az éles alkalmazás működését, szolgáltatóit és a cég adatmegőrzési gyakorlatát indulás előtt egyeztetni kell.
 
 ## 1. Az adatkezelő és a tájékoztató hatálya

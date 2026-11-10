@@ -3,23 +3,24 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-test('Admin navigation shows the HTTP status and safe diagnostic on a server error', async () => {
+test('Admin navigation uses the original fallback pages for server and network errors', async () => {
   const listeners = {};
-  let network = new Response('secret body', {
-    status: 503,
-    headers: { 'X-Kebpro-Diagnostic': 'PORTAL_STARTING' },
-  });
+  let network = new Response('private server details', { status: 503 });
   const sandbox = {
     self: {
       addEventListener: (name, listener) => {
         listeners[name] = listener;
       },
     },
-    caches: { match: async () => new Response('<main>Fallback</main>') },
-    fetch: async () => network,
-    Response,
+    caches: {
+      match: async (path) =>
+        new Response(path.includes('unavailable') ? 'Unavailable page' : 'Offline page'),
+    },
+    fetch: async () => {
+      if (network instanceof Error) throw network;
+      return network;
+    },
     URL,
-    Date,
   };
   vm.runInNewContext(fs.readFileSync('portal/public/admin-sw.js', 'utf8'), sandbox);
   async function navigate() {
@@ -32,19 +33,9 @@ test('Admin navigation shows the HTTP status and safe diagnostic on a server err
     });
     return result;
   }
-  let result = await navigate();
-  assert.equal(result.status, 503);
-  let body = await result.text();
-  assert.match(body, /HTTP: 503/);
-  assert.match(body, /PORTAL_STARTING/);
-  assert.doesNotMatch(body, /secret body/);
-  network = new Response('private', {
-    status: 502,
-    headers: { 'X-Kebpro-Diagnostic': '<unsafe>' },
-  });
-  result = await navigate();
-  body = await result.text();
-  assert.match(body, /HTTP: 502/);
-  assert.match(body, /NEM_ADTA_MEG_A_KISZOLGALO/);
-  assert.doesNotMatch(body, /<unsafe>|private/);
+  assert.equal(await (await navigate()).text(), 'Unavailable page');
+  network = new Error('network failure');
+  assert.equal(await (await navigate()).text(), 'Offline page');
+  network = new Response('Admin page');
+  assert.equal(await (await navigate()).text(), 'Admin page');
 });

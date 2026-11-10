@@ -15,6 +15,9 @@ data/*.sqlite-*
 
 data/partner-admin-access.txt
 data/partner-preview-access.json
+data/tracking-live-preview/
+data/tracking-demo/
+data/tracking-review/
 
 # Private portal snapshots (contain account hashes and push keys)
 data/backups/

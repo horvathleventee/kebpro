@@ -5,6 +5,7 @@ const {
   stagingDatabaseConfig,
   diagnoseStagingError,
   stagingErrorDetails,
+  waitForStartup,
 } = require('../portal/staging');
 const { createPortalApp } = require('../portal/app');
 const { createStore } = require('../portal/store');
@@ -84,6 +85,108 @@ test('diagnostics use fixed codes and never expose error text', () => {
   assert.deepEqual(stagingErrorDetails({ name: 'secret', code: 'secret connection string' }), [
     { name: 'OtherError' },
   ]);
+});
+
+test('startup wait expires and also ends promptly when startup settles', async () => {
+  const keepAlive = setTimeout(() => {}, 1000);
+  try {
+    const start = Date.now();
+    await waitForStartup(new Promise(() => {}), 30);
+    assert.ok(Date.now() - start >= 20);
+    let finish;
+    const startup = new Promise((resolve) => {
+      finish = resolve;
+    });
+    const waiting = waitForStartup(startup, 1000);
+    finish();
+    await waiting;
+  } finally {
+    clearTimeout(keepAlive);
+  }
+});
+
+test('partner and admin requests wait for startup while the website remains available', () => {
+  const source = `
+    const assert = require('node:assert/strict');
+    const fs = require('node:fs');
+    const originalWrite = fs.writeFileSync;
+    fs.writeFileSync = function(file, ...args) {
+      if (String(file).endsWith('partner-staging-status.json')) return;
+      return originalWrite.call(this, file, ...args);
+    };
+    const express = require('express');
+    const staging = require('./portal/staging');
+    let finish;
+    const ready = new Promise(resolve => { finish = resolve; });
+    const portal = express();
+    portal.use((req, res) => res.send(req.method + ' ' + req.path));
+    staging.stagingConfig = () => ({});
+    staging.createStaging = () => ({ app: portal, ready });
+    process.env.PORTAL_STAGING_ENABLED = 'true';
+    process.env.DB_ADAPTER = 'memory';
+    const website = require('./server');
+    (async () => {
+      await website.dbReady;
+      const server = website.app.listen(0, '127.0.0.1');
+      await new Promise(resolve => server.once('listening', resolve));
+      try {
+        const base = 'http://127.0.0.1:' + server.address().port;
+        const pending = [fetch(base + '/partner/'), fetch(base + '/partner-admin/', { method: 'POST' })];
+        const first = await Promise.race([Promise.all(pending).then(() => 'responded'), new Promise(resolve => setTimeout(() => resolve('waiting'), 50))]);
+        assert.equal(first, 'waiting');
+        assert.equal((await fetch(base + '/')).status, 200);
+        finish();
+        const responses = await Promise.all(pending);
+        assert.deepEqual(responses.map(r => r.status), [200, 200]);
+        assert.equal(await responses[1].text(), 'POST /partner-admin/');
+      } finally { server.close(); }
+    })().catch(error => { console.error(error); process.exitCode = 1; });
+  `;
+  const result = spawnSync(process.execPath, ['-e', source], {
+    cwd: require('node:path').join(__dirname, '..'),
+    encoding: 'utf8',
+    timeout: 15000,
+  });
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('a failed startup still reports a sanitized error without waiting for the deadline', () => {
+  const source = `
+    const assert = require('node:assert/strict');
+    const fs = require('node:fs');
+    const originalWrite = fs.writeFileSync;
+    fs.writeFileSync = function(file, ...args) {
+      if (String(file).endsWith('partner-staging-status.json')) return;
+      return originalWrite.call(this, file, ...args);
+    };
+    const staging = require('./portal/staging');
+    let fail;
+    const ready = new Promise((resolve, reject) => { fail = reject; });
+    staging.stagingConfig = () => ({});
+    staging.createStaging = () => ({ app: require('express')(), ready });
+    process.env.PORTAL_STAGING_ENABLED = 'true';
+    process.env.DB_ADAPTER = 'memory';
+    const website = require('./server');
+    (async () => {
+      await website.dbReady;
+      const server = website.app.listen(0, '127.0.0.1');
+      await new Promise(resolve => server.once('listening', resolve));
+      try {
+        const response = fetch('http://127.0.0.1:' + server.address().port + '/partner-admin/');
+        setTimeout(() => fail(Object.assign(new Error('private database password'), { code: 'ECONNREFUSED' })), 30);
+        const r = await response;
+        assert.equal(r.status, 503);
+        assert.equal(r.headers.get('x-kebpro-diagnostic'), null);
+        assert.equal(await r.text(), 'Partner tesztkörnyezet átmenetileg nem érhető el.');
+      } finally { server.close(); }
+    })().catch(error => { console.error(error); process.exitCode = 1; });
+  `;
+  const result = spawnSync(process.execPath, ['-e', source], {
+    cwd: require('node:path').join(__dirname, '..'),
+    encoding: 'utf8',
+    timeout: 15000,
+  });
+  assert.equal(result.status, 0, result.stderr);
 });
 
 test('loading the PostgreSQL portal does not load the native SQLite addon', () => {

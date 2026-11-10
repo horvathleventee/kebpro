@@ -25,6 +25,7 @@ module.exports = __toCommonJS(navigation_exports);
 function currentTab(role, location) {
   const allowed = role === "staff" ? [
     "dashboard",
+    "tracking",
     "packing",
     "complaints",
     "news",

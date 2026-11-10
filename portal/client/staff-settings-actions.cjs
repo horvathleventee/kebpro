@@ -35,7 +35,8 @@ function createStaffSettingsActions(ctx) {
         name: values.get("name"),
         days: values.getAll("days").map(Number),
         reminder: values.get("reminder"),
-        cutoff: values.get("cutoff")
+        cutoff: values.get("cutoff"),
+        ...values.has("trackingRadiusKm") ? { trackingRadiusKm: Number(values.get("trackingRadiusKm")) } : {}
       });
       delete form.dataset.dirty;
       ctx.toast("T\xFAra be\xE1ll\xEDt\xE1sai elmentve.");

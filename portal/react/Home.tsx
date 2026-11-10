@@ -1,4 +1,6 @@
 import React from 'react';
+import { PartnerTracking } from './Tracking';
+import { PartnerDeliveryPoint } from './PartnerDeliveryPoint';
 import {
   Heading,
   dateLabel,
@@ -39,6 +41,8 @@ function Home({
     latest = data.history.find((r) => r.kind === 'order');
   return (
     <>
+      <PartnerDeliveryPoint requiredOnly />
+      <PartnerTracking />
       <Heading
         eyebrow="ÜDVÖZLÜNK A PARTNERFELÜLETEN"
         title="Jó újra itt látni!"

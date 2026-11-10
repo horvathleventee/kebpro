@@ -178,7 +178,7 @@ const previousDocsV3 = Object.freeze({
     ],
   }),
 });
-const docs = Object.freeze({
+const previousDocsV4 = Object.freeze({
   terms: previousDocsV3.terms,
   privacy: Object.freeze({
     ...previousDocsV3.privacy,
@@ -193,6 +193,47 @@ const docs = Object.freeze({
     ),
   }),
 });
+// The new local preview is a draft until the controller verifies the missing legal and operational facts.
+const previousDocsV5 = Object.freeze({
+  terms: previousDocsV4.terms,
+  privacy: Object.freeze({
+    version: 'draft-2026-11-10-v5',
+    title: 'Partnerfelület adatkezelési tájékoztatója – tervezet',
+    sections: [
+      ['A dokumentum állapota', 'Ez a helyi előnézethez készített tervezet. A tényleges adatkezelési jogalapokat, szolgáltatókat, megőrzési időket és nemzetközi adattovábbításokat az adatkezelőnek élesítés előtt ellenőriznie és véglegesítenie kell.'],
+      ['Adatkezelő és kapcsolat', company],
+      ['Érintettek és kezelt adatok', 'A partner és kapcsolattartó adatai: cégnév, név, e-mail, telefonszám, szállítási cím, felhasználónév, védett jelszólenyomat, regisztráció és hozzáférés állapota. A felület rendeléseket, árakat, mentett listákat, rendelési megjegyzéseket, bejelentéseket és azokhoz csatolt képeket, beállításokat, műveleti naplókat és értesítési adatokat is kezelhet. A cégadatok önmagukban nem minden esetben személyes adatok.'],
+      ['Célok és jogalapok', 'A kezelés célja a partnerkapcsolat és rendelés kezelése, a kiszállítás szervezése, a kért értesítések és hírek küldése, a bejelentések kezelése, valamint a hozzáférés biztonsága és visszakövethetősége. A fiókhoz és rendeléshez szükséges adatok hiányában e szolgáltatások nem működnek. A tényleges érintetti kör, a célonkénti jogalap, az esetleges jogosérdek-mérlegelés és az opcionális értesítések jogalapja adatkezelői felülvizsgálatra vár; a böngésző engedélye vagy a használati feltételek elfogadása önmagában nem általános adatkezelési hozzájárulás.'],
+      ['Címkeresés és szállítási pont', 'A Geoapify használatakor a beírt keresett cím a szerverről a címkereső szolgáltatóhoz kerül, amely a kérő szerver IP-címét is megismerheti. A kiválasztott címet és koordinátát a rendszer a partnerhez kapcsolhatja, a munkatárs ellenőrizheti vagy módosíthatja. A szolgáltató adatfeldolgozói megállapodását és a tájékoztatás részleteit élesítés előtt ellenőrizni kell.'],
+      ['Térkép és járműkövetés', 'A térképet a böngésző az OpenFreeMap szolgáltatótól tölti be; a szolgáltató a böngésző IP-címét és a lekért térképi területre utaló adatokat megismerheti. A HolAzAutó a járművek helyadatait szolgáltatja a szervernek. A partner kizárólag a saját, aznapi rendeléséhez tartozó hozzárendelt jármű friss helyzetét és rendszámát láthatja, ha a jármű a túrán beállított, légvonalban számolt távolságon belül van az ellenőrzött szállítási ponthoz. A térképi kérelmek során külső szolgáltató bevonása és az érintettek tájékoztatása ellenőrzendő.'],
+      ['Sofőrök és munkavállalók', 'A jármű helyzete a sofőrrel vagy más természetes személlyel összekapcsolható lehet. A gépjárműkövetés célját, jogalapját, hozzáféréseit és megőrzését, valamint a sofőrök és munkavállalók részére adandó külön tájékoztatást a bevezetés előtt az adatkezelőnek külön meg kell vizsgálnia.'],
+      ['Értesítések és helyi tárhely', 'A böngészős értesítésekhez eszközengedély és a böngésző pushszolgáltatójának feliratkozási adatai szükségesek. Az értesítési kategóriák a felületen kezelhetők. A böngészőben munkamenetsüti, rendelési piszkozat és egyéb felületi beállítások, valamint a működést és értesítést támogató alkalmazáskód tárolódhat. A push szolgáltatója a böngészőtől függhet.'],
+      ['Megőrzés', 'A jelenlegi alkalmazás a legalább három hónapja archivált, elmúlt kiszállítású rendeléseket, valamint a legalább 28 napja lezárt bejelentéseket és kapcsolódó képeiket megfelelő friss mentés után törölheti. A helyi mentési beállítás alapértéke öt mentés. A fiókok, helyadatok, naplók, feliratkozások, külső mentések és számviteli bizonylatok éles megőrzését, továbbá a mentésekből való törlés kezelését az adatkezelőnek célonként meg kell határoznia.'],
+      ['Hozzáférés és címzettek', 'Az adatokhoz a jogosultsággal rendelkező céges munkatársak férhetnek hozzá. A tényleges tárhely-, adatbázis-, e-mail-, mentési és pushszolgáltatók, a HolAzAutó és a Geoapify szerződéses szerepeit, alvállalkozóit és az esetleges EGT-n kívüli adattovábbításokat a bevezetett szolgáltatás alapján kell véglegesíteni.'],
+      ['Jogok és jogorvoslat', 'Az érintett a jogszabályi feltételek szerint hozzáférést, helyesbítést, törlést, korlátozást kérhet, tiltakozhat, és adott esetben adathordozhatósággal élhet. A hozzájáruláson alapuló adatkezeléshez adott hozzájárulás visszavonható. Kérelemmel az info@kebpro.hu címen vagy az adatkezelő fenti elérhetőségein lehet fordulni. Panasz tehető a Nemzeti Adatvédelmi és Információszabadság Hatóságnál (naih.hu), valamint bírósági jogorvoslat is igénybe vehető.'],
+    ],
+  }),
+});
+const docs = Object.freeze({
+  terms: previousDocsV5.terms,
+  privacy: Object.freeze({
+    version: 'draft-2026-11-10-v6',
+    title: 'Partnerfelület adatkezelési tájékoztatója – tervezet',
+    sections: [
+      ['Adatkezelő és kapcsolat', company],
+      ['A tájékoztató hatálya', 'A tájékoztató a Halasi Kebpro Kft. partnerfelületének használatához kapcsolódó adatkezelést ismerteti. Érintettek lehetnek a partnerek természetes személy kapcsolattartói, egyéni vállalkozók, munkatársak és a kiszállító járművek sofőrjei.'],
+      ['A kezelt adatok', 'A regisztrációhoz a cég vagy üzlet neve, a kapcsolattartó neve, e-mail-címe, telefonszáma, a szállítási cím, a felhasználónév és a jelszó védett lenyomata tartozik. A portál kezelheti a regisztráció és hozzáférés állapotát, a rendelések adatait, a mentett listákat, árakat, rendelési megjegyzéseket, bejelentéseket és a csatolt képeket, az értesítési beállításokat és a munkatársi műveletek adatait.'],
+      ['Az adatkezelés célja', 'Az adatok kezelése a partnerkapcsolat és a hozzáférés biztosítását, a rendelések fogadását és teljesítését, a kiszállítás szervezését, a bejelentések kezelését, a kiválasztott értesítések küldését, valamint a hozzáférés és a módosítások biztonságát szolgálja. A regisztrációhoz és rendeléshez szükséges adatok nélkül e szolgáltatások nem vehetők igénybe.'],
+      ['Címkeresés és szállítási pont', 'A Geoapify címkereső használatakor a megadott keresési szöveg a portál szerveréről eljut a Geoapify szolgáltatóhoz, amely a kérő szerver IP-címét és technikai adatait is megismerheti. A kiválasztott cím és koordináta a partnerhez kapcsolódó szállítási pont meghatározására szolgál. A pontot munkatárs ellenőrizheti és pontosíthatja.'],
+      ['Térkép és járműkövetés', 'A térképet a böngésző az OpenFreeMap szolgáltatótól tölti be; a szolgáltató és közreműködői a böngésző IP-címét és a kért térképi területre utaló adatokat megismerhetik. A HolAzAutó a jármű helyadatait a portál szerverének adja át. A partner az adott napi saját rendeléséhez rendelt jármű friss helyzetét és – ha rendelkezésre áll – rendszámát láthatja, amikor a jármű a túránál beállított, légvonalban mért távolságon belül van az ellenőrzött szállítási ponthoz. A funkció a partner készülékének GPS-helyzetét nem igényli.'],
+      ['Értesítések és böngészőben tárolt adatok', 'A böngészős pushértesítéshez a készülék engedélye és a böngésző pushszolgáltatójának feliratkozási adatai szükségesek. Az értesítések egyes kategóriái a beállításokban kezelhetők. A bejelentkezéshez munkamenetsütit használunk; a rendelési piszkozat, egyes felületi beállítások és az alkalmazás működését támogató állományok a böngészőben is tárolódhatnak.'],
+      ['Hozzáférés és szolgáltatók', 'A partneradatokhoz a társaság ügyintézésre jogosult munkatársai férhetnek hozzá. A címkeresésben a Geoapify, a térkép megjelenítésében az OpenFreeMap, a jármű helyadatainak biztosításában a HolAzAutó vesz részt. Az értesítések kézbesítésében a használt böngészőtől függő pushszolgáltató működhet közre.'],
+      ['Megőrzés és törlés', 'A partnerfelület jelenlegi működésében a legalább három hónapja archivált, elmúlt kiszállítású rendelések megfelelő friss mentés után törlődhetnek. A legalább 28 napja lezárt bejelentések és kapcsolódó képeik megfelelő friss mentés után törlődhetnek; a nyitott bejelentésekre ez a szabály nem vonatkozik. A helyi mentési beállítás alapértéke öt példány.'],
+      ['Érintetti jogok', 'Az érintett a jogszabályi feltételek szerint tájékoztatást és hozzáférést kérhet, helyesbítést, törlést vagy adatkezelés-korlátozást kérhet, tiltakozhat, és adott esetben adathordozhatósággal élhet. A hozzájáruláson alapuló adatkezeléshez adott hozzájárulás visszavonható; ez a visszavonás előtti adatkezelés jogszerűségét nem érinti. Kérelmével az info@kebpro.hu címen vagy az adatkezelő fenti elérhetőségein fordulhat a társasághoz.'],
+      ['Panasz és jogorvoslat', 'Az érintett panaszt tehet a Nemzeti Adatvédelmi és Információszabadság Hatóságnál (NAIH, naih.hu), és bírósági jogorvoslatot is igénybe vehet. A társaság a kérelmekre a GDPR szerinti határidőben válaszol. A társaság honlapjának külön adatkezelési tájékoztatója a kebpro.hu/adatkezelesi-tajekoztato oldalon érhető el.'],
+    ],
+  }),
+});
 function hash(doc) {
   return crypto.createHash('sha256').update(JSON.stringify(doc)).digest('hex');
 }
@@ -203,6 +244,10 @@ function snapshot(kind) {
 function resolve(kind, version) {
   return docs[kind]?.version === version
     ? docs[kind]
+    : previousDocsV5[kind]?.version === version
+      ? previousDocsV5[kind]
+    : previousDocsV4[kind]?.version === version
+      ? previousDocsV4[kind]
     : previousDocsV3[kind]?.version === version
       ? previousDocsV3[kind]
       : previousDocsV2[kind]?.version === version

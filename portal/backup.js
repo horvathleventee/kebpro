@@ -20,6 +20,7 @@ function decodeBackup(text) {
     'outbox',
   ])
     if (!Array.isArray(state[key])) throw Error('Invalid backup structure');
+  require('./tracking').validateState(state);
   return state;
 }
 async function backup(store, directory, { now = new Date(), keep = 5 } = {}) {

@@ -32,6 +32,7 @@ async function main() {
       live: env.PORTAL_PUSH_LIVE === 'true',
       subject: env.PORTAL_VAPID_SUBJECT,
       origin: config.publicOrigin,
+      trackingProvider: require('../portal/holazauto').fromConfig(env),
     });
     const result = await worker.tick();
     console.log('[partner staging worker] completed; mode=' + result.mode);

@@ -10,6 +10,7 @@ function createWorker({
   now = () => new Date(),
   send,
   alerts,
+  trackingProvider,
 }) {
   if (live && (!/^https:\/\//.test(origin || '') || !/^(mailto:|https:\/\/)/.test(subject || '')))
     throw Error('Live push requires HTTPS origin and VAPID contact');
@@ -21,7 +22,8 @@ function createWorker({
         s.pushMode = live ? 'live' : 'simulation';
         runReminders(s, clock);
       });
-      const result = await dispatchNotifications(store, { dryRun: !live, subject, now, send });
+      await require('./tracking-monitor').monitorTracking({ store, provider: trackingProvider, now, live });
+      const result = await dispatchNotifications(store, { dryRun: !live, subject, now, send, trackingProvider });
       const state = await store.read();
       let saved;
       if (

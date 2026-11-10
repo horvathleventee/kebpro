@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 const staffLinks = [
   ['dashboard', '▦', 'Túrák és rendelések'],
+  ['tracking', '◉', 'Járműkövetés'],
   ['packing', '☷', 'Összekészítés'],
   ['complaints', '✉', 'Bejelentések'],
   ['products', '▤', 'Termékek'],
@@ -123,6 +124,7 @@ export function MobileNavigation({
           <Count id="mobile-more-count" className="mobile-count" count={total} />
         </summary>
         <div className="mobile-more-panel" aria-label="További menüpontok">
+          <Link id="tracking" icon="◉" label="Járműkövetés" active={active} />
           <Link id="complaints" icon="✉" label="Bejelentések" active={active}>
             <Count id="mobile-complaints-count" className="mobile-item-count" count={complaints} />
           </Link>

@@ -78,6 +78,7 @@ interface Route {
   id: string;
   name: string;
   fixedDay: number;
+  trackingRadiusKm?: number;
   reschedules?: { from: string; to: string }[];
 }
 interface Partner {
@@ -268,7 +269,7 @@ function StaffSettings({
             <small>A heti túrák elnevezése · {data.routes.length} túra</small>
           </span>
         </summary>
-        <p className="muted small">Itt módosíthatod a túrák elnevezését.</p>
+        <p className="muted small">Itt módosíthatod a túrák elnevezését és a járműkövetés távolságát.</p>
         <div className="settings-route-grid section-gap">
           {data.routes.map((r) => (
             <section className="settings-route-card" key={r.id}>
@@ -281,7 +282,7 @@ function StaffSettings({
                   <h3>{days[r.fixedDay] || r.name}</h3>
                 </div>
               </div>
-              <form data-route-form={r.id} key={r.name}>
+              <form data-route-form={r.id} key={r.name + ':' + (r.trackingRadiusKm ?? 20)}>
                 <label htmlFor={'route-name-' + r.id}>Túra neve</label>
                 <input
                   id={'route-name-' + r.id}
@@ -290,6 +291,9 @@ function StaffSettings({
                   defaultValue={r.name}
                   required
                 />
+                <label htmlFor={'route-radius-' + r.id}>Jármű láthatósága (km)</label>
+                <input id={'route-radius-' + r.id} name="trackingRadiusKm" type="number" min="1" max="500" step="0.1" defaultValue={r.trackingRadiusKm ?? 20} required />
+                <small>A partner ettől a légvonalban mért távolságtól láthatja a járművet.</small>
                 <input type="hidden" name="days" value={r.fixedDay} />
                 <input type="hidden" name="reminder" value="10:00" />
                 <input type="hidden" name="cutoff" value="14:00" />

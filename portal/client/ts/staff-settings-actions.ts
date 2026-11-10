@@ -31,6 +31,7 @@ export function createStaffSettingsActions(ctx: StaffSettingsContext) {
         days: values.getAll('days').map(Number),
         reminder: values.get('reminder'),
         cutoff: values.get('cutoff'),
+        ...(values.has('trackingRadiusKm') ? { trackingRadiusKm: Number(values.get('trackingRadiusKm')) } : {}),
       });
       delete form.dataset.dirty;
       ctx.toast('Túra beállításai elmentve.');

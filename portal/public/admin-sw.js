@@ -2,22 +2,6 @@ const OFFLINE = '/partner/assets/offline.html',
   UNAVAILABLE = '/partner/assets/unavailable.html',
   STYLE = '/partner/assets/offline.css',
   CACHE = 'kebpro-admin-shell-v2';
-// Temporary diagnostic: retain only safe status information, never response bodies or query strings.
-async function diagnosticPage(response) {
-  const fallback = await caches.match(UNAVAILABLE);
-  if (!fallback) return response;
-  const value = response.headers.get('X-Kebpro-Diagnostic') || '';
-  const diagnostic = /^[A-Za-z0-9_-]{1,100}$/.test(value) ? value : 'NEM_ADTA_MEG_A_KISZOLGALO';
-  const info = `<p class="note"><strong>Ideiglenes hibadiagnosztika</strong><br>HTTP: ${response.status}<br>Hibakód: ${diagnostic}<br>Időpont (UTC): ${new Date().toISOString()}<br>Kérés: adminoldal betöltése</p>`;
-  return new Response((await fallback.text()).replace('</main>', info + '</main>'), {
-    status: response.status,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-store',
-      'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'",
-    },
-  });
-}
 self.addEventListener('install', (event) =>
   event.waitUntil(
     caches
@@ -51,7 +35,7 @@ self.addEventListener('fetch', (event) => {
   )
     event.respondWith(
       fetch(event.request)
-        .then((r) => (r.status >= 500 ? diagnosticPage(r) : r))
+        .then((r) => (r.status >= 500 ? caches.match(UNAVAILABLE).then((f) => f || r) : r))
         .catch(() => caches.match(OFFLINE)),
     );
 });

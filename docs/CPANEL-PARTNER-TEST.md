@@ -23,8 +23,13 @@ Az alábbi változókat a szerveren kell megadni. A jelenlegi weboldal beállít
 | `PORTAL_BOOTSTRAP_USER` | A legelső tesztadmin felhasználóneve. |
 | `PORTAL_BOOTSTRAP_PASSWORD` | A legelső tesztadmin külön, legalább 10 karakteres jelszava. |
 | `PORTAL_BOOTSTRAP_EMAIL` | A tesztadmin saját e-mail-címe jelszó-visszaállításhoz. |
+| `PORTAL_TRACKING_ENABLED` | A HolAzAutó-kapcsolathoz `true`; enélkül a követési szolgáltató nincs bekapcsolva. |
+| `HOLAZAUTO_ORIGIN`, `HOLAZAUTO_LOGIN`, `HOLAZAUTO_PASSWORD` | A szolgáltatótól kapott HTTPS API-alapcím és hozzáférés; kizárólag privát szerveroldali beállításként. |
+| `PORTAL_GEOAPIFY_API_KEY` | A Geoapify címkereső szerveroldali kulcsa; nem kerülhet a böngészőbe vagy Gitbe. |
 
 A bootstrap változók az első fiók létrehozása után eltávolíthatók. Későbbi átírásuk nem módosítja a létrehozott fiókot. A portál meglévő `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` beállításokat használhatja.
+
+Az alkalmazás `server.js` indításakor a szerverfolyamat környezeti változóiból olvassa a stagingbeállításokat; a fejlesztői számítógép `.env.portal.local` fájlja nem kerül automatikusan a szerverre. A HolAzAutó-adapter és a Geoapify-adapter a staging konfigurációján keresztül kerül a portálba; a háttérmunkásnak a HolAzAutó beállításait külön is látnia kell. A `38981`-es helyi előnézet külön SQLite-adatbázisa nem az éles adatbázis, a helyi címek és napi járműhozzárendelések nem kerülnek át maguktól.
 
 ## Első próba
 

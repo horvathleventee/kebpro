@@ -66,6 +66,8 @@ function stagingConfig(env = process.env) {
     staging: { username, password, gateDisabled },
     adminCredentials,
     monitorToken: env.PORTAL_MONITOR_TOKEN,
+    trackingProvider: require('./holazauto').fromConfig(env),
+    geoapifyKey: env.PORTAL_GEOAPIFY_API_KEY || '',
   };
 }
 
@@ -79,6 +81,16 @@ function createStaging(
   if (!config) return null;
   if (!mailer.configured) throw Error('SMTP must be configured for staging');
   return createApp({ ...config, sendEmail: mailer.send });
+}
+
+// Bound the startup grace period so an unavailable database cannot hold requests indefinitely.
+function waitForStartup(startup, timeoutMs = 10000) {
+  let timer;
+  const deadline = new Promise((resolve) => {
+    timer = setTimeout(resolve, timeoutMs);
+    timer.unref?.();
+  });
+  return Promise.race([startup, deadline]).finally(() => clearTimeout(timer));
 }
 
 // Keep diagnostics useful without logging a connection string, credentials or input.
@@ -140,6 +152,7 @@ function stagingErrorDetails(error) {
 }
 
 module.exports = {
+  waitForStartup,
   stagingConfig,
   stagingDatabaseConfig,
   createStaging,

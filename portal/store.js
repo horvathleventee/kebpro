@@ -58,6 +58,7 @@ function createStore(filename, seed) {
           const result = fn(state);
           if (result && typeof result.then === 'function')
             throw new Error('Store mutations must be synchronous');
+          require('./tracking').validateState(state);
           if (before) audit.record(state, before, actor);
           await run('UPDATE portal_state SET body=? WHERE id=1', [JSON.stringify(state)]);
           await run('COMMIT');

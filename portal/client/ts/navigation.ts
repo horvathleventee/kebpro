@@ -5,6 +5,7 @@ export function currentTab(role: PortalRole, location: { hash: string }): string
     role === 'staff'
       ? [
           'dashboard',
+          'tracking',
           'packing',
           'complaints',
           'news',

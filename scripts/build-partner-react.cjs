@@ -1,4 +1,6 @@
 const esbuild = require('esbuild');
+require('node:fs').copyFileSync('node_modules/maplibre-gl/dist/maplibre-gl.css', 'portal/public/maplibre.css');
+require('node:fs').copyFileSync('node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs', 'portal/public/maplibre-gl-worker.mjs');
 for (const name of [
   'order-pricing',
   'order-assessment',

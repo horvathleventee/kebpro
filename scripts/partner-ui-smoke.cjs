@@ -157,7 +157,11 @@ const { createPortalApp } = require('../portal/app'),
       }),
     );
     await admin.locator('#publish-news button').click();
-    await admin.getByText(/Ideiglenes diagnosztika: HTTP 503/).waitFor();
+    await admin
+      .getByText('Az alkalmazás kiszolgálója átmenetileg nem elérhető. Próbáld újra később.', {
+        exact: true,
+      })
+      .waitFor();
     assert.equal(await admin.locator('#news-title').inputValue(), 'Próbahír React');
     assert.equal(await admin.locator('#news-body').inputValue(), 'Üzenet teszteléshez');
     await admin.unroute('**/partner-admin/api/news');
