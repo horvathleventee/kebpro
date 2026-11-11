@@ -15,7 +15,8 @@ const assert = require('node:assert/strict');
       { id: 'tue', name: 'Keddi túra', days: [2], fixedDay: 2 },
     ];
     s.partners = [
-      { id: 'p', name: 'Partner', routeId: 'mon', routeIds: ['mon', 'tue'], preferences: {} },
+      { id: 'p', name: 'Partner', routeId: 'mon', routeIds: ['mon'], preferences: {} },
+      { id: 'p2', name: 'Másik partner', routeId: 'tue', routeIds: ['tue'], preferences: {} },
     ];
     s.responses = [
       {
@@ -32,8 +33,8 @@ const assert = require('node:assert/strict');
       },
       {
         id: 'order-2',
-        partnerId: 'p',
-        partnerName: 'Partner',
+        partnerId: 'p2',
+        partnerName: 'Másik partner',
         routeId: 'tue',
         date: '2026-11-03',
         kind: 'order',
