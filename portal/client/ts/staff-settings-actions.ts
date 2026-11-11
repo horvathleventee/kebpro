@@ -26,7 +26,7 @@ export function createStaffSettingsActions(ctx: StaffSettingsContext) {
     },
     async saveRoute(id: string, values: FormData, form: HTMLFormElement) {
       await ctx.api('routes', {
-        id,
+        ...(id === 'new' ? {} : { id }),
         name: values.get('name'),
         days: values.getAll('days').map(Number),
         reminder: values.get('reminder'),
@@ -34,8 +34,16 @@ export function createStaffSettingsActions(ctx: StaffSettingsContext) {
         ...(values.has('trackingRadiusKm') ? { trackingRadiusKm: Number(values.get('trackingRadiusKm')) } : {}),
       });
       delete form.dataset.dirty;
-      ctx.toast('Túra beállításai elmentve.');
+      if (id === 'new') form.reset();
+      ctx.toast(id === 'new' ? 'Az új túrát létrehoztuk.' : 'Túra beállításai elmentve.');
       await ctx.load();
+    },
+    deleteRoute(id: string, name: string) {
+      ctx.confirm('Túra törlése', async () => {
+        await ctx.api('routes/delete', { id });
+        await ctx.load();
+        ctx.toast('A túrát töröltük.');
+      }, { name });
     },
     async savePartnerDays(id: string, values: FormData, form: HTMLFormElement) {
       await ctx.api('partners', { id, routeIds: values.getAll('routeIds') });

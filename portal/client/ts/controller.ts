@@ -997,6 +997,8 @@ export function startPortalController(screens: PortalScreens) {
         warning: assessmentMessage(assessOrder(appState.state.cart)),
         note: appState.state.note,
       };
+    if (title === 'Túra törlése')
+      return { type: 'text', paragraphs: ['Törlöd ezt a túrát: ' + (context.name || '') + '?', 'A korábbi rendelések megmaradnak. Partnerhez rendelt, illetve mai vagy jövőbeli rendelést vagy járműbeosztást tartalmazó túra nem törölhető.'] };
     if (title === 'Akció levétele')
       return { type: 'promotion', product: context.product || '', unit: context.unit || '' };
     if (title === 'Céges munkatárs meghívása')

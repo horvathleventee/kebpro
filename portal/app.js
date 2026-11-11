@@ -319,8 +319,8 @@ function createPortalApp({
   });
   app.get('/partner-admin/api/tracking', requireSession, staff, async (req, res) => {
     const state = await store.read();
-    res.json({ vehicles: state.trackingVehicles || [], assignments: state.trackingAssignments || [],
-      routes: state.routes, partners: state.partners.map((p) => {
+    res.json({ vehicles: state.trackingVehicles || [], assignments: (state.trackingAssignments || []).map((a) => ({ ...a, routeName: state.routes.find((r) => r.id === a.routeId)?.name })),
+      routes: state.routes.filter((r) => !r.archivedAt), partners: state.partners.map((p) => {
         const point = require('./tracking').verifiedAddress(state, p.id, p.address);
         return { id:p.id, name:p.name, address:p.address,
           verified: !!point,
@@ -830,7 +830,11 @@ function createPortalApp({
     res.json({ news: await store.change((state) => domain.publishNews(state, req.body)) }),
   );
   app.post('/partner-admin/api/routes', requireSession, staff, async (req, res) => {
-    await store.change((state) => domain.updateRoute(state, req.body));
+    await store.change((state) => domain.updateRoute(state, req.body, now()));
+    res.json({ ok: true });
+  });
+  app.post('/partner-admin/api/routes/delete', requireSession, staff, async (req, res) => {
+    await store.change((state) => domain.deleteRoute(state, req.body, now()));
     res.json({ ok: true });
   });
   app.post('/partner-admin/api/route-reschedule', requireSession, staff, async (req, res) => {
@@ -838,7 +842,7 @@ function createPortalApp({
     res.json({ ok: true });
   });
   app.post('/partner-admin/api/partners', requireSession, staff, async (req, res) => {
-    await store.change((state) => domain.updatePartner(state, req.body));
+    await store.change((state) => domain.updatePartner(state, req.body, now()));
     res.json({ ok: true });
   });
   app.post('/partner-admin/api/archive', requireSession, staff, async (req, res) => {
@@ -852,7 +856,7 @@ function createPortalApp({
     res.json({ created });
   });
   app.post('/partner-admin/api/applications', requireSession, staff, async (req, res) => {
-    const account = await store.change((s) => auth.review(s, req.body));
+    const account = await store.change((s) => auth.review(s, req.body, now()));
     let emailSent = null;
     if (account) {
       try {

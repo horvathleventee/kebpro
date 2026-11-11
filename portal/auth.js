@@ -118,7 +118,7 @@ async function register(store, input, termsAcceptance, selectedPoint) {
 function applications(state) {
   return state.users.filter((u) => u.role === 'partner').map(({ passwordHash, ...user }) => user);
 }
-function review(state, input) {
+function review(state, input, now = new Date()) {
   const user = state.users.find((u) => u.id === input.id && u.role === 'partner');
   assert(user && user.status === 'pending', 'Ez a kérelem már nem vár jóváhagyásra.', 409);
   assert(['approved', 'rejected'].includes(input.status), 'Érvénytelen döntés.');
@@ -127,11 +127,12 @@ function review(state, input) {
     assert(
       Array.isArray(routeIds) &&
         routeIds.length > 0 &&
-        routeIds.length <= 7 &&
+        routeIds.length <= 20 &&
         new Set(routeIds).size === routeIds.length &&
-        routeIds.every((id) => state.routes.some((r) => r.id === id)),
+        routeIds.every((id) => state.routes.some((r) => r.id === id && !r.archivedAt)),
       'Válassz kiszállítási túrát.',
     );
+    require('./domain').assertDistinctRouteDays(state, routeIds, now);
     if (input.addressCheck) {
       const check = input.addressCheck, suggestion = user.trackingAddressSuggestion;
       assert(suggestion && suggestion.id === check.suggestionId && suggestion.address === user.address && check.address === user.address && require('./tracking').point(check), 'A szállítási pont időközben megváltozott. Frissítsd az oldalt.', 409);

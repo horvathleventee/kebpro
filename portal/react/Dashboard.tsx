@@ -24,6 +24,7 @@ interface DashboardOrder {
   address: string;
   date: string;
   routeId: string;
+  routeName?: string;
   sameDayOrderCount?: number;
   createdAt: string;
   modifiedAt?: string | null;
@@ -254,7 +255,7 @@ function Dashboard({
                 <p>
                   <strong>{dateLabel(r.date)}</strong>
                   <br />
-                  {data.routes.find((route) => route.id === r.routeId)?.name}
+                  {r.routeName || data.routes.find((route) => route.id === r.routeId)?.name}
                 </p>
               </div>
               <div>

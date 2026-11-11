@@ -72,28 +72,19 @@ test('invalid, overlapping or expired changes leave schedules unchanged', () => 
   assert.equal(state.routes[0].reschedules, undefined);
 });
 
-test('an additional route on the destination day does not block the move or duplicate calls', () => {
+test('rescheduling is rejected if the same partner already has a route on the destination day', () => {
   const state = setup();
   state.routes.push({ id: 'tue', name: 'Keddi túra', days: [2] });
   state.partners[0].routeIds = ['mon', 'tue'];
-  d.rescheduleRoute(
+  assert.throws(() => d.rescheduleRoute(
     state,
     { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' },
     new Date('2026-10-28T08:00:00Z'),
-  );
-  const calls = d.callSchedule(state, new Date('2026-11-02T09:00:00Z'));
-  assert.equal(calls[0].routes.length, 1);
-  assert.equal(calls[0].routes[0].id, 'mon');
-  assert.equal(calls[0].routes[0].pending.length, 1);
-  assert.equal(
-    d
-      .deliveries(state, state.partners[0], new Date('2026-10-30T08:00:00Z'))
-      .filter((d) => d.date === '2026-11-03').length,
-    1,
-  );
+  ), /már másik túra/);
+  assert.equal(state.routes[0].reschedules, undefined);
 });
 
-test('an existing destination order remains assigned to its original route if no source order exists', () => {
+test('a rejected overlapping move leaves the destination order unchanged', () => {
   const state = setup();
   state.routes.push({ id: 'tue', name: 'Keddi túra', days: [2] });
   state.partners[0].routeIds = ['mon', 'tue'];
@@ -105,13 +96,22 @@ test('an existing destination order remains assigned to its original route if no
     kind: 'order',
     items: [],
   });
-  d.rescheduleRoute(
+  assert.throws(() => d.rescheduleRoute(
     state,
     { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' },
     new Date('2026-10-28T08:00:00Z'),
-  );
+  ), /már másik túra/);
   assert.equal(d.routeFor(state, state.partners[0], '2026-11-03').id, 'tue');
   assert.equal(state.responses[0].routeId, 'tue');
+});
+
+test('routes for different partners may be scheduled on the same date', () => {
+  const state = setup();
+  state.routes.push({ id: 'tue', name: 'Keddi túra', days: [2] });
+  state.partners.push({ id: 'p2', name: 'Másik partner', routeId: 'tue', preferences: {} });
+  d.rescheduleRoute(state, { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' }, new Date('2026-10-28T08:00:00Z'));
+  assert.equal(d.routeFor(state, state.partners[0], '2026-11-03').id, 'mon');
+  assert.equal(d.routeFor(state, state.partners[1], '2026-11-03').id, 'tue');
 });
 
 test('existing orders move atomically and keep their contents, status and history', () => {
@@ -143,7 +143,7 @@ test('existing orders move atomically and keep their contents, status and histor
   assert.equal(order.changes.at(-1).reason, 'route-reschedule');
 });
 
-test('two existing orders on different routes remain separate and can be edited independently', () => {
+test('legacy same-day orders remain separate and can be edited independently', () => {
   const state = setup();
   state.routes.push({ id: 'another', name: 'Másik túra', days: [2] });
   state.partners[0].routeIds = ['mon', 'another'];
@@ -152,7 +152,7 @@ test('two existing orders on different routes remain separate and can be edited 
       id: 'old',
       partnerId: 'p',
       routeId: 'mon',
-      date: '2026-11-02',
+      date: '2026-11-03',
       kind: 'order',
       items: [],
       revision: 1,
@@ -170,7 +170,7 @@ test('two existing orders on different routes remain separate and can be edited 
     },
   );
   const now = new Date('2026-10-28T08:00:00Z');
-  d.rescheduleRoute(state, { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' }, now);
+  state.routes[0].reschedules = [{ from: '2026-11-02', to: '2026-11-03' }];
   assert.deepEqual(
     state.responses.map((r) => [r.id, r.routeId, r.date]),
     [
@@ -201,7 +201,7 @@ test('two existing orders on different routes remain separate and can be edited 
   );
 });
 
-test('each existing order retains its own deadline when a route is moved to Monday', () => {
+test('legacy orders retain their own deadlines when a route had been moved to Monday', () => {
   const state = setup();
   state.routes[0].days = [2];
   state.routes.push({ id: 'regular', name: 'Hétfő', days: [1] });
@@ -211,9 +211,9 @@ test('each existing order retains its own deadline when a route is moved to Mond
       id: 'moved',
       partnerId: 'p',
       routeId: 'mon',
-      date: '2026-11-03',
+      date: '2026-11-02',
       kind: 'skip',
-      revision: 1,
+      revision: 2,
       createdAt: '2026-10-27T08:00:00Z',
     },
     {
@@ -226,11 +226,7 @@ test('each existing order retains its own deadline when a route is moved to Mond
       createdAt: '2026-10-27T09:00:00Z',
     },
   );
-  d.rescheduleRoute(
-    state,
-    { routeId: 'mon', from: '2026-11-03', to: '2026-11-02' },
-    new Date('2026-10-28T08:00:00Z'),
-  );
+  state.routes[0].reschedules = [{ from: '2026-11-03', to: '2026-11-02' }];
   const now = new Date('2026-10-31T10:00:00Z');
   const history = d.safePartner(state, state.partners[0], now).history;
   assert.equal(history.find((r) => r.id === 'moved').canEdit, true);

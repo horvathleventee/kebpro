@@ -2814,6 +2814,12 @@ body[data-role='staff'] .order-lines strong {
 .settings-route-card .button {
   margin-top: 12px;
 }
+.settings-route-days { margin: 14px 0 0; padding: 12px; border: 1px solid #dbe4ed; border-radius: 9px; }
+.settings-route-days legend { font-weight: 600; }
+.settings-route-days .route-checks { grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); }
+.settings-route-card .settings-route-days label.check-line { display: flex; align-items: center; gap: 8px; margin: 0; }
+.settings-route-days input[type='checkbox'] { width: 18px; height: 18px; flex: 0 0 auto; }
+.settings-route-card .button + .button { margin-left: 8px; }
 .settings-reschedule-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -53,7 +53,16 @@ function validDate(date) {
   );
 }
 function partnerRoutes(state, partner) {
-  return state.routes.filter((r) => (partner.routeIds || [partner.routeId]).includes(r.id));
+  return state.routes.filter((r) => !r.archivedAt && (partner.routeIds || [partner.routeId]).includes(r.id));
+}
+function assertDistinctRouteDays(state, routeIds, now = new Date(), replacement = null) {
+  const routes = state.routes.filter((r) => !r.archivedAt && routeIds.includes(r.id)).map((r) => replacement && r.id === replacement.id ? replacement : r);
+  const today = localTime(now).date;
+  for (let i = 0; i < routes.length; i++) for (let j = i + 1; j < routes.length; j++) {
+    const a = routes[i], b = routes[j];
+    const dates = [...(a.reschedules || []), ...(b.reschedules || [])].flatMap((r) => [r.from, r.to]).filter((date) => date >= today);
+    assert(!a.days.some((day) => b.days.includes(day)) && !dates.some((date) => deliveryOn(a, date) && deliveryOn(b, date)), 'Egy partnerhez ugyanarra a napra csak egy túra rendelhető. Válassz eltérő napokon érvényes túrákat.', 409);
+  }
 }
 function routeFor(state, partner, date) {
   const routes = partnerRoutes(state, partner).filter((r) => !date || deliveryOn(r, date));
@@ -128,7 +137,7 @@ function callSchedule(state, now = new Date()) {
   return groups;
 }
 function deliveryOn(route, date) {
-  if (!validDate(date)) return false;
+  if (!route || route.archivedAt || !validDate(date)) return false;
   const changes = route.reschedules || [];
   if (changes.some((entry) => entry.from === date)) return false;
   if (changes.some((entry) => entry.to === date)) return true;
@@ -726,9 +735,10 @@ function runReminders(state, now = new Date()) {
   }
   return created;
 }
-function updateRoute(state, input) {
-  const route = state.routes.find((r) => r.id === input.id);
-  assert(route, 'Ismeretlen túra.');
+function updateRoute(state, input, now = new Date()) {
+  const route = input.id ? state.routes.find((r) => r.id === input.id && !r.archivedAt) : null;
+  assert(!input.id || route, 'Ismeretlen túra.', 404);
+  if (!route) assert(state.routes.filter((r) => !r.archivedAt).length < 20, 'Legfeljebb 20 túra hozható létre.', 409);
   assert(
     Array.isArray(input.days) &&
       input.days.length > 0 &&
@@ -741,25 +751,44 @@ function updateRoute(state, input) {
     time.test(input.reminder) && time.test(input.cutoff) && input.reminder < input.cutoff,
     'Az emlékeztető időpontja legyen a rendelési határidő előtt.',
   );
-  const name = input.name === undefined ? route.name : text(input.name, 100, 'Túra neve');
+  const name = input.name === undefined && route ? route.name : text(input.name, 100, 'Túra neve');
   assert(name.length > 0, 'Add meg a túra nevét.');
   if (input.trackingRadiusKm !== undefined)
     assert(typeof input.trackingRadiusKm === 'number' && Number.isFinite(input.trackingRadiusKm) && input.trackingRadiusKm >= 1 && input.trackingRadiusKm <= 500, 'A követési távolság 1 és 500 km között legyen.');
-  if (route.fixedDay !== undefined)
-    assert(
-      input.days.length === 1 && input.days[0] === route.fixedDay,
-      'A napi túra napja nem változtatható meg.',
-    );
-  Object.assign(route, {
+  const days = [...new Set(input.days)];
+  if (route && (days.length !== route.days.length || days.some((day) => !route.days.includes(day)))) {
+    const today = localTime(now).date;
+    const candidate = { ...route, days };
+    for (const partner of state.partners.filter((p) => (p.routeIds || [p.routeId]).includes(route.id)))
+      assertDistinctRouteDays(state, partner.routeIds || [partner.routeId], now, candidate);
+    assert(!(route.reschedules || []).some((change) => change.from >= today || change.to >= today), 'A túra jövőbeli áthelyezése miatt a heti napok nem módosíthatók.', 409);
+    assert(!(state.responses || []).some((r) => r.routeId === route.id && r.date >= today && !deliveryOn(candidate, r.date)), 'A módosítás egy már rögzített mai vagy jövőbeli rendelést érintene. Előbb helyezd át az érintett túrát.', 409);
+    assert(!(state.trackingAssignments || []).some((a) => a.routeId === route.id && a.date >= today && !deliveryOn(candidate, a.date)), 'A módosítás egy mai vagy jövőbeli járműbeosztást érintene. Előbb távolítsd el az érintett beosztást.', 409);
+  }
+  const target = route || { id: id() };
+  Object.assign(target, {
     name,
-    days: [...new Set(input.days)],
+    days,
     reminder: input.reminder,
     cutoff: input.cutoff,
     ...(input.trackingRadiusKm !== undefined ? { trackingRadiusKm: input.trackingRadiusKm } : {}),
   });
+  delete target.fixedDay;
+  if (!route) state.routes.push(target);
+  return target;
+}
+function deleteRoute(state, input, now = new Date()) {
+  const route = state.routes.find((r) => r.id === input.id && !r.archivedAt);
+  assert(route, 'Ismeretlen túra.', 404);
+  const today = localTime(now).date;
+  assert(!state.partners.some((p) => (p.routeIds || [p.routeId]).includes(route.id)), 'A túrához még partnerek tartoznak. Előbb módosítsd a partnerek túráit.', 409);
+  assert(!(state.responses || []).some((r) => r.routeId === route.id && r.date >= today), 'A túrához mai vagy jövőbeli rendelés tartozik, ezért nem törölhető.', 409);
+  assert(!(state.trackingAssignments || []).some((a) => a.routeId === route.id && a.date >= today), 'A túrához mai vagy jövőbeli járműbeosztás tartozik. Előbb távolítsd el a beosztást.', 409);
+  assert(!(route.reschedules || []).some((c) => c.from >= today || c.to >= today), 'A túrának jövőbeli áthelyezése van, ezért nem törölhető.', 409);
+  route.archivedAt = now.toISOString();
 }
 function rescheduleRoute(state, input, now = new Date()) {
-  const route = state.routes.find((r) => r.id === input.routeId);
+  const route = state.routes.find((r) => r.id === input.routeId && !r.archivedAt);
   assert(route, 'Ismeretlen túra.', 404);
   assert(validDate(input.from) && validDate(input.to), 'Adj meg két érvényes dátumot.');
   const today = localTime(now);
@@ -786,6 +815,7 @@ function rescheduleRoute(state, input, now = new Date()) {
     409,
   );
   const partners = state.partners.filter((p) => (p.routeIds || [p.routeId]).includes(route.id));
+  assert(!partners.some((partner) => partnerRoutes(state, partner).some((other) => other.id !== route.id && deliveryOn(other, input.to))), 'Az új napon egy érintett partnerhez már másik túra tartozik. Válassz másik napot vagy módosítsd a partner túráit.', 409);
   const ids = new Set(partners.map((partner) => partner.id));
   const moving = state.responses.filter(
     (response) =>
@@ -797,11 +827,10 @@ function rescheduleRoute(state, input, now = new Date()) {
       moving.some(
         (item) =>
           item.partnerId === response.partnerId &&
-          response.date === input.to &&
-          (!response.routeId || !item.routeId || response.routeId === item.routeId),
+          response.date === input.to,
       ),
     ),
-    'Az új napon ehhez a túrához már tartozik rendelés vagy nem azonosítható a túrája. Az áthelyezés nem történt meg.',
+    'Az új napon egy érintett partnernek már van rendelése. Az áthelyezés nem történt meg.',
     409,
   );
   for (const response of moving) {
@@ -824,18 +853,19 @@ function rescheduleRoute(state, input, now = new Date()) {
   }
   (route.reschedules ||= []).push({ from: input.from, to: input.to });
 }
-function updatePartner(state, input) {
+function updatePartner(state, input, now = new Date()) {
   const partner = state.partners.find((p) => p.id === input.id);
   const routeIds = input.routeIds || [input.routeId];
   assert(
     partner &&
       Array.isArray(routeIds) &&
       routeIds.length > 0 &&
-      routeIds.length <= 7 &&
+      routeIds.length <= 20 &&
       new Set(routeIds).size === routeIds.length &&
-      routeIds.every((id) => state.routes.some((r) => r.id === id)),
+      routeIds.every((id) => state.routes.some((r) => r.id === id && !r.archivedAt)),
     'Válassz legalább egy érvényes túrát.',
   );
+  assertDistinctRouteDays(state, routeIds, now);
   const removed = (partner.routeIds || [partner.routeId]).filter((id) => !routeIds.includes(id));
   assert(
     !state.responses.some(
@@ -877,7 +907,7 @@ function safePartner(state, partner, now, listing) {
   const page = state._history || (listing ? require('./listing').select(own, listing) : null);
   const present = (r) => {
     const { trackingAddress: _trackingAddress, ...safeResponse } = r;
-    const route = partnerRoutes(state, partner).find((entry) => entry.id === r.routeId);
+    const route = state.routes.find((entry) => entry.id === r.routeId);
     const cutoffDate = route && deliveryOn(route, r.date) ? orderCutoffDate(r.date, route) : null;
     const current = localTime(now);
     const open = cutoffDate
@@ -925,7 +955,7 @@ function safePartner(state, partner, now, listing) {
 }
 function adminView(state, date, routeId, listing) {
   assert(validDate(date), 'Érvénytelen dátum.');
-  const relevant = state.routes.filter((r) => !routeId || r.id === routeId);
+  const relevant = state.routes.filter((r) => !r.archivedAt && (!routeId || r.id === routeId));
   const partners = state.partners.filter((p) =>
     relevant.some((r) => routeFor(state, p, date)?.id === r.id),
   );
@@ -949,6 +979,7 @@ function adminView(state, date, routeId, listing) {
     state._orders || (listing ? require('./listing').select(state.responses, listing) : null);
   const presentStaffOrder = (order) => ({
     ...order,
+    routeName: state.routes.find((route) => route.id === order.routeId)?.name,
     followUp: order.kind === 'order' ? order.followUp || 'unknown' : null,
     contactPhone: state.partners.find((p) => p.id === order.partnerId)?.phone || '',
   });
@@ -959,7 +990,7 @@ function adminView(state, date, routeId, listing) {
       ...product,
       availablePriceUnits: availablePriceUnits(product),
     })),
-    routes: state.routes,
+    routes: state.routes.filter((r) => !r.archivedAt),
     allPartners: state.partners,
     news: state.news,
     partners: partners.map((p) => ({
@@ -1057,6 +1088,7 @@ module.exports = {
   callDeliveryDates,
   callSchedule,
   partnerRoutes,
+  assertDistinctRouteDays,
   routeFor,
   deliveries,
   deliveryOn,
@@ -1071,6 +1103,7 @@ module.exports = {
   publishNews,
   runReminders,
   updateRoute,
+  deleteRoute,
   rescheduleRoute,
   updatePartner,
   archiveOrder,

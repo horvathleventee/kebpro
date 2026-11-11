@@ -31,7 +31,7 @@ function createStaffSettingsActions(ctx) {
     },
     async saveRoute(id, values, form) {
       await ctx.api("routes", {
-        id,
+        ...id === "new" ? {} : { id },
         name: values.get("name"),
         days: values.getAll("days").map(Number),
         reminder: values.get("reminder"),
@@ -39,8 +39,16 @@ function createStaffSettingsActions(ctx) {
         ...values.has("trackingRadiusKm") ? { trackingRadiusKm: Number(values.get("trackingRadiusKm")) } : {}
       });
       delete form.dataset.dirty;
-      ctx.toast("T\xFAra be\xE1ll\xEDt\xE1sai elmentve.");
+      if (id === "new") form.reset();
+      ctx.toast(id === "new" ? "Az \xFAj t\xFAr\xE1t l\xE9trehoztuk." : "T\xFAra be\xE1ll\xEDt\xE1sai elmentve.");
       await ctx.load();
+    },
+    deleteRoute(id, name) {
+      ctx.confirm("T\xFAra t\xF6rl\xE9se", async () => {
+        await ctx.api("routes/delete", { id });
+        await ctx.load();
+        ctx.toast("A t\xFAr\xE1t t\xF6r\xF6lt\xFCk.");
+      }, { name });
     },
     async savePartnerDays(id, values, form) {
       await ctx.api("partners", { id, routeIds: values.getAll("routeIds") });

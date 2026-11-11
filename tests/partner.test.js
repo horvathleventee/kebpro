@@ -906,7 +906,7 @@ test('Invitation HTTP flow requires staff and CSRF; invited staff can log in', a
   }
 });
 
-test('Seven daily routes migrate once, retain deliveries and support validated names', () => {
+test('Seven daily routes migrate once, retain deliveries and support validated names and days', () => {
   const { migrateDailyRoutes } = require('../portal/migrations');
   const state = d.seed();
   const before = state.partners.map((p) => d.nextDelivery(state, p, morning).date);
@@ -924,7 +924,8 @@ test('Seven daily routes migrate once, retain deliveries and support validated n
   d.updateRoute(state, { ...route, name: 'Budapest hétfő' });
   assert.equal(route.name, 'Budapest hétfő');
   assert.throws(() => d.updateRoute(state, { ...route, name: ' ' }));
-  assert.throws(() => d.updateRoute(state, { ...route, days: [2] }));
+  d.updateRoute(state, { ...route, days: [2] }, morning);
+  assert.deepEqual(route.days, [2]);
   const snapshot = JSON.stringify(state);
   migrateDailyRoutes(state, new Date('2026-11-01T12:00:00Z'));
   assert.equal(JSON.stringify(state), snapshot);

@@ -103,7 +103,7 @@ export function PartnerTracking() {
 type AdminData = {
   vehicles: { id: string; label: string; deviceId: string; licensePlate?: string }[];
   routes: { id: string; name: string; days: number[]; reschedules?: { from: string; to: string }[] }[];
-  assignments: { id: string; date: string; routeId: string; vehicleId: string }[];
+  assignments: { id: string; date: string; routeId: string; vehicleId: string; routeName?: string }[];
   partners: {
     id: string;
     name: string;
@@ -318,7 +318,7 @@ export function StaffTracking({ fleet }: { fleet: { id: string; label: string }[
       <ul>
         {data?.assignments.map((a) => (
           <li key={a.id}>
-            {a.date} · {data.routes.find((r) => r.id === a.routeId)?.name} ·{' '}
+            {a.date} · {a.routeName || data.routes.find((r) => r.id === a.routeId)?.name} ·{' '}
             {data.vehicles.find((v) => v.id === a.vehicleId)?.label}
           </li>
         ))}
