@@ -78,15 +78,26 @@ test('only requests the server-selected device and returns a minimal response', 
 test('registration appears only for an authorized nearby vehicle', async () => {
   const state = fixture();
   let latitude = 47;
-  const provider = { position: async () => ({latitude, longitude:19, timestamp:now.toISOString()}), plate: async () => 'ABC-123' };
-  const args = {store:{read:async () => structuredClone(state)}, sessionHash:'s', now:()=>now, provider};
+  const provider = {
+    position: async () => ({ latitude, longitude: 19, timestamp: now.toISOString() }),
+    plate: async () => 'ABC-123',
+  };
+  const args = {
+    store: { read: async () => structuredClone(state) },
+    sessionHash: 's',
+    now: () => now,
+    provider,
+  };
   assert.equal((await location(args)).licensePlate, 'ABC-123');
   provider.plate = async () => null;
   state.trackingVehicles[0].licensePlate = 'MAN-123';
   assert.equal((await location(args)).licensePlate, 'MAN-123');
   latitude = 48;
-  assert.deepEqual(await location(args), {status:'waiting'});
+  assert.deepEqual(await location(args), { status: 'waiting' });
   latitude = 47;
-  provider.plate = async () => { state.sessions = []; return 'ABC-123'; };
-  assert.deepEqual(await location(args), {status:'unavailable'});
+  provider.plate = async () => {
+    state.sessions = [];
+    return 'ABC-123';
+  };
+  assert.deepEqual(await location(args), { status: 'unavailable' });
 });

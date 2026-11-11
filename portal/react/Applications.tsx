@@ -9,14 +9,24 @@ interface Application {
   phone: string;
   address: string;
   username: string;
-  trackingAddressSuggestion?: { id: string; address: string; latitude: number; longitude: number; source?: string };
+  trackingAddressSuggestion?: {
+    id: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    source?: string;
+  };
 }
 interface Route {
   id: string;
   name: string;
 }
 interface Actions {
-  onApprove(id: string, routes: FormDataEntryValue[], addressCheck?: { suggestionId: string; address: string; latitude: number; longitude: number }): Promise<unknown>;
+  onApprove(
+    id: string,
+    routes: FormDataEntryValue[],
+    addressCheck?: { suggestionId: string; address: string; latitude: number; longitude: number },
+  ): Promise<unknown>;
   onReject(id: string): void;
   onError(error: unknown): void;
 }
@@ -30,8 +40,13 @@ function ApplicationCard({
   const [busy, setBusy] = useState(false),
     [dirty, setDirty] = useState(false),
     pending = useRef(false);
-  const suggestion = user.trackingAddressSuggestion?.address === user.address ? user.trackingAddressSuggestion : undefined;
-  const [point, setPoint] = useState(suggestion ? { latitude: suggestion.latitude, longitude: suggestion.longitude } : null);
+  const suggestion =
+    user.trackingAddressSuggestion?.address === user.address
+      ? user.trackingAddressSuggestion
+      : undefined;
+  const [point, setPoint] = useState(
+    suggestion ? { latitude: suggestion.latitude, longitude: suggestion.longitude } : null,
+  );
   const [confirmed, setConfirmed] = useState(false);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -40,7 +55,13 @@ function ApplicationCard({
     pending.current = true;
     setBusy(true);
     try {
-      await onApprove(user.id, routeIds, confirmed && suggestion && point ? { suggestionId: suggestion.id, address: user.address, ...point } : undefined);
+      await onApprove(
+        user.id,
+        routeIds,
+        confirmed && suggestion && point
+          ? { suggestionId: suggestion.id, address: user.address, ...point }
+          : undefined,
+      );
       setDirty(false);
     } catch (error) {
       onError(error);
@@ -58,13 +79,39 @@ function ApplicationCard({
       </p>
       <p>{user.address}</p>
       <p className="muted">Felhasználónév: {user.username}</p>
-      {suggestion && <div className="application-map">
-        <strong>Szállítási pont ellenőrzése</strong>
-        <p className="small muted">A jelölő a partner címválasztását mutatja. Ha szükséges, kattintással pontosíthatod.</p>
-        <AddressPicker key={user.id + ':' + suggestion.id} compact initialPoint={suggestion} onSelect={(latitude, longitude) => { setPoint({latitude, longitude}); setConfirmed(false); setDirty(true); }} />
-        <label className="check-line"><input type="checkbox" checked={confirmed} onChange={(e) => { setConfirmed(e.target.checked); setDirty(true); }} /> Ellenőriztem, hogy a jelölő a szállítási címet mutatja.</label>
-        <p className="small muted">A pontot a hozzáféréssel együtt hagyhatod jóvá. Ha most nem ellenőrzöd, később is megteheted.</p>
-      </div>}
+      {suggestion && (
+        <div className="application-map">
+          <strong>Szállítási pont ellenőrzése</strong>
+          <p className="small muted">
+            A jelölő a partner címválasztását mutatja. Ha szükséges, kattintással pontosíthatod.
+          </p>
+          <AddressPicker
+            key={user.id + ':' + suggestion.id}
+            compact
+            initialPoint={suggestion}
+            onSelect={(latitude, longitude) => {
+              setPoint({ latitude, longitude });
+              setConfirmed(false);
+              setDirty(true);
+            }}
+          />
+          <label className="check-line">
+            <input
+              type="checkbox"
+              checked={confirmed}
+              onChange={(e) => {
+                setConfirmed(e.target.checked);
+                setDirty(true);
+              }}
+            />{' '}
+            Ellenőriztem, hogy a jelölő a szállítási címet mutatja.
+          </label>
+          <p className="small muted">
+            A pontot a hozzáféréssel együtt hagyhatod jóvá. Ha most nem ellenőrzöd, később is
+            megteheted.
+          </p>
+        </div>
+      )}
       <form
         id={'application-' + user.id}
         data-application={user.id}

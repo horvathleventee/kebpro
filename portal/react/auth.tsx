@@ -21,7 +21,15 @@ window.KebproReactAuth = {
     const badge = element.querySelector('.badge')!.textContent || '',
       footer = element.querySelector('p.small.muted:last-child')!.textContent || '';
     createRoot(element).render(
-      <Login base={base} admin={admin} legal={legal} badge={badge} footer={footer} registrationSearchDemo={document.body.dataset.registrationSearchDemo === 'true'} geoapifySearch={document.body.dataset.geoapifySearch === 'true'} />,
+      <Login
+        base={base}
+        admin={admin}
+        legal={legal}
+        badge={badge}
+        footer={footer}
+        registrationSearchDemo={document.body.dataset.registrationSearchDemo === 'true'}
+        geoapifySearch={document.body.dataset.geoapifySearch === 'true'}
+      />,
     );
   },
   mountToken(element: HTMLElement, type: 'reset' | 'invitation') {

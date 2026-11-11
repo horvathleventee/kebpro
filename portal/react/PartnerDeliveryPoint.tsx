@@ -18,7 +18,10 @@ export function PartnerDeliveryPoint({ requiredOnly = false }: { requiredOnly?: 
     const response = await fetch('/partner/api/tracking-address', { cache: 'no-store' });
     if (!response.ok) throw Error('A szállítási hely nem érhető el.');
     const next = await response.json();
-    if (next.required) { wasRequired.current = true; setEditing(true); }
+    if (next.required) {
+      wasRequired.current = true;
+      setEditing(true);
+    }
     setState(next);
   }
   React.useEffect(() => {
@@ -54,7 +57,12 @@ export function PartnerDeliveryPoint({ requiredOnly = false }: { requiredOnly?: 
     <section className="card section-gap">
       <span className="partner-section-label">SZÁLLÍTÁSI HELY</span>
       <h2>Szállítási pont a térképen</h2>
-      {state?.required && <p className="notice">Az első rendelés előtt kötelező megjelölni és beküldeni a szállítás pontos helyét. A beküldés után rendelhetsz, a pontot munkatársunk ellenőrzi.</p>}
+      {state?.required && (
+        <p className="notice">
+          Az első rendelés előtt kötelező megjelölni és beküldeni a szállítás pontos helyét. A
+          beküldés után rendelhetsz, a pontot munkatársunk ellenőrzi.
+        </p>
+      )}
       {state ? (
         <>
           <p>{state.address || 'Nincs megadott szállítási cím.'}</p>
@@ -66,18 +74,20 @@ export function PartnerDeliveryPoint({ requiredOnly = false }: { requiredOnly?: 
                 ? 'A szállítási pont ellenőrizve van.'
                 : 'A szállítási pont még nincs ellenőrizve.'}
           </p>
-          {!state.required && <button
-            type="button"
-            className="button secondary"
-            disabled={!state.address || busy}
-            onClick={() => {
-              setEditing(!editing);
-              setPoint(null);
-              setConfirmed(false);
-            }}
-          >
-            {editing ? 'Mégse' : 'Szállítási pont megjelölése'}
-          </button>}
+          {!state.required && (
+            <button
+              type="button"
+              className="button secondary"
+              disabled={!state.address || busy}
+              onClick={() => {
+                setEditing(!editing);
+                setPoint(null);
+                setConfirmed(false);
+              }}
+            >
+              {editing ? 'Mégse' : 'Szállítási pont megjelölése'}
+            </button>
+          )}
           {editing && (
             <div>
               <p>

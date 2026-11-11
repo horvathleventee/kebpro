@@ -34,7 +34,11 @@ function createMockProvider({
     },
     async position(deviceId) {
       if (deviceId !== 'mock' && deviceId !== '9002') throw Error('Unknown mock device');
-      return { latitude: latitude + (deviceId === '9002' ? 0.035 : 0), longitude: longitude + (deviceId === '9002' ? 0.08 : 0), timestamp: now().toISOString() };
+      return {
+        latitude: latitude + (deviceId === '9002' ? 0.035 : 0),
+        longitude: longitude + (deviceId === '9002' ? 0.08 : 0),
+        timestamp: now().toISOString(),
+      };
     },
   };
 }

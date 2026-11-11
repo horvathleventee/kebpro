@@ -72,11 +72,20 @@ test('Budapest delivery date controls eligibility across midnight', () => {
 test('route-specific distance controls disclosure and invalid limits fail closed', () => {
   const state = fixture();
   const position = { latitude: 47.3, longitude: 19, timestamp: now.toISOString() };
-  assert.equal(tracking.disclosure(tracking.eligibility(state, 'p', now), position, now).status, 'waiting');
+  assert.equal(
+    tracking.disclosure(tracking.eligibility(state, 'p', now), position, now).status,
+    'waiting',
+  );
   state.routes[0].trackingRadiusKm = 50;
-  assert.equal(tracking.disclosure(tracking.eligibility(state, 'p', now), position, now).status, 'available');
+  assert.equal(
+    tracking.disclosure(tracking.eligibility(state, 'p', now), position, now).status,
+    'available',
+  );
   state.routes[0].trackingRadiusKm = 10;
-  assert.equal(tracking.disclosure(tracking.eligibility(state, 'p', now), position, now).status, 'waiting');
+  assert.equal(
+    tracking.disclosure(tracking.eligibility(state, 'p', now), position, now).status,
+    'waiting',
+  );
   state.routes[0].trackingRadiusKm = -1;
   assert.equal(tracking.eligibility(state, 'p', now), null);
 });
@@ -84,10 +93,18 @@ test('route-specific distance controls disclosure and invalid limits fail closed
 test('route settings validate and retain the configured distance', () => {
   const domain = require('../portal/domain');
   const state = fixture();
-  const input = { id: 'r', name: 'Teszt', days: [2], reminder: '10:00', cutoff: '14:00', trackingRadiusKm: 50 };
+  const input = {
+    id: 'r',
+    name: 'Teszt',
+    days: [2],
+    reminder: '10:00',
+    cutoff: '14:00',
+    trackingRadiusKm: 50,
+  };
   domain.updateRoute(state, input);
   assert.equal(state.routes[0].trackingRadiusKm, 50);
-  for (const invalid of [0, 501, NaN, '50']) assert.throws(() => domain.updateRoute(state, { ...input, trackingRadiusKm: invalid }));
+  for (const invalid of [0, 501, NaN, '50'])
+    assert.throws(() => domain.updateRoute(state, { ...input, trackingRadiusKm: invalid }));
   assert.equal(state.routes[0].trackingRadiusKm, 50);
 });
 
@@ -102,25 +119,76 @@ test('changing a route radius invalidates an in-flight tracking decision', () =>
 test('registration location suggestion follows the approved partner and remains unverified', () => {
   const auth = require('../portal/auth');
   const suggestion = { id: 'suggestion', address: 'Teszt cím', latitude: 47, longitude: 19 };
-  const state = { routes: [{ id: 'r' }], partners: [], users: [{ id: 'u', role: 'partner', status: 'pending', company: 'Teszt', address: 'Teszt cím', trackingAddressSuggestion: suggestion }] };
+  const state = {
+    routes: [{ id: 'r' }],
+    partners: [],
+    users: [
+      {
+        id: 'u',
+        role: 'partner',
+        status: 'pending',
+        company: 'Teszt',
+        address: 'Teszt cím',
+        trackingAddressSuggestion: suggestion,
+      },
+    ],
+  };
   auth.review(state, { id: 'u', status: 'approved', routeIds: ['r'] });
   assert.deepEqual(state.partners[0].trackingAddressSuggestion, suggestion);
   assert.equal(state.partners[0].trackingPointRequired, true);
   assert.equal(tracking.verifiedAddress(state, state.partners[0].id, 'Teszt cím'), null);
-  tracking.suggestPartnerAddress(state, state.partners[0].id, { address: 'Teszt cím', latitude: 47, longitude: 19 }, now);
+  tracking.suggestPartnerAddress(
+    state,
+    state.partners[0].id,
+    { address: 'Teszt cím', latitude: 47, longitude: 19 },
+    now,
+  );
   assert.equal(state.partners[0].trackingPointRequired, undefined);
   assert.equal(tracking.verifiedAddress(state, state.partners[0].id, 'Teszt cím'), null);
 });
 
 test('staff can verify and adjust a registration location during account approval', () => {
   const auth = require('../portal/auth');
-  const makeState = () => ({ routes: [{ id: 'r' }], partners: [], users: [{ id: 'u', role: 'partner', status: 'pending', company: 'Teszt', address: 'Teszt cím', trackingAddressSuggestion: { id: 's1', source: 'registration', address: 'Teszt cím', latitude: 47, longitude: 19 } }] });
+  const makeState = () => ({
+    routes: [{ id: 'r' }],
+    partners: [],
+    users: [
+      {
+        id: 'u',
+        role: 'partner',
+        status: 'pending',
+        company: 'Teszt',
+        address: 'Teszt cím',
+        trackingAddressSuggestion: {
+          id: 's1',
+          source: 'registration',
+          address: 'Teszt cím',
+          latitude: 47,
+          longitude: 19,
+        },
+      },
+    ],
+  });
   const stale = makeState();
-  assert.throws(() => auth.review(stale, { id: 'u', status: 'approved', routeIds: ['r'], addressCheck: { suggestionId: 'old', address: 'Teszt cím', latitude: 47.1, longitude: 19 } }), /megváltozott/);
+  assert.throws(
+    () =>
+      auth.review(stale, {
+        id: 'u',
+        status: 'approved',
+        routeIds: ['r'],
+        addressCheck: { suggestionId: 'old', address: 'Teszt cím', latitude: 47.1, longitude: 19 },
+      }),
+    /megváltozott/,
+  );
   assert.equal(stale.users[0].status, 'pending');
   assert.equal(stale.partners.length, 0);
   const state = makeState();
-  auth.review(state, { id: 'u', status: 'approved', routeIds: ['r'], addressCheck: { suggestionId: 's1', address: 'Teszt cím', latitude: 47.1, longitude: 19 } });
+  auth.review(state, {
+    id: 'u',
+    status: 'approved',
+    routeIds: ['r'],
+    addressCheck: { suggestionId: 's1', address: 'Teszt cím', latitude: 47.1, longitude: 19 },
+  });
   const partner = state.partners[0];
   assert.equal(tracking.verifiedAddress(state, partner.id, partner.address).latitude, 47.1);
   assert.equal(partner.trackingAddressSuggestion, undefined);
@@ -134,9 +202,20 @@ test('new partner must submit a point before placing an order', () => {
   const clock = new Date('2026-11-09T08:00:00Z');
   const delivery = domain.deliveries(state, partner, clock).find((d) => d.open);
   assert.ok(delivery);
-  assert.throws(() => domain.submitResponse(state, partner.id, { date: delivery.date, kind: 'order' }, clock), /szállítási pontot/);
-  tracking.suggestPartnerAddress(state, partner.id, { address: partner.address, latitude: 47, longitude: 19 }, clock);
-  assert.throws(() => domain.submitResponse(state, partner.id, { date: delivery.date, kind: 'order' }, clock), /kérésazonosító/);
+  assert.throws(
+    () => domain.submitResponse(state, partner.id, { date: delivery.date, kind: 'order' }, clock),
+    /szállítási pontot/,
+  );
+  tracking.suggestPartnerAddress(
+    state,
+    partner.id,
+    { address: partner.address, latitude: 47, longitude: 19 },
+    clock,
+  );
+  assert.throws(
+    () => domain.submitResponse(state, partner.id, { date: delivery.date, kind: 'order' }, clock),
+    /kérésazonosító/,
+  );
 });
 
 test('staff assignment replacement and address verification bind to the order', () => {

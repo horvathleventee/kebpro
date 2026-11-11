@@ -273,7 +273,14 @@ function eligibility(state, partnerId, now) {
   )
     return null;
   const configuredRadius = routes[0].trackingRadiusKm;
-  if (configuredRadius !== undefined && (typeof configuredRadius !== 'number' || !Number.isFinite(configuredRadius) || configuredRadius < 1 || configuredRadius > 500)) return null;
+  if (
+    configuredRadius !== undefined &&
+    (typeof configuredRadius !== 'number' ||
+      !Number.isFinite(configuredRadius) ||
+      configuredRadius < 1 ||
+      configuredRadius > 500)
+  )
+    return null;
   return { order, assignment, vehicle: vehicles[0], address, radiusKm: configuredRadius ?? 20 };
 }
 
@@ -283,7 +290,8 @@ function disclosure(candidate, position, now, maxAgeMs = 300000) {
   const timestamp = Date.parse(position.timestamp);
   const age = now.getTime() - timestamp;
   if (!Number.isFinite(timestamp) || age < 0 || age > maxAgeMs) return { status: 'unavailable' };
-  if (distanceKm(candidate.address, position) > (candidate.radiusKm ?? 20)) return { status: 'waiting' };
+  if (distanceKm(candidate.address, position) > (candidate.radiusKm ?? 20))
+    return { status: 'waiting' };
   return {
     status: 'available',
     latitude: position.latitude,

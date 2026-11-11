@@ -12,8 +12,25 @@ test('new preview privacy draft preserves old linked policy and records exact do
   const draft = legal.resolve('privacy', privacy.version);
   assert.match(JSON.stringify(draft), /Geoapify/);
   assert.match(JSON.stringify(draft), /HolAzAutó/);
-  assert.doesNotMatch(JSON.stringify(draft), /véglegesítésre vár|élesítés előtt ellenőriz|adatkezelőnek célonként/);
-  const acceptance = legal.verifyAcceptance({ termsAccepted: true, termsVersion: terms.version, termsHash: terms.hash, privacyVersion: privacy.version, privacyHash: privacy.hash });
+  assert.doesNotMatch(
+    JSON.stringify(draft),
+    /véglegesítésre vár|élesítés előtt ellenőriz|adatkezelőnek célonként/,
+  );
+  const acceptance = legal.verifyAcceptance({
+    termsAccepted: true,
+    termsVersion: terms.version,
+    termsHash: terms.hash,
+    privacyVersion: privacy.version,
+    privacyHash: privacy.hash,
+  });
   assert.equal(JSON.parse(acceptance.privacyDocument).version, privacy.version);
-  assert.throws(() => legal.verifyAcceptance({ termsAccepted: true, termsVersion: terms.version, termsHash: terms.hash, privacyVersion: previous.version, privacyHash: privacy.hash }));
+  assert.throws(() =>
+    legal.verifyAcceptance({
+      termsAccepted: true,
+      termsVersion: terms.version,
+      termsHash: terms.hash,
+      privacyVersion: previous.version,
+      privacyHash: privacy.hash,
+    }),
+  );
 });

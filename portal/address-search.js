@@ -62,17 +62,42 @@ function createGeoapifySearch({ apiKey, fetcher = fetch }) {
   const cache = new Map();
   return async function search(query) {
     const text = typeof query === 'string' ? query.trim().replace(/\s+/g, ' ') : '';
-    if (text.length < 3 || text.length > 200) throw Error('Adj meg egy legalább 3 karakteres címet.');
+    if (text.length < 3 || text.length > 200)
+      throw Error('Adj meg egy legalább 3 karakteres címet.');
     const key = text.toLocaleLowerCase('hu');
     const saved = cache.get(key);
     if (saved && saved.expires > Date.now()) return saved.results;
     const url = new URL('https://api.geoapify.com/v1/geocode/autocomplete');
-    for (const [k, v] of Object.entries({ text, format: 'json', lang: 'hu', filter: 'countrycode:hu', limit: '5', apiKey })) url.searchParams.set(k, v);
+    for (const [k, v] of Object.entries({
+      text,
+      format: 'json',
+      lang: 'hu',
+      filter: 'countrycode:hu',
+      limit: '5',
+      apiKey,
+    }))
+      url.searchParams.set(k, v);
     const response = await fetcher(url, { signal: AbortSignal.timeout(8000), redirect: 'error' });
     if (!response.ok) throw Error('A címkereső most nem érhető el.');
     const data = await response.json();
     if (!Array.isArray(data.results)) throw Error('A címkereső most nem érhető el.');
-    const results = data.results.slice(0, 5).map((r) => ({ label: typeof r.formatted === 'string' ? r.formatted.slice(0, 250) : '', latitude: r.lat, longitude: r.lon })).filter((r) => r.label && typeof r.latitude === 'number' && Number.isFinite(r.latitude) && Math.abs(r.latitude) <= 85 && typeof r.longitude === 'number' && Number.isFinite(r.longitude) && Math.abs(r.longitude) <= 180);
+    const results = data.results
+      .slice(0, 5)
+      .map((r) => ({
+        label: typeof r.formatted === 'string' ? r.formatted.slice(0, 250) : '',
+        latitude: r.lat,
+        longitude: r.lon,
+      }))
+      .filter(
+        (r) =>
+          r.label &&
+          typeof r.latitude === 'number' &&
+          Number.isFinite(r.latitude) &&
+          Math.abs(r.latitude) <= 85 &&
+          typeof r.longitude === 'number' &&
+          Number.isFinite(r.longitude) &&
+          Math.abs(r.longitude) <= 180,
+      );
     if (cache.size >= 500) cache.delete(cache.keys().next().value);
     cache.set(key, { results, expires: Date.now() + 3600000 });
     return results;

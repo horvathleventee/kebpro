@@ -41,12 +41,19 @@ export function AddressPicker({
       setReady(true);
       if (initialPoint && referencePoint)
         map.fitBounds(
-          new maplibregl.LngLatBounds([initialPoint.longitude, initialPoint.latitude], [referencePoint.longitude, referencePoint.latitude]),
+          new maplibregl.LngLatBounds(
+            [initialPoint.longitude, initialPoint.latitude],
+            [referencePoint.longitude, referencePoint.latitude],
+          ),
           { padding: 60, maxZoom: 15, duration: 0 },
         );
     });
     let marker: maplibregl.Marker | null = null;
-    const referenceMarker = referencePoint ? new maplibregl.Marker({ color: '#235fa0' }).setLngLat([referencePoint.longitude, referencePoint.latitude]).addTo(map) : null;
+    const referenceMarker = referencePoint
+      ? new maplibregl.Marker({ color: '#235fa0' })
+          .setLngLat([referencePoint.longitude, referencePoint.latitude])
+          .addTo(map)
+      : null;
     choosePoint.current = (lat, lng) => {
       if (!marker)
         marker = new maplibregl.Marker({ color: '#d36427' }).setLngLat([lng, lat]).addTo(map);
@@ -85,80 +92,103 @@ export function AddressPicker({
         body: JSON.stringify({ query }),
       });
       if (!response.headers.get('content-type')?.toLowerCase().includes('application/json'))
-        throw new Error('A címkereső jelenleg nem érhető el. Frissítsd az oldalt, vagy jelöld ki a helyet a térképen.');
+        throw new Error(
+          'A címkereső jelenleg nem érhető el. Frissítsd az oldalt, vagy jelöld ki a helyet a térképen.',
+        );
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'A címkeresés nem sikerült.');
-      if (!Array.isArray(data.results)) throw new Error('A címkeresés nem sikerült. Próbáld újra, vagy jelöld ki a helyet a térképen.');
+      if (!Array.isArray(data.results))
+        throw new Error(
+          'A címkeresés nem sikerült. Próbáld újra, vagy jelöld ki a helyet a térképen.',
+        );
       setResults(data.results);
       if (!data.results.length)
         setSearchMessage(
           'Nincs találat. Próbáld másképp megadni a címet, vagy jelöld ki a térképen.',
         );
     } catch (error) {
-      setSearchMessage(error instanceof Error && !(error instanceof SyntaxError) && error.name !== 'TypeError' ? error.message : 'A címkereső jelenleg nem érhető el. Próbáld újra, vagy jelöld ki a helyet a térképen.');
+      setSearchMessage(
+        error instanceof Error && !(error instanceof SyntaxError) && error.name !== 'TypeError'
+          ? error.message
+          : 'A címkereső jelenleg nem érhető el. Próbáld újra, vagy jelöld ki a helyet a térképen.',
+      );
     } finally {
       setSearching(false);
     }
   }
   return (
     <div className="address-picker">
-      {!compact && <><label>
-        Cím keresése{' '}
-        <input
-          type="search"
-          value={query}
-          disabled={searching}
-          maxLength={200}
-          placeholder="Település, utca, házszám"
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setResults([]);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              void search();
-            }
-          }}
-        />
-      </label>{' '}
-      <button
-        type="button"
-        disabled={searching || query.trim().length < 3 || !ready}
-        onClick={() => void search()}
-      >
-        {searching ? 'Keresés…' : 'Keresés'}
-      </button>
-      <p className="small muted">
-        A keresett címet {document.body.dataset.geoapifySearch === 'true' ? <><a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">Geoapify</a> címkeresője</> : 'az OpenStreetMap Nominatim címkeresője'} kapja meg.
-      </p>
-      {searchMessage && <p role="status">{searchMessage}</p>}
-      {results.length > 0 && (
-        <div>
-          <p>Válaszd ki a megfelelő találatot:</p>
-          <ul>
-            {results.map((result, index) => (
-              <li key={index}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    choosePoint.current?.(result.latitude, result.longitude);
-                    const map = mapRef.current;
-                    map?.flyTo({ center: [result.longitude, result.latitude], zoom: 16 });
-                    setResults([]);
-                    setSearchMessage(
-                      'Ellenőrizd a jelölőt, és szükség esetén kattintással pontosítsd.',
-                    );
-                  }}
-                >
-                  {result.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {!compact && (
+        <>
+          <label>
+            Cím keresése{' '}
+            <input
+              type="search"
+              value={query}
+              disabled={searching}
+              maxLength={200}
+              placeholder="Település, utca, házszám"
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setResults([]);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  void search();
+                }
+              }}
+            />
+          </label>{' '}
+          <button
+            type="button"
+            disabled={searching || query.trim().length < 3 || !ready}
+            onClick={() => void search()}
+          >
+            {searching ? 'Keresés…' : 'Keresés'}
+          </button>
+          <p className="small muted">
+            A keresett címet{' '}
+            {document.body.dataset.geoapifySearch === 'true' ? (
+              <>
+                <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer">
+                  Geoapify
+                </a>{' '}
+                címkeresője
+              </>
+            ) : (
+              'az OpenStreetMap Nominatim címkeresője'
+            )}{' '}
+            kapja meg.
+          </p>
+          {searchMessage && <p role="status">{searchMessage}</p>}
+          {results.length > 0 && (
+            <div>
+              <p>Válaszd ki a megfelelő találatot:</p>
+              <ul>
+                {results.map((result, index) => (
+                  <li key={index}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        choosePoint.current?.(result.latitude, result.longitude);
+                        const map = mapRef.current;
+                        map?.flyTo({ center: [result.longitude, result.latitude], zoom: 16 });
+                        setResults([]);
+                        setSearchMessage(
+                          'Ellenőrizd a jelölőt, és szükség esetén kattintással pontosítsd.',
+                        );
+                      }}
+                    >
+                      {result.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
       )}
-      </>}
       <p>Húzással mozgasd, a + / − gombokkal nagyítsd, majd kattints a pontos szállítási pontra.</p>
       <div className="vehicle-map-frame">
         <div

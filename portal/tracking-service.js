@@ -56,14 +56,20 @@ async function location({ store, provider, sessionHash, now = () => new Date() }
     return { status: 'unavailable' };
   }
   let providerPlate;
-  try { if (provider.plate) providerPlate = await provider.plate(first.vehicle.deviceId); } catch {}
+  try {
+    if (provider.plate) providerPlate = await provider.plate(first.vehicle.deviceId);
+  } catch {}
   const state = await store.read();
   const clock = now();
   const second = authorized(state, clock);
   if (!sameCandidate(first, second)) return { status: 'unavailable' };
   const result = disclosure(second, position, clock);
   const plate = providerPlate || second.vehicle.licensePlate;
-  if (result.status === 'available' && typeof plate === 'string' && /^[\p{L}\p{N} -]{1,30}$/u.test(plate))
+  if (
+    result.status === 'available' &&
+    typeof plate === 'string' &&
+    /^[\p{L}\p{N} -]{1,30}$/u.test(plate)
+  )
     result.licensePlate = plate;
   return result;
 }

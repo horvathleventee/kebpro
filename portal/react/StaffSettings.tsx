@@ -271,7 +271,10 @@ function StaffSettings({
             <small>Heti napok, elnevezések és járműkövetés · {data.routes.length} / 20 túra</small>
           </span>
         </summary>
-        <p className="muted small">Állítsd be, mely napokon érvényes a túra. Egy nap több túra is lehet, de egy partnerhez naponta csak egy túra rendelhető.</p>
+        <p className="muted small">
+          Állítsd be, mely napokon érvényes a túra. Egy nap több túra is lehet, de egy partnerhez
+          naponta csak egy túra rendelhető.
+        </p>
         <div className="settings-route-grid section-gap">
           {data.routes.map((r) => (
             <section className="settings-route-card" key={r.id}>
@@ -284,7 +287,10 @@ function StaffSettings({
                   <h3>{r.name}</h3>
                 </div>
               </div>
-              <form data-route-form={r.id} key={r.name + ':' + (r.trackingRadiusKm ?? 20) + ':' + r.days.join(',')}>
+              <form
+                data-route-form={r.id}
+                key={r.name + ':' + (r.trackingRadiusKm ?? 20) + ':' + r.days.join(',')}
+              >
                 <label htmlFor={'route-name-' + r.id}>Túra neve</label>
                 <input
                   id={'route-name-' + r.id}
@@ -294,25 +300,88 @@ function StaffSettings({
                   required
                 />
                 <label htmlFor={'route-radius-' + r.id}>Jármű láthatósága (km)</label>
-                <input id={'route-radius-' + r.id} name="trackingRadiusKm" type="number" min="1" max="500" step="0.1" defaultValue={r.trackingRadiusKm ?? 20} required />
+                <input
+                  id={'route-radius-' + r.id}
+                  name="trackingRadiusKm"
+                  type="number"
+                  min="1"
+                  max="500"
+                  step="0.1"
+                  defaultValue={r.trackingRadiusKm ?? 20}
+                  required
+                />
                 <small>A partner ettől a légvonalban mért távolságtól láthatja a járművet.</small>
-                <fieldset className="settings-route-days"><legend>Érvényes napok</legend><div className="route-checks">{[1,2,3,4,5,6,0].map((day) => <label className="check-line" key={day}><input type="checkbox" name="days" value={day} defaultChecked={r.days.includes(day)} />{days[day]}</label>)}</div></fieldset>
+                <fieldset className="settings-route-days">
+                  <legend>Érvényes napok</legend>
+                  <div className="route-checks">
+                    {[1, 2, 3, 4, 5, 6, 0].map((day) => (
+                      <label className="check-line" key={day}>
+                        <input
+                          type="checkbox"
+                          name="days"
+                          value={day}
+                          defaultChecked={r.days.includes(day)}
+                        />
+                        {days[day]}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
                 <input type="hidden" name="reminder" value={r.reminder || '10:00'} />
                 <input type="hidden" name="cutoff" value={r.cutoff || '14:00'} />
                 <button className="button primary" disabled={busy}>
                   Túra mentése
                 </button>
-                <button type="button" className="button secondary" disabled={busy} onClick={() => actions.deleteRoute(r.id, r.name)}>Túra törlése</button>
+                <button
+                  type="button"
+                  className="button secondary"
+                  disabled={busy}
+                  onClick={() => actions.deleteRoute(r.id, r.name)}
+                >
+                  Túra törlése
+                </button>
               </form>
             </section>
           ))}
-          {data.routes.length < 20 && <section className="settings-route-card"><h3>Új túra hozzáadása</h3><form data-route-form="new">
-            <label>Túra neve<input name="name" maxLength={100} required /></label>
-            <label>Jármű láthatósága (km)<input name="trackingRadiusKm" type="number" min="1" max="500" step="0.1" defaultValue="20" required /></label>
-            <fieldset className="settings-route-days"><legend>Érvényes napok</legend><div className="route-checks">{[1,2,3,4,5,6,0].map((day) => <label className="check-line" key={day}><input type="checkbox" name="days" value={day} />{days[day]}</label>)}</div></fieldset>
-            <input type="hidden" name="reminder" value="10:00" /><input type="hidden" name="cutoff" value="14:00" />
-            <button className="button primary" disabled={busy}>Új túra létrehozása</button>
-          </form></section>}
+          {data.routes.length < 20 && (
+            <section className="settings-route-card">
+              <h3>Új túra hozzáadása</h3>
+              <form data-route-form="new">
+                <label>
+                  Túra neve
+                  <input name="name" maxLength={100} required />
+                </label>
+                <label>
+                  Jármű láthatósága (km)
+                  <input
+                    name="trackingRadiusKm"
+                    type="number"
+                    min="1"
+                    max="500"
+                    step="0.1"
+                    defaultValue="20"
+                    required
+                  />
+                </label>
+                <fieldset className="settings-route-days">
+                  <legend>Érvényes napok</legend>
+                  <div className="route-checks">
+                    {[1, 2, 3, 4, 5, 6, 0].map((day) => (
+                      <label className="check-line" key={day}>
+                        <input type="checkbox" name="days" value={day} />
+                        {days[day]}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+                <input type="hidden" name="reminder" value="10:00" />
+                <input type="hidden" name="cutoff" value="14:00" />
+                <button className="button primary" disabled={busy}>
+                  Új túra létrehozása
+                </button>
+              </form>
+            </section>
+          )}
         </div>
         {data.routes.length >= 20 && <p className="muted small">Elérted a 20 túrás korlátot.</p>}
       </details>

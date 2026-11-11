@@ -53,16 +53,29 @@ function validDate(date) {
   );
 }
 function partnerRoutes(state, partner) {
-  return state.routes.filter((r) => !r.archivedAt && (partner.routeIds || [partner.routeId]).includes(r.id));
+  return state.routes.filter(
+    (r) => !r.archivedAt && (partner.routeIds || [partner.routeId]).includes(r.id),
+  );
 }
 function assertDistinctRouteDays(state, routeIds, now = new Date(), replacement = null) {
-  const routes = state.routes.filter((r) => !r.archivedAt && routeIds.includes(r.id)).map((r) => replacement && r.id === replacement.id ? replacement : r);
+  const routes = state.routes
+    .filter((r) => !r.archivedAt && routeIds.includes(r.id))
+    .map((r) => (replacement && r.id === replacement.id ? replacement : r));
   const today = localTime(now).date;
-  for (let i = 0; i < routes.length; i++) for (let j = i + 1; j < routes.length; j++) {
-    const a = routes[i], b = routes[j];
-    const dates = [...(a.reschedules || []), ...(b.reschedules || [])].flatMap((r) => [r.from, r.to]).filter((date) => date >= today);
-    assert(!a.days.some((day) => b.days.includes(day)) && !dates.some((date) => deliveryOn(a, date) && deliveryOn(b, date)), 'Egy partnerhez ugyanarra a napra csak egy túra rendelhető. Válassz eltérő napokon érvényes túrákat.', 409);
-  }
+  for (let i = 0; i < routes.length; i++)
+    for (let j = i + 1; j < routes.length; j++) {
+      const a = routes[i],
+        b = routes[j];
+      const dates = [...(a.reschedules || []), ...(b.reschedules || [])]
+        .flatMap((r) => [r.from, r.to])
+        .filter((date) => date >= today);
+      assert(
+        !a.days.some((day) => b.days.includes(day)) &&
+          !dates.some((date) => deliveryOn(a, date) && deliveryOn(b, date)),
+        'Egy partnerhez ugyanarra a napra csak egy túra rendelhető. Válassz eltérő napokon érvényes túrákat.',
+        409,
+      );
+    }
 }
 function routeFor(state, partner, date) {
   const routes = partnerRoutes(state, partner).filter((r) => !date || deliveryOn(r, date));
@@ -425,8 +438,11 @@ function submitResponse(state, partnerId, input, now = new Date()) {
     (existing.requestId === input.requestId || existing.changeIds?.includes(input.requestId))
   )
     return existing;
-  assert(input.kind !== 'order' || !partner.trackingPointRequired,
-    'A rendelés előtt jelöld meg a szállítási pontot a kezdőlapon vagy a beállításokban, és küldd be ellenőrzésre.', 409);
+  assert(
+    input.kind !== 'order' || !partner.trackingPointRequired,
+    'A rendelés előtt jelöld meg a szállítási pontot a kezdőlapon vagy a beállításokban, és küldd be ellenőrzésre.',
+    409,
+  );
   assert(
     !existing || (input.responseId === existing.id && input.revision === (existing.revision || 1)),
     'A rendelés időközben változott, vagy már válaszoltál. Nyisd meg újra a módosítást.',
@@ -738,7 +754,12 @@ function runReminders(state, now = new Date()) {
 function updateRoute(state, input, now = new Date()) {
   const route = input.id ? state.routes.find((r) => r.id === input.id && !r.archivedAt) : null;
   assert(!input.id || route, 'Ismeretlen túra.', 404);
-  if (!route) assert(state.routes.filter((r) => !r.archivedAt).length < 20, 'Legfeljebb 20 túra hozható létre.', 409);
+  if (!route)
+    assert(
+      state.routes.filter((r) => !r.archivedAt).length < 20,
+      'Legfeljebb 20 túra hozható létre.',
+      409,
+    );
   assert(
     Array.isArray(input.days) &&
       input.days.length > 0 &&
@@ -754,16 +775,43 @@ function updateRoute(state, input, now = new Date()) {
   const name = input.name === undefined && route ? route.name : text(input.name, 100, 'Túra neve');
   assert(name.length > 0, 'Add meg a túra nevét.');
   if (input.trackingRadiusKm !== undefined)
-    assert(typeof input.trackingRadiusKm === 'number' && Number.isFinite(input.trackingRadiusKm) && input.trackingRadiusKm >= 1 && input.trackingRadiusKm <= 500, 'A követési távolság 1 és 500 km között legyen.');
+    assert(
+      typeof input.trackingRadiusKm === 'number' &&
+        Number.isFinite(input.trackingRadiusKm) &&
+        input.trackingRadiusKm >= 1 &&
+        input.trackingRadiusKm <= 500,
+      'A követési távolság 1 és 500 km között legyen.',
+    );
   const days = [...new Set(input.days)];
-  if (route && (days.length !== route.days.length || days.some((day) => !route.days.includes(day)))) {
+  if (
+    route &&
+    (days.length !== route.days.length || days.some((day) => !route.days.includes(day)))
+  ) {
     const today = localTime(now).date;
     const candidate = { ...route, days };
-    for (const partner of state.partners.filter((p) => (p.routeIds || [p.routeId]).includes(route.id)))
+    for (const partner of state.partners.filter((p) =>
+      (p.routeIds || [p.routeId]).includes(route.id),
+    ))
       assertDistinctRouteDays(state, partner.routeIds || [partner.routeId], now, candidate);
-    assert(!(route.reschedules || []).some((change) => change.from >= today || change.to >= today), 'A túra jövőbeli áthelyezése miatt a heti napok nem módosíthatók.', 409);
-    assert(!(state.responses || []).some((r) => r.routeId === route.id && r.date >= today && !deliveryOn(candidate, r.date)), 'A módosítás egy már rögzített mai vagy jövőbeli rendelést érintene. Előbb helyezd át az érintett túrát.', 409);
-    assert(!(state.trackingAssignments || []).some((a) => a.routeId === route.id && a.date >= today && !deliveryOn(candidate, a.date)), 'A módosítás egy mai vagy jövőbeli járműbeosztást érintene. Előbb távolítsd el az érintett beosztást.', 409);
+    assert(
+      !(route.reschedules || []).some((change) => change.from >= today || change.to >= today),
+      'A túra jövőbeli áthelyezése miatt a heti napok nem módosíthatók.',
+      409,
+    );
+    assert(
+      !(state.responses || []).some(
+        (r) => r.routeId === route.id && r.date >= today && !deliveryOn(candidate, r.date),
+      ),
+      'A módosítás egy már rögzített mai vagy jövőbeli rendelést érintene. Előbb helyezd át az érintett túrát.',
+      409,
+    );
+    assert(
+      !(state.trackingAssignments || []).some(
+        (a) => a.routeId === route.id && a.date >= today && !deliveryOn(candidate, a.date),
+      ),
+      'A módosítás egy mai vagy jövőbeli járműbeosztást érintene. Előbb távolítsd el az érintett beosztást.',
+      409,
+    );
   }
   const target = route || { id: id() };
   Object.assign(target, {
@@ -781,10 +829,26 @@ function deleteRoute(state, input, now = new Date()) {
   const route = state.routes.find((r) => r.id === input.id && !r.archivedAt);
   assert(route, 'Ismeretlen túra.', 404);
   const today = localTime(now).date;
-  assert(!state.partners.some((p) => (p.routeIds || [p.routeId]).includes(route.id)), 'A túrához még partnerek tartoznak. Előbb módosítsd a partnerek túráit.', 409);
-  assert(!(state.responses || []).some((r) => r.routeId === route.id && r.date >= today), 'A túrához mai vagy jövőbeli rendelés tartozik, ezért nem törölhető.', 409);
-  assert(!(state.trackingAssignments || []).some((a) => a.routeId === route.id && a.date >= today), 'A túrához mai vagy jövőbeli járműbeosztás tartozik. Előbb távolítsd el a beosztást.', 409);
-  assert(!(route.reschedules || []).some((c) => c.from >= today || c.to >= today), 'A túrának jövőbeli áthelyezése van, ezért nem törölhető.', 409);
+  assert(
+    !state.partners.some((p) => (p.routeIds || [p.routeId]).includes(route.id)),
+    'A túrához még partnerek tartoznak. Előbb módosítsd a partnerek túráit.',
+    409,
+  );
+  assert(
+    !(state.responses || []).some((r) => r.routeId === route.id && r.date >= today),
+    'A túrához mai vagy jövőbeli rendelés tartozik, ezért nem törölhető.',
+    409,
+  );
+  assert(
+    !(state.trackingAssignments || []).some((a) => a.routeId === route.id && a.date >= today),
+    'A túrához mai vagy jövőbeli járműbeosztás tartozik. Előbb távolítsd el a beosztást.',
+    409,
+  );
+  assert(
+    !(route.reschedules || []).some((c) => c.from >= today || c.to >= today),
+    'A túrának jövőbeli áthelyezése van, ezért nem törölhető.',
+    409,
+  );
   route.archivedAt = now.toISOString();
 }
 function rescheduleRoute(state, input, now = new Date()) {
@@ -815,7 +879,15 @@ function rescheduleRoute(state, input, now = new Date()) {
     409,
   );
   const partners = state.partners.filter((p) => (p.routeIds || [p.routeId]).includes(route.id));
-  assert(!partners.some((partner) => partnerRoutes(state, partner).some((other) => other.id !== route.id && deliveryOn(other, input.to))), 'Az új napon egy érintett partnerhez már másik túra tartozik. Válassz másik napot vagy módosítsd a partner túráit.', 409);
+  assert(
+    !partners.some((partner) =>
+      partnerRoutes(state, partner).some(
+        (other) => other.id !== route.id && deliveryOn(other, input.to),
+      ),
+    ),
+    'Az új napon egy érintett partnerhez már másik túra tartozik. Válassz másik napot vagy módosítsd a partner túráit.',
+    409,
+  );
   const ids = new Set(partners.map((partner) => partner.id));
   const moving = state.responses.filter(
     (response) =>
@@ -824,11 +896,7 @@ function rescheduleRoute(state, input, now = new Date()) {
   );
   assert(
     !state.responses.some((response) =>
-      moving.some(
-        (item) =>
-          item.partnerId === response.partnerId &&
-          response.date === input.to,
-      ),
+      moving.some((item) => item.partnerId === response.partnerId && response.date === input.to),
     ),
     'Az új napon egy érintett partnernek már van rendelése. Az áthelyezés nem történt meg.',
     409,
@@ -926,7 +994,11 @@ function safePartner(state, partner, now, listing) {
   return {
     historyPage: page?.pagination,
     currentResponses: own.filter((r) => r.date >= today).map(present),
-    ...Object.fromEntries(Object.entries(partner).filter(([key]) => !['trackingAddresses', 'trackingAddressSuggestion'].includes(key))),
+    ...Object.fromEntries(
+      Object.entries(partner).filter(
+        ([key]) => !['trackingAddresses', 'trackingAddressSuggestion'].includes(key),
+      ),
+    ),
     routeIds: partner.routeIds || [partner.routeId],
     deliveryOptions,
     templates: partner.templates || [],

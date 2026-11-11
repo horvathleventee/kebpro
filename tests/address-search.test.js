@@ -5,13 +5,26 @@ const { createGeoapifySearch } = require('../portal/address-search');
 
 test('Geoapify adapter filters invalid results and caches valid matches', async () => {
   let calls = 0;
-  const search = createGeoapifySearch({ apiKey: 'test-key', fetcher: async (url) => {
-    calls++;
-    assert.equal(url.searchParams.get('filter'), 'countrycode:hu');
-    assert.equal(url.searchParams.get('text'), 'Budapest Deák');
-    return { ok: true, json: async () => ({ results: [{ formatted: 'Budapest Deák', lat: 47.5, lon: 19.1 }, { formatted: 'bad', lat: null, lon: 19 }] }) };
-  } });
-  assert.deepEqual(await search('Budapest Deák'), [{ label: 'Budapest Deák', latitude: 47.5, longitude: 19.1 }]);
+  const search = createGeoapifySearch({
+    apiKey: 'test-key',
+    fetcher: async (url) => {
+      calls++;
+      assert.equal(url.searchParams.get('filter'), 'countrycode:hu');
+      assert.equal(url.searchParams.get('text'), 'Budapest Deák');
+      return {
+        ok: true,
+        json: async () => ({
+          results: [
+            { formatted: 'Budapest Deák', lat: 47.5, lon: 19.1 },
+            { formatted: 'bad', lat: null, lon: 19 },
+          ],
+        }),
+      };
+    },
+  });
+  assert.deepEqual(await search('Budapest Deák'), [
+    { label: 'Budapest Deák', latitude: 47.5, longitude: 19.1 },
+  ]);
   assert.equal((await search('Budapest Deák')).length, 1);
   assert.equal(calls, 1);
 });

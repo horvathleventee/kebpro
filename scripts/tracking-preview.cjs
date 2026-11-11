@@ -55,10 +55,19 @@ portal.ready
         },
       });
       s.trackingVehicles ||= [];
-      if (!s.trackingVehicles.some((v) => v.id === 'tracking-demo-vehicle' || v.deviceId === 'mock'))
-        s.trackingVehicles.push({ id: 'tracking-demo-vehicle', label: 'Bemutató jármű', deviceId: 'mock' });
+      if (
+        !s.trackingVehicles.some((v) => v.id === 'tracking-demo-vehicle' || v.deviceId === 'mock')
+      )
+        s.trackingVehicles.push({
+          id: 'tracking-demo-vehicle',
+          label: 'Bemutató jármű',
+          deviceId: 'mock',
+        });
       s.trackingAssignments ||= [];
-      if (!s.trackingAssignments.some((a) => a.routeId === route.id && a.date === date) && s.trackingVehicles.some((v) => v.id === 'tracking-demo-vehicle'))
+      if (
+        !s.trackingAssignments.some((a) => a.routeId === route.id && a.date === date) &&
+        s.trackingVehicles.some((v) => v.id === 'tracking-demo-vehicle')
+      )
         s.trackingAssignments.push({
           id: 'tracking-demo-assignment-' + date,
           routeId: route.id,

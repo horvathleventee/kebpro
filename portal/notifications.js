@@ -23,9 +23,15 @@ function eligible(state, message, now) {
   if (!partner || now.getTime() - Date.parse(message.createdAt) >= MAX_AGE_MS) return false;
   if (message.category === 'tracking') {
     const candidate = require('./tracking').eligibility(state, message.partnerId, now);
-    return !!candidate && message.key === 'tracking:' + localTime(now).date &&
-      candidate.assignment.id === message.trackingAssignmentId && candidate.order.id === message.trackingOrderId &&
-      state.users.some((u) => u.partnerId === message.partnerId && u.role === 'partner' && u.status === 'approved');
+    return (
+      !!candidate &&
+      message.key === 'tracking:' + localTime(now).date &&
+      candidate.assignment.id === message.trackingAssignmentId &&
+      candidate.order.id === message.trackingOrderId &&
+      state.users.some(
+        (u) => u.partnerId === message.partnerId && u.role === 'partner' && u.status === 'approved',
+      )
+    );
   }
   if (message.category === 'news') return partner.preferences.news;
   if (message.category === 'reminder') {
@@ -56,7 +62,13 @@ function finish(message) {
 // contact and explicitly enqueue "pending" messages; old simulations never send.
 async function dispatchNotifications(
   store,
-  { dryRun = true, subject, send = webpush.sendNotification, now = () => new Date(), trackingProvider } = {},
+  {
+    dryRun = true,
+    subject,
+    send = webpush.sendNotification,
+    now = () => new Date(),
+    trackingProvider,
+  } = {},
 ) {
   if (dryRun) {
     const state = await store.read();
@@ -134,7 +146,8 @@ async function dispatchNotifications(
         }
         if (message.category === 'tracking') {
           const current = localTime(clock);
-          const minutesLeft = 24 * 60 - (Number(current.time.slice(0, 2)) * 60 + Number(current.time.slice(3, 5)));
+          const minutesLeft =
+            24 * 60 - (Number(current.time.slice(0, 2)) * 60 + Number(current.time.slice(3, 5)));
           ttl = Math.min(ttl, 60, Math.max(1, minutesLeft * 60 - clock.getUTCSeconds()));
         }
         tasks.push({
@@ -169,16 +182,23 @@ async function dispatchNotifications(
     if (message?.category === 'tracking' && eligible(current, message, now())) {
       const before = require('./tracking').eligibility(current, message.partnerId, now());
       let position;
-      try { if (trackingProvider && before) position = await trackingProvider.position(before.vehicle.deviceId); } catch {}
+      try {
+        if (trackingProvider && before)
+          position = await trackingProvider.position(before.vehicle.deviceId);
+      } catch {}
       current = await store.read();
       message = current.outbox.find((m) => m.id === task.id);
       const after = message && require('./tracking').eligibility(current, message.partnerId, now());
-      if (!require('./tracking-service').sameCandidate(before, after) ||
-          require('./tracking').disclosure(after, position, now()).status !== 'available') outcome = 'cancelled';
+      if (
+        !require('./tracking-service').sameCandidate(before, after) ||
+        require('./tracking').disclosure(after, position, now()).status !== 'available'
+      )
+        outcome = 'cancelled';
     }
     if (
       outcome === 'cancelled' ||
-      (message?.category === 'tracking' && require('./tracking-service').untilMidnight(now()) < 1000) ||
+      (message?.category === 'tracking' &&
+        require('./tracking-service').untilMidnight(now()) < 1000) ||
       !message ||
       !eligible(current, message, now()) ||
       !current.subscriptions.some(
@@ -195,7 +215,16 @@ async function dispatchNotifications(
           { endpoint: task.subscription.endpoint, keys: task.subscription.keys },
           task.payload,
           {
-            TTL: message.category === 'tracking' ? Math.max(1, Math.min(task.ttl, Math.floor(require('./tracking-service').untilMidnight(now()) / 1000))) : task.ttl,
+            TTL:
+              message.category === 'tracking'
+                ? Math.max(
+                    1,
+                    Math.min(
+                      task.ttl,
+                      Math.floor(require('./tracking-service').untilMidnight(now()) / 1000),
+                    ),
+                  )
+                : task.ttl,
             timeout: 15000,
             vapidDetails: {
               subject,

@@ -136,8 +136,14 @@ test('partner proposes an address, staff verifies and assigns a fleet car, partn
       200,
     );
     const verifiedData = await (await get('/partner-admin/api/tracking', admin)).json();
-    assert.deepEqual(verifiedData.partners.find((p) => p.id === partnerId).verifiedPoint, { latitude: 47, longitude: 19 });
-    assert.deepEqual(verifiedData.orders.find((o) => o.id === 'order').verifiedPoint, { latitude: 47, longitude: 19 });
+    assert.deepEqual(verifiedData.partners.find((p) => p.id === partnerId).verifiedPoint, {
+      latitude: 47,
+      longitude: 19,
+    });
+    assert.deepEqual(verifiedData.orders.find((o) => o.id === 'order').verifiedPoint, {
+      latitude: 47,
+      longitude: 19,
+    });
     const partnerStatus = await (await get('/partner/api/tracking-address', partner)).json();
     assert.equal(partnerStatus.verified, true);
     assert.equal('verifiedPoint' in partnerStatus, false);

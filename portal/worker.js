@@ -22,8 +22,19 @@ function createWorker({
         s.pushMode = live ? 'live' : 'simulation';
         runReminders(s, clock);
       });
-      await require('./tracking-monitor').monitorTracking({ store, provider: trackingProvider, now, live });
-      const result = await dispatchNotifications(store, { dryRun: !live, subject, now, send, trackingProvider });
+      await require('./tracking-monitor').monitorTracking({
+        store,
+        provider: trackingProvider,
+        now,
+        live,
+      });
+      const result = await dispatchNotifications(store, {
+        dryRun: !live,
+        subject,
+        now,
+        send,
+        trackingProvider,
+      });
       const state = await store.read();
       let saved;
       if (

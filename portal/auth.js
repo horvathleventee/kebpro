@@ -94,7 +94,18 @@ async function register(store, input, termsAcceptance, selectedPoint) {
       ...fields,
       ...(termsAcceptance ? { termsAcceptance } : {}),
       createdAt: new Date().toISOString(),
-      ...(selectedPoint ? { trackingAddressSuggestion: { id: crypto.randomUUID(), address: fields.address, latitude: selectedPoint.latitude, longitude: selectedPoint.longitude, submittedAt: new Date().toISOString(), source: 'registration' } } : {}),
+      ...(selectedPoint
+        ? {
+            trackingAddressSuggestion: {
+              id: crypto.randomUUID(),
+              address: fields.address,
+              latitude: selectedPoint.latitude,
+              longitude: selectedPoint.longitude,
+              submittedAt: new Date().toISOString(),
+              source: 'registration',
+            },
+          }
+        : {}),
     };
     s.users.push(user);
     require('./domain').queueStaffNotification(
@@ -134,8 +145,17 @@ function review(state, input, now = new Date()) {
     );
     require('./domain').assertDistinctRouteDays(state, routeIds, now);
     if (input.addressCheck) {
-      const check = input.addressCheck, suggestion = user.trackingAddressSuggestion;
-      assert(suggestion && suggestion.id === check.suggestionId && suggestion.address === user.address && check.address === user.address && require('./tracking').point(check), 'A szállítási pont időközben megváltozott. Frissítsd az oldalt.', 409);
+      const check = input.addressCheck,
+        suggestion = user.trackingAddressSuggestion;
+      assert(
+        suggestion &&
+          suggestion.id === check.suggestionId &&
+          suggestion.address === user.address &&
+          check.address === user.address &&
+          require('./tracking').point(check),
+        'A szállítási pont időközben megváltozott. Frissítsd az oldalt.',
+        409,
+      );
     }
     const partner = {
       id: id(),
@@ -152,7 +172,13 @@ function review(state, input, now = new Date()) {
       partner.trackingAddressSuggestion = user.trackingAddressSuggestion;
     delete user.trackingAddressSuggestion;
     state.partners.push(partner);
-    if (input.addressCheck) require('./tracking').verifyPartnerAddress(state, { partnerId: partner.id, address: partner.address, latitude: input.addressCheck.latitude, longitude: input.addressCheck.longitude });
+    if (input.addressCheck)
+      require('./tracking').verifyPartnerAddress(state, {
+        partnerId: partner.id,
+        address: partner.address,
+        latitude: input.addressCheck.latitude,
+        longitude: input.addressCheck.longitude,
+      });
     user.partnerId = partner.id;
   }
   user.status = input.status;

@@ -20,14 +20,28 @@ function snapshot(state) {
         ['id', ...keys].filter((k) => item[k] !== undefined).map((k) => [k, item[k]]),
       ),
     );
-  result.trackingAddressChecks = (state.responses || []).filter((r) => r.trackingAddress?.verified).map((r) => ({
-    id: r.id, verified: true, verificationId: r.trackingAddress.verificationId || null,
-    addressMatches: r.trackingAddress.address === r.address,
-  }));
-  result.trackingPartnerAddressChecks = (state.partners || []).flatMap((p) => (p.trackingAddresses || []).map((a) => ({
-    id: p.id + ':' + crypto.createHash('sha256').update(String(a.address || '')).digest('hex'),
-    partnerId: p.id, verified: !!a.verified, verificationId: a.verificationId || null,
-  })));
+  result.trackingAddressChecks = (state.responses || [])
+    .filter((r) => r.trackingAddress?.verified)
+    .map((r) => ({
+      id: r.id,
+      verified: true,
+      verificationId: r.trackingAddress.verificationId || null,
+      addressMatches: r.trackingAddress.address === r.address,
+    }));
+  result.trackingPartnerAddressChecks = (state.partners || []).flatMap((p) =>
+    (p.trackingAddresses || []).map((a) => ({
+      id:
+        p.id +
+        ':' +
+        crypto
+          .createHash('sha256')
+          .update(String(a.address || ''))
+          .digest('hex'),
+      partnerId: p.id,
+      verified: !!a.verified,
+      verificationId: a.verificationId || null,
+    })),
+  );
   result.complaints = (state.partners || []).flatMap((p) =>
     (p.complaints || []).map((c) => ({
       id: c.id,
@@ -43,7 +57,12 @@ function snapshot(state) {
 function record(state, before, actor) {
   const after = snapshot(state),
     changes = [];
-  for (const collection of [...Object.keys(fields), 'complaints', 'trackingAddressChecks', 'trackingPartnerAddressChecks']) {
+  for (const collection of [
+    ...Object.keys(fields),
+    'complaints',
+    'trackingAddressChecks',
+    'trackingPartnerAddressChecks',
+  ]) {
     const old = new Map(before[collection].map((x) => [x.id, x]));
     for (const item of after[collection]) {
       const prev = old.get(item.id);

@@ -891,7 +891,13 @@ function createPortalApp({
   app.post('/partner/api/subscription', requireSession, partner, async (req, res) => {
     const subscription = domain.validateSubscription(req.body);
     await store.change((state) => {
-      const previous = state.subscriptions.find((s) => s.endpoint === subscription.endpoint && s.partnerId === req.portalSession.partnerId && s.keys?.auth === subscription.keys.auth && s.keys?.p256dh === subscription.keys.p256dh);
+      const previous = state.subscriptions.find(
+        (s) =>
+          s.endpoint === subscription.endpoint &&
+          s.partnerId === req.portalSession.partnerId &&
+          s.keys?.auth === subscription.keys.auth &&
+          s.keys?.p256dh === subscription.keys.p256dh,
+      );
       state.subscriptions = state.subscriptions.filter((s) => s.endpoint !== subscription.endpoint);
       state.subscriptions.push({
         ...subscription,
@@ -926,7 +932,13 @@ function createPortalApp({
   app.post('/partner-admin/api/subscription', requireSession, staff, async (req, res) => {
     const subscription = domain.validateSubscription(req.body);
     await store.change((state) => {
-      const previous = state.subscriptions.find((s) => s.endpoint === subscription.endpoint && s.staffUserId === req.portalSession.userId && s.keys?.auth === subscription.keys.auth && s.keys?.p256dh === subscription.keys.p256dh);
+      const previous = state.subscriptions.find(
+        (s) =>
+          s.endpoint === subscription.endpoint &&
+          s.staffUserId === req.portalSession.userId &&
+          s.keys?.auth === subscription.keys.auth &&
+          s.keys?.p256dh === subscription.keys.p256dh,
+      );
       state.subscriptions = state.subscriptions.filter((s) => s.endpoint !== subscription.endpoint);
       state.subscriptions.push({
         ...subscription,
@@ -938,9 +950,13 @@ function createPortalApp({
   });
   app.post('/partner-admin/api/subscription-status', requireSession, staff, async (req, res) => {
     const state = await store.read();
-    res.json({ registered: typeof req.body.endpoint === 'string' && state.subscriptions.some(
-      (s) => s.staffUserId === req.portalSession.userId && s.endpoint === req.body.endpoint,
-    ) });
+    res.json({
+      registered:
+        typeof req.body.endpoint === 'string' &&
+        state.subscriptions.some(
+          (s) => s.staffUserId === req.portalSession.userId && s.endpoint === req.body.endpoint,
+        ),
+    });
   });
   app.delete('/partner-admin/api/subscription', requireSession, staff, async (req, res) => {
     await store.change((state) => {

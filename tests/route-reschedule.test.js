@@ -76,11 +76,15 @@ test('rescheduling is rejected if the same partner already has a route on the de
   const state = setup();
   state.routes.push({ id: 'tue', name: 'Keddi túra', days: [2] });
   state.partners[0].routeIds = ['mon', 'tue'];
-  assert.throws(() => d.rescheduleRoute(
-    state,
-    { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' },
-    new Date('2026-10-28T08:00:00Z'),
-  ), /már másik túra/);
+  assert.throws(
+    () =>
+      d.rescheduleRoute(
+        state,
+        { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' },
+        new Date('2026-10-28T08:00:00Z'),
+      ),
+    /már másik túra/,
+  );
   assert.equal(state.routes[0].reschedules, undefined);
 });
 
@@ -96,11 +100,15 @@ test('a rejected overlapping move leaves the destination order unchanged', () =>
     kind: 'order',
     items: [],
   });
-  assert.throws(() => d.rescheduleRoute(
-    state,
-    { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' },
-    new Date('2026-10-28T08:00:00Z'),
-  ), /már másik túra/);
+  assert.throws(
+    () =>
+      d.rescheduleRoute(
+        state,
+        { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' },
+        new Date('2026-10-28T08:00:00Z'),
+      ),
+    /már másik túra/,
+  );
   assert.equal(d.routeFor(state, state.partners[0], '2026-11-03').id, 'tue');
   assert.equal(state.responses[0].routeId, 'tue');
 });
@@ -109,7 +117,11 @@ test('routes for different partners may be scheduled on the same date', () => {
   const state = setup();
   state.routes.push({ id: 'tue', name: 'Keddi túra', days: [2] });
   state.partners.push({ id: 'p2', name: 'Másik partner', routeId: 'tue', preferences: {} });
-  d.rescheduleRoute(state, { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' }, new Date('2026-10-28T08:00:00Z'));
+  d.rescheduleRoute(
+    state,
+    { routeId: 'mon', from: '2026-11-02', to: '2026-11-03' },
+    new Date('2026-10-28T08:00:00Z'),
+  );
   assert.equal(d.routeFor(state, state.partners[0], '2026-11-03').id, 'mon');
   assert.equal(d.routeFor(state, state.partners[1], '2026-11-03').id, 'tue');
 });
