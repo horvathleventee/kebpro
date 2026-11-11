@@ -16,8 +16,6 @@ interface SettingsProps {
   onPreferences(values: { reminders: boolean; news: boolean }): Promise<unknown>;
   onEnable(): Promise<unknown>;
   onDisable(): Promise<unknown>;
-  onTest(): Promise<unknown>;
-  onRemoteTest(): Promise<unknown>;
   onStatus(): Promise<'on' | 'off' | 'denied' | 'unsupported'>;
   onExtend(): void;
   onError(error: unknown): void;
@@ -28,8 +26,6 @@ export function PartnerSettings({
   onPhone,
   onEnable,
   onDisable,
-  onTest,
-  onRemoteTest,
   onStatus,
   onExtend,
   onError,
@@ -46,7 +42,6 @@ export function PartnerSettings({
   const [deviceStatus, setDeviceStatus] = useState<
     'checking' | 'on' | 'off' | 'denied' | 'unsupported' | 'error'
   >('checking');
-  const [deviceMessage, setDeviceMessage] = useState('');
   const statusRef = useRef(onStatus);
   statusRef.current = onStatus;
   async function refreshStatus() {
@@ -150,7 +145,10 @@ export function PartnerSettings({
           </form>
           <div className="settings-device">
             <h3>Értesítés ezen az eszközön</h3>
-            <p role="status" className="section-gap">
+            <p
+              role="status"
+              className={'section-gap ' + (deviceStatus === 'on' ? 'settings-success' : '')}
+            >
               {deviceStatus === 'checking' && 'Az eszköz állapotának ellenőrzése…'}
               {deviceStatus === 'on' && 'Az értesítések ezen az eszközön be vannak kapcsolva.'}
               {deviceStatus === 'off' && 'Az értesítések ezen az eszközön nincsenek bekapcsolva.'}
@@ -165,7 +163,6 @@ export function PartnerSettings({
                 Az emlékeztetők be vannak kapcsolva, de ez az eszköz még nem fogad értesítéseket.
               </p>
             )}
-            {deviceMessage && <p role="status">{deviceMessage}</p>}
             <div className="settings-actions">
               {(deviceStatus === 'error' ||
                 deviceStatus === 'denied' ||
@@ -189,7 +186,6 @@ export function PartnerSettings({
                   data-action={deviceStatus === 'on' ? 'disable-push' : 'enable-push'}
                   disabled={busy}
                   onClick={async () => {
-                    setDeviceMessage('');
                     await run(deviceStatus === 'on' ? onDisable : onEnable);
                     await refreshStatus();
                   }}
@@ -199,33 +195,6 @@ export function PartnerSettings({
                     : 'Értesítések bekapcsolása'}
                 </button>
               )}
-              <button
-                className="button secondary"
-                data-action="test-push"
-                disabled={busy}
-                onClick={() => run(onTest)}
-              >
-                Helyi próbaértesítés
-              </button>
-              <button
-                className="button secondary"
-                data-action="remote-test-push"
-                disabled={busy || deviceStatus !== 'on'}
-                onClick={async () => {
-                  setDeviceMessage('');
-                  if (await run(onRemoteTest))
-                    setDeviceMessage(
-                      'A pushszolgáltató átvette a próbát. Ellenőrizd, hogy megjelent-e a telefonon.',
-                    );
-                  else await refreshStatus();
-                }}
-              >
-                Távoli próbaértesítés
-              </button>
-              <p className="small muted">
-                A helyi próba csak ezen az eszközön indul. A távoli próba a szerveren keresztül
-                érkezik; az átvétel nem garantálja a megjelenést.
-              </p>
             </div>
           </div>
         </section>

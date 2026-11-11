@@ -3,12 +3,14 @@ import { SessionExplanation } from './SessionExplanation';
 export function PushWelcome({
   supported,
   denied,
+  recovery = false,
   onEnable,
   onLater,
   onClose,
 }: {
   supported: boolean;
   denied: boolean;
+  recovery?: boolean;
   onEnable(): Promise<void>;
   onLater(): void;
   onClose(): void;
@@ -42,10 +44,13 @@ export function PushWelcome({
       onClose={onClose}
       onCancel={() => onLater()}
     >
-      <h2 id="push-welcome-title">Szeretnél értesítéseket kapni?</h2>
+      <h2 id="push-welcome-title">
+        {recovery ? 'Az értesítés nem aktív ezen az eszközön' : 'Szeretnél értesítéseket kapni?'}
+      </h2>
       <p>
-        Az engedélyezéssel a rendelési emlékeztetők mellett a hírekről és akciókról szóló
-        értesítéseket is bekapcsolod. Ezeket később külön kikapcsolhatod a Beállításokban.
+        {recovery
+          ? 'A korábbi feliratkozás már nem aktív. Kapcsold be újra az értesítéseket ezen az eszközön.'
+          : 'Az engedélyezéssel a rendelési emlékeztetők mellett a hírekről és akciókról szóló értesítéseket is bekapcsolod. Ezeket később külön kikapcsolhatod a Beállításokban.'}
       </p>
       <p>
         {denied

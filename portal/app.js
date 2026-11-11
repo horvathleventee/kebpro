@@ -891,11 +891,12 @@ function createPortalApp({
   app.post('/partner/api/subscription', requireSession, partner, async (req, res) => {
     const subscription = domain.validateSubscription(req.body);
     await store.change((state) => {
+      const previous = state.subscriptions.find((s) => s.endpoint === subscription.endpoint && s.partnerId === req.portalSession.partnerId && s.keys?.auth === subscription.keys.auth && s.keys?.p256dh === subscription.keys.p256dh);
       state.subscriptions = state.subscriptions.filter((s) => s.endpoint !== subscription.endpoint);
       state.subscriptions.push({
         ...subscription,
         partnerId: req.portalSession.partnerId,
-        createdAt: new Date().toISOString(),
+        createdAt: previous?.createdAt || new Date().toISOString(),
       });
       if (req.body.enableNews === true) {
         const person = state.partners.find((p) => p.id === req.portalSession.partnerId);
@@ -922,77 +923,24 @@ function createPortalApp({
         ),
     });
   });
-  app.post(
-    '/partner/api/push-test',
-    requireSession,
-    partner,
-    rateLimit({ windowMs: 60000, limit: 3 }),
-    async (req, res) => {
-      const state = await store.read();
-      const subscription = state.subscriptions.find(
-        (s) => s.partnerId === req.portalSession.partnerId && s.endpoint === req.body.endpoint,
-      );
-      domain.assert(
-        subscription,
-        'Ez az eszköz nincs feliratkozva. Kapcsold be az értesítéseket.',
-        400,
-      );
-      const env = require('./config').loadPortalConfig();
-      domain.assert(
-        state.pushMode === 'live' && /^(mailto:|https:\/\/)/.test(env.PORTAL_VAPID_SUBJECT || ''),
-        'A távoli küldés jelenleg nem érhető el.',
-        400,
-      );
-      try {
-        await require('web-push').sendNotification(
-          { endpoint: subscription.endpoint, keys: subscription.keys },
-          JSON.stringify({
-            id: crypto.randomUUID(),
-            title: 'Kebpro · Távoli próba',
-            body: 'Ez a szerverről küldött próbaértesítés.',
-            url: '/partner/',
-          }),
-          {
-            TTL: 60,
-            timeout: 15000,
-            vapidDetails: {
-              subject: env.PORTAL_VAPID_SUBJECT,
-              publicKey: state.vapid.publicKey,
-              privateKey: state.vapid.privateKey,
-            },
-          },
-        );
-      } catch (error) {
-        if (error.statusCode === 404 || error.statusCode === 410) {
-          await store.change((s) => {
-            s.subscriptions = s.subscriptions.filter(
-              (item) => item.endpoint !== subscription.endpoint,
-            );
-          });
-          return res
-            .status(400)
-            .json({ error: 'A telefon feliratkozása lejárt. Kapcsold be újra az értesítéseket.' });
-        }
-        return res
-          .status(400)
-          .json({
-            error: 'A próbát nem sikerült átadni a pushszolgáltatónak. Próbáld újra később.',
-          });
-      }
-      res.json({ ok: true });
-    },
-  );
   app.post('/partner-admin/api/subscription', requireSession, staff, async (req, res) => {
     const subscription = domain.validateSubscription(req.body);
     await store.change((state) => {
+      const previous = state.subscriptions.find((s) => s.endpoint === subscription.endpoint && s.staffUserId === req.portalSession.userId && s.keys?.auth === subscription.keys.auth && s.keys?.p256dh === subscription.keys.p256dh);
       state.subscriptions = state.subscriptions.filter((s) => s.endpoint !== subscription.endpoint);
       state.subscriptions.push({
         ...subscription,
         staffUserId: req.portalSession.userId,
-        createdAt: new Date().toISOString(),
+        createdAt: previous?.createdAt || new Date().toISOString(),
       });
     });
     res.json({ ok: true, mode: (await store.read()).pushMode || 'simulation' });
+  });
+  app.post('/partner-admin/api/subscription-status', requireSession, staff, async (req, res) => {
+    const state = await store.read();
+    res.json({ registered: typeof req.body.endpoint === 'string' && state.subscriptions.some(
+      (s) => s.staffUserId === req.portalSession.userId && s.endpoint === req.body.endpoint,
+    ) });
   });
   app.delete('/partner-admin/api/subscription', requireSession, staff, async (req, res) => {
     await store.change((state) => {

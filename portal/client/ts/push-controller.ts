@@ -6,6 +6,7 @@ interface PushContext {
     openPushWelcome(props: {
       supported: boolean;
       denied: boolean;
+      recovery?: boolean;
       onEnable(): Promise<void>;
       onLater(): void;
     }): void;

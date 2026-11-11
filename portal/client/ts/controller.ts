@@ -276,7 +276,7 @@ export function startPortalController(screens: PortalScreens) {
       render,
       syncStatus,
       offerSessionRenewal,
-      offerPushSetup,
+      offerPushSetup: offerDeviceSetup,
       toast,
       statusLabel,
       getState: () => ({
@@ -374,6 +374,111 @@ export function startPortalController(screens: PortalScreens) {
     navigator,
     localStorage,
   });
+  const deviceMarker = () =>
+    'kebpro-push-active:' +
+    role +
+    ':' +
+    (role === 'staff' ? appState.state.data.currentUserId : appState.state.data.id);
+  function rememberDevice(active: boolean) {
+    try {
+      localStorage.setItem(deviceMarker(), active ? 'yes' : 'no');
+    } catch {}
+  }
+  let recoveryShown = false,
+    statusChecking = false,
+    lastStatusCheck = 0;
+  async function deviceStatus() {
+    if (
+      !('Notification' in window) ||
+      !('PushManager' in window) ||
+      !('serviceWorker' in navigator)
+    )
+      return 'unsupported' as const;
+    if (Notification.permission === 'denied') return 'denied' as const;
+    const reg = await navigator.serviceWorker.getRegistration(base + '/');
+    const subscription = await reg?.pushManager.getSubscription();
+    if (!subscription || Notification.permission !== 'granted') return 'off' as const;
+    const result = await api<{ registered: boolean }>('subscription-status', {
+      endpoint: subscription.endpoint,
+    });
+    if (result.registered) {
+      rememberDevice(true);
+      return 'on' as const;
+    }
+    return 'missing' as const;
+  }
+  async function enableStaffPush() {
+    if (
+      !('Notification' in window) ||
+      !('PushManager' in window) ||
+      !('serviceWorker' in navigator)
+    )
+      throw Error('iPhone-on előbb add a főképernyőhöz és onnan nyisd meg az adminfelületet.');
+    if ((await Notification.requestPermission()) !== 'granted')
+      throw Error('Az értesítéseket nem engedélyezted.');
+    const reg = await registration();
+    const sub =
+      (await reg.pushManager.getSubscription()) ||
+      (await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: keyBytes(appState.state.data.publicKey),
+      }));
+    const result = await api<{ mode: string }>('subscription', sub.toJSON());
+    rememberDevice(true);
+    toast(
+      result.mode === 'live'
+        ? 'Admin értesítések bekapcsolva.'
+        : 'Az eszköz feliratkozott; a távoli küldés még nem aktív.',
+    );
+    await load();
+  }
+  function offerDeviceSetup() {
+    offerPushSetup();
+    if (
+      statusChecking ||
+      recoveryShown ||
+      document.hidden ||
+      document.querySelector('dialog[open]') ||
+      Date.now() - lastStatusCheck < 60000
+    )
+      return;
+    statusChecking = true;
+    lastStatusCheck = Date.now();
+    void (async () => {
+      try {
+        const status = await deviceStatus();
+        let previousState: string | null = null;
+        try {
+          previousState = localStorage.getItem(deviceMarker());
+        } catch {}
+        if (
+          ((status === 'missing' && previousState !== 'no') ||
+            (previousState === 'yes' && (status === 'off' || status === 'denied'))) &&
+          !document.hidden &&
+          !document.querySelector('dialog[open]')
+        ) {
+          recoveryShown = true;
+          screens.openPushWelcome({
+            supported: true,
+            denied: status === 'denied',
+            recovery: true,
+            onEnable: async () => {
+              if (role === 'staff') await enableStaffPush();
+              else {
+                await enablePartnerPush();
+                rememberDevice(true);
+              }
+            },
+            onLater: () => {},
+          });
+        }
+      } catch {
+        /* Network failures are not evidence that a subscription expired. */
+      } finally {
+        statusChecking = false;
+      }
+    })();
+  }
   const { offerSessionRenewal, openSessionRenewal } = createSessionController({
     role,
     appState,
@@ -668,49 +773,21 @@ export function startPortalController(screens: PortalScreens) {
             toast(error instanceof Error ? error.message : 'A művelet nem sikerült.');
           }
         },
-        onEnable: async () => {
-          try {
-            if (
-              !('Notification' in window) ||
-              !('PushManager' in window) ||
-              !('serviceWorker' in navigator)
-            )
-              throw Error(
-                'iPhone-on előbb add a főképernyőhöz és onnan nyisd meg az adminfelületet.',
-              );
-            const permission = await Notification.requestPermission();
-            if (permission !== 'granted') throw Error('Az értesítéseket nem engedélyezted.');
-            const reg = await registration(),
-              subscription =
-                (await reg.pushManager.getSubscription()) ||
-                (await reg.pushManager.subscribe({
-                  userVisibleOnly: true,
-                  applicationServerKey: keyBytes(appState.state.data.publicKey),
-                }));
-            const result = await api<{ mode: string }>('subscription', subscription.toJSON());
-            toast(
-              result.mode === 'live'
-                ? 'Rendelési értesítések bekapcsolva.'
-                : 'Az eszköz feliratkozott; a távoli küldés még nem aktív.',
-            );
-            await load();
-          } catch (error) {
-            toast(error instanceof Error ? error.message : 'A művelet nem sikerült.');
-          }
+        onStatus: async () => {
+          const status = await deviceStatus();
+          return status === 'missing' ? 'off' : status;
         },
+        onEnable: enableStaffPush,
         onDisable: async () => {
-          try {
-            const reg = await registration(),
-              subscription = await reg.pushManager.getSubscription();
-            if (subscription) {
-              await api('subscription', { endpoint: subscription.endpoint }, 'DELETE');
-              await subscription.unsubscribe();
-            }
-            toast('Az eszköz leiratkozott.');
-            await load();
-          } catch (error) {
-            toast(error instanceof Error ? error.message : 'A művelet nem sikerült.');
+          const reg = await registration(),
+            subscription = await reg.pushManager.getSubscription();
+          if (subscription) {
+            await api('subscription', { endpoint: subscription.endpoint }, 'DELETE');
+            await subscription.unsubscribe();
           }
+          rememberDevice(false);
+          toast('Az eszköz leiratkozott.');
+          await load();
         },
       });
     } else if (role === 'staff' && tab === 'complaints') {
@@ -798,26 +875,8 @@ export function startPortalController(screens: PortalScreens) {
         },
         onEnable: enablePartnerPush,
         onStatus: async () => {
-          if (
-            !('Notification' in window) ||
-            !('PushManager' in window) ||
-            !('serviceWorker' in navigator)
-          )
-            return 'unsupported';
-          if (Notification.permission === 'denied') return 'denied';
-          const reg = await navigator.serviceWorker.getRegistration('/partner/');
-          const subscription = await reg?.pushManager.getSubscription();
-          if (!subscription || Notification.permission !== 'granted') return 'off';
-          const result = await api<{ registered: boolean }>('subscription-status', {
-            endpoint: subscription.endpoint,
-          });
-          return result.registered ? 'on' : 'off';
-        },
-        onRemoteTest: async () => {
-          const reg = await registration();
-          const subscription = await reg.pushManager.getSubscription();
-          if (!subscription) throw Error('Előbb kapcsold be az értesítéseket ezen az eszközön.');
-          await api('push-test', { endpoint: subscription.endpoint });
+          const status = await deviceStatus();
+          return status === 'missing' ? 'off' : status;
         },
         onDisable: async () => {
           const reg = await registration(),
@@ -826,19 +885,9 @@ export function startPortalController(screens: PortalScreens) {
             await api('subscription', { endpoint: subscription.endpoint }, 'DELETE');
             await subscription.unsubscribe();
           }
+          rememberDevice(false);
           toast('Ez az eszköz leiratkozott.');
           await load();
-        },
-        onTest: async () => {
-          const reg = await registration();
-          if (Notification.permission !== 'granted')
-            throw Error('Előbb engedélyezd az értesítéseket.');
-          await reg.showNotification('Kebpro · Helyi próba', {
-            body: 'Így jelenhet meg a rendelési emlékeztetőd. Ez csak ezen az eszközön indított teszt.',
-            icon: '/partner/assets/partner-v2-192.png',
-            data: { url: '/partner/' },
-          });
-          toast('Helyi próbaértesítés megjelenítve.');
         },
       });
     } else if (role === 'partner' && tab === 'order') {
@@ -1055,6 +1104,7 @@ export function startPortalController(screens: PortalScreens) {
         base,
         (body) => api('logout', body),
       );
+      rememberDevice(false);
       location.href = base + '/login';
     } catch (err) {
       toast(err instanceof Error ? err.message : 'A művelet nem sikerült.');

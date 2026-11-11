@@ -89,7 +89,7 @@ function createPortalLoader(ctx) {
         })
       );
       ctx.offerSessionRenewal();
-      if (!automatic) ctx.offerPushSetup();
+      ctx.offerPushSetup();
       if (updates.length)
         ctx.toast(
           updates.length === 1 ? "Rendel\xE9sed \xE1llapota: " + (ctx.statusLabel[updates[0].status] || updates[0].status) + ". R\xE9szletek a Rendel\xE9seim oldalon." : updates.length + " rendel\xE9sed \xE1llapota friss\xFClt. R\xE9szletek a Rendel\xE9seim oldalon."

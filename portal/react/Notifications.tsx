@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 interface AuditField {
   key: string;
   label: string;
@@ -31,8 +31,9 @@ interface NotificationProps {
   audit: AuditEvent[];
   openGroups: string[];
   onReminder(): void;
-  onEnable(): void;
-  onDisable(): void;
+  onEnable(): Promise<unknown>;
+  onDisable(): Promise<unknown>;
+  onStatus(): Promise<'on' | 'off' | 'denied' | 'unsupported'>;
   onGroup(group: string, open: boolean): void;
 }
 function Notifications({
@@ -42,8 +43,44 @@ function Notifications({
   onReminder,
   onEnable,
   onDisable,
+  onStatus,
   onGroup,
 }: NotificationProps) {
+  const [deviceStatus, setDeviceStatus] = useState<
+    'checking' | 'on' | 'off' | 'denied' | 'unsupported' | 'error'
+  >('checking');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const statusRef = useRef(onStatus);
+  statusRef.current = onStatus;
+  async function refreshStatus() {
+    setDeviceStatus('checking');
+    try {
+      setDeviceStatus(await statusRef.current());
+    } catch {
+      setDeviceStatus('error');
+    }
+  }
+  useEffect(() => {
+    void refreshStatus();
+    const visible = () => {
+      if (!document.hidden) void refreshStatus();
+    };
+    document.addEventListener('visibilitychange', visible);
+    return () => document.removeEventListener('visibilitychange', visible);
+  }, []);
+  async function changeDevice() {
+    setBusy(true);
+    setError('');
+    try {
+      await (deviceStatus === 'on' ? onDisable() : onEnable());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'A művelet nem sikerült.');
+    } finally {
+      await refreshStatus();
+      setBusy(false);
+    }
+  }
   const retention = data.retention || {},
     operations = data.operations || {},
     operationTime = (value: string) =>
@@ -66,13 +103,41 @@ function Notifications({
           Új rendelésről, bejelentésről és regisztrációról értesítést kaphatsz. iPhone-on előbb add
           az adminfelületet a főképernyőhöz, és onnan nyisd meg.
         </p>
+        <p role="status" className={deviceStatus === 'on' ? 'settings-success' : 'muted'}>
+          {deviceStatus === 'checking' && 'Az eszköz állapotának ellenőrzése…'}
+          {deviceStatus === 'on' && 'Az admin értesítések ezen az eszközön be vannak kapcsolva.'}
+          {deviceStatus === 'off' && 'Az admin értesítések ezen az eszközön nincsenek bekapcsolva.'}
+          {deviceStatus === 'denied' &&
+            'A telefon vagy a böngésző tiltja az értesítéseket. Engedélyezd az alkalmazást a telefon beállításaiban.'}
+          {deviceStatus === 'unsupported' &&
+            'Az értesítések itt nem támogatottak. iPhone-on a főképernyőre telepített alkalmazást nyisd meg.'}
+          {deviceStatus === 'error' && 'Az eszköz állapotát nem sikerült ellenőrizni.'}
+        </p>
+        {error && <p role="alert">{error}</p>}
         <div className="settings-actions">
-          <button className="button primary" data-action="staff-enable-push" onClick={onEnable}>
-            Admin értesítések bekapcsolása
-          </button>
-          <button className="button secondary" data-action="staff-disable-push" onClick={onDisable}>
-            Értesítések kikapcsolása ezen az eszközön
-          </button>
+          {(deviceStatus === 'on' || deviceStatus === 'off') && (
+            <button
+              className="button secondary"
+              data-action={deviceStatus === 'on' ? 'staff-disable-push' : 'staff-enable-push'}
+              disabled={busy}
+              onClick={() => void changeDevice()}
+            >
+              {deviceStatus === 'on'
+                ? 'Értesítések kikapcsolása ezen az eszközön'
+                : 'Admin értesítések bekapcsolása'}
+            </button>
+          )}
+          {(deviceStatus === 'error' ||
+            deviceStatus === 'denied' ||
+            deviceStatus === 'unsupported') && (
+            <button
+              className="button secondary"
+              disabled={busy}
+              onClick={() => void refreshStatus()}
+            >
+              Állapot újraellenőrzése
+            </button>
+          )}
         </div>
         <p className="small muted">A háttérben küldés állapotát lent ellenőrizheted.</p>
       </section>

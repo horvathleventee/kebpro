@@ -263,26 +263,41 @@ test('HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
         .registered,
       false,
     );
-    assert.equal((await call('push-test', two, { endpoint: testEndpoint })).status, 400);
-    assert.equal((await call('push-test', one, { endpoint: testEndpoint })).status, 400);
-    const webpush = require('web-push');
-    const originalSend = webpush.sendNotification;
-    const oldSubject = process.env.PORTAL_VAPID_SUBJECT;
-    let sentEndpoint;
-    try {
-      process.env.PORTAL_VAPID_SUBJECT = 'mailto:test@example.com';
-      webpush.sendNotification = async (subscription) => { sentEndpoint = subscription.endpoint; };
-      await store.change((s) => { s.pushMode = 'live'; });
-      assert.equal((await call('push-test', one, { endpoint: testEndpoint })).status, 200);
-      assert.equal(sentEndpoint, testEndpoint);
-    } finally {
-      webpush.sendNotification = originalSend;
-      if (oldSubject === undefined) delete process.env.PORTAL_VAPID_SUBJECT;
-      else process.env.PORTAL_VAPID_SUBJECT = oldSubject;
-      await store.change((s) => { s.pushMode = 'simulation'; });
-    }
     await store.change((s) => {
       s.subscriptions = s.subscriptions.filter((item) => item.endpoint !== testEndpoint);
+    });
+    const subscription = {
+      endpoint: 'https://fcm.googleapis.com/fcm/send/verify',
+      keys: { auth: 'a'.repeat(22), p256dh: 'b'.repeat(87) },
+    };
+    for (const session of [one, admin]) {
+      assert.equal((await call('subscription', session, subscription)).status, 200);
+      await store.change((s) => {
+        s.subscriptions.find((item) => item.endpoint === subscription.endpoint).createdAt =
+          '2020-01-01T00:00:00.000Z';
+      });
+      assert.equal((await call('subscription', session, subscription)).status, 200);
+      assert.equal(
+        (await store.read()).subscriptions.find((item) => item.endpoint === subscription.endpoint)
+          .createdAt,
+        '2020-01-01T00:00:00.000Z',
+      );
+      assert.equal(
+        (
+          await (
+            await call('subscription-status', session, { endpoint: subscription.endpoint })
+          ).json()
+        ).registered,
+        true,
+      );
+    }
+    assert.equal(
+      (await (await call('subscription-status', one, { endpoint: subscription.endpoint })).json())
+        .registered,
+      false,
+    );
+    await store.change((s) => {
+      s.subscriptions = s.subscriptions.filter((item) => item.endpoint !== subscription.endpoint);
     });
     assert.equal((await call('contact-phone', one, { phone: '+36 30 123 4567' })).status, 200);
     assert.equal((await call('contact-phone', one, { phone: 'invalid' })).status, 400);

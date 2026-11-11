@@ -145,7 +145,7 @@ export function createPortalLoader(ctx: LoaderContext) {
           }),
       );
       ctx.offerSessionRenewal();
-      if (!automatic) ctx.offerPushSetup();
+      ctx.offerPushSetup();
       if (updates.length)
         ctx.toast(
           updates.length === 1
