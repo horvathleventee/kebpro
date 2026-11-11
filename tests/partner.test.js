@@ -244,6 +244,46 @@ test('HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
     const one = await login({ role: 'partner', partnerId: 'partner-1' });
     const two = await login({ role: 'partner', partnerId: 'partner-2' });
     const admin = await login({ role: 'staff' });
+    const testEndpoint = 'https://push.example.com/device';
+    await store.change((s) =>
+      s.subscriptions.push({
+        partnerId: 'partner-1',
+        endpoint: testEndpoint,
+        keys: { p256dh: 'key', auth: 'key' },
+        createdAt: new Date().toISOString(),
+      }),
+    );
+    assert.equal(
+      (await (await call('subscription-status', one, { endpoint: testEndpoint })).json())
+        .registered,
+      true,
+    );
+    assert.equal(
+      (await (await call('subscription-status', two, { endpoint: testEndpoint })).json())
+        .registered,
+      false,
+    );
+    assert.equal((await call('push-test', two, { endpoint: testEndpoint })).status, 400);
+    assert.equal((await call('push-test', one, { endpoint: testEndpoint })).status, 400);
+    const webpush = require('web-push');
+    const originalSend = webpush.sendNotification;
+    const oldSubject = process.env.PORTAL_VAPID_SUBJECT;
+    let sentEndpoint;
+    try {
+      process.env.PORTAL_VAPID_SUBJECT = 'mailto:test@example.com';
+      webpush.sendNotification = async (subscription) => { sentEndpoint = subscription.endpoint; };
+      await store.change((s) => { s.pushMode = 'live'; });
+      assert.equal((await call('push-test', one, { endpoint: testEndpoint })).status, 200);
+      assert.equal(sentEndpoint, testEndpoint);
+    } finally {
+      webpush.sendNotification = originalSend;
+      if (oldSubject === undefined) delete process.env.PORTAL_VAPID_SUBJECT;
+      else process.env.PORTAL_VAPID_SUBJECT = oldSubject;
+      await store.change((s) => { s.pushMode = 'simulation'; });
+    }
+    await store.change((s) => {
+      s.subscriptions = s.subscriptions.filter((item) => item.endpoint !== testEndpoint);
+    });
     assert.equal((await call('contact-phone', one, { phone: '+36 30 123 4567' })).status, 200);
     assert.equal((await call('contact-phone', one, { phone: 'invalid' })).status, 400);
     for (const phone of ['+3630123456', '+363012345678', '+36401234567', '+44301234567'])

@@ -231,7 +231,9 @@ function createPortalApp({
         ![
           '/partner/api/login',
           '/partner/api/register',
-          ...((registrationSearchDemo || geoapifyKey) ? ['/partner/api/registration-address-search'] : []),
+          ...(registrationSearchDemo || geoapifyKey
+            ? ['/partner/api/registration-address-search']
+            : []),
           '/partner-admin/api/login',
           '/partner/api/forgot-password',
           '/partner-admin/api/forgot-password',
@@ -279,26 +281,44 @@ function createPortalApp({
     if (req.portalSession?.role === 'partner') return next();
     return res.status(403).json({ error: 'Ehhez partnerként kell belépned.' });
   }
-  const searchAddress = geoapifyKey ? require('./address-search').createGeoapifySearch({ apiKey: geoapifyKey }) : require('./address-search').createAddressSearch();
-  app.post(['/partner/api/address-search', '/partner-admin/api/address-search'], requireSession, async (req, res) => {
-    res.set('Cache-Control', 'no-store');
-    try {
-      res.json({ results: await searchAddress(req.body.query) });
-    } catch (error) {
-      const message = error.message?.startsWith('Adj meg') || error.message?.startsWith('Kérlek') ? error.message : 'A címkereső most nem érhető el. Jelöld meg a helyet a térképen.';
-      res.status(503).json({ error: message });
-    }
-  });
+  const searchAddress = geoapifyKey
+    ? require('./address-search').createGeoapifySearch({ apiKey: geoapifyKey })
+    : require('./address-search').createAddressSearch();
+  app.post(
+    ['/partner/api/address-search', '/partner-admin/api/address-search'],
+    requireSession,
+    async (req, res) => {
+      res.set('Cache-Control', 'no-store');
+      try {
+        res.json({ results: await searchAddress(req.body.query) });
+      } catch (error) {
+        const message =
+          error.message?.startsWith('Adj meg') || error.message?.startsWith('Kérlek')
+            ? error.message
+            : 'A címkereső most nem érhető el. Jelöld meg a helyet a térképen.';
+        res.status(503).json({ error: message });
+      }
+    },
+  );
   app.get('/partner/api/tracking', requireSession, partner, async (req, res) => {
     if (!trackingProvider) return res.json({ status: 'unavailable' });
     const startDate = domain.localTime(now()).date;
     const result = await require('./tracking-service').location({
-      store, provider: trackingProvider, sessionHash: req.portalSession.hash, now,
+      store,
+      provider: trackingProvider,
+      sessionHash: req.portalSession.hash,
+      now,
     });
     if (result.status === 'available') {
       const clock = now();
       if (domain.localTime(clock).date !== startDate) return res.json({ status: 'unavailable' });
-      const ttl = Math.max(0, Math.min(require('./tracking-service').untilMidnight(clock), Date.parse(result.timestamp) + 300000 - clock.getTime()));
+      const ttl = Math.max(
+        0,
+        Math.min(
+          require('./tracking-service').untilMidnight(clock),
+          Date.parse(result.timestamp) + 300000 - clock.getTime(),
+        ),
+      );
       res.set('X-Tracking-Valid-Ms', String(ttl));
     }
     res.json(result);
@@ -307,95 +327,223 @@ function createPortalApp({
     const state = await store.read();
     const own = state.partners.find((p) => p.id === req.portalSession.partnerId);
     if (!own) return res.sendStatus(404);
-    res.json({ address: own.address || '', required: own.trackingPointRequired === true, pending: own.trackingAddressSuggestion?.address === own.address,
-      verified: !!require('./tracking').verifiedAddress(state, own.id, own.address) });
+    res.json({
+      address: own.address || '',
+      required: own.trackingPointRequired === true,
+      pending: own.trackingAddressSuggestion?.address === own.address,
+      verified: !!require('./tracking').verifiedAddress(state, own.id, own.address),
+    });
   });
   app.post('/partner/api/tracking-address', requireSession, partner, async (req, res) => {
     await store.change((state) => {
-      domain.assert(state.sessions.some((s) => s.hash === req.portalSession.hash && s.expires > Date.now()), 'A munkamenet lejárt.', 401);
-      require('./tracking').suggestPartnerAddress(state, req.portalSession.partnerId, req.body, now());
+      domain.assert(
+        state.sessions.some((s) => s.hash === req.portalSession.hash && s.expires > Date.now()),
+        'A munkamenet lejárt.',
+        401,
+      );
+      require('./tracking').suggestPartnerAddress(
+        state,
+        req.portalSession.partnerId,
+        req.body,
+        now(),
+      );
     });
     res.json({ ok: true });
   });
   app.get('/partner-admin/api/tracking', requireSession, staff, async (req, res) => {
     const state = await store.read();
-    res.json({ vehicles: state.trackingVehicles || [], assignments: (state.trackingAssignments || []).map((a) => ({ ...a, routeName: state.routes.find((r) => r.id === a.routeId)?.name })),
-      routes: state.routes.filter((r) => !r.archivedAt), partners: state.partners.map((p) => {
+    res.json({
+      vehicles: state.trackingVehicles || [],
+      assignments: (state.trackingAssignments || []).map((a) => ({
+        ...a,
+        routeName: state.routes.find((r) => r.id === a.routeId)?.name,
+      })),
+      routes: state.routes.filter((r) => !r.archivedAt),
+      partners: state.partners.map((p) => {
         const point = require('./tracking').verifiedAddress(state, p.id, p.address);
-        return { id:p.id, name:p.name, address:p.address,
+        return {
+          id: p.id,
+          name: p.name,
+          address: p.address,
           verified: !!point,
           verifiedPoint: point ? { latitude: point.latitude, longitude: point.longitude } : null,
-          suggestion: p.trackingAddressSuggestion?.address === p.address && typeof p.trackingAddressSuggestion.id === 'string' && require('./tracking').point(p.trackingAddressSuggestion) ? p.trackingAddressSuggestion : null,
+          suggestion:
+            p.trackingAddressSuggestion?.address === p.address &&
+            typeof p.trackingAddressSuggestion.id === 'string' &&
+            require('./tracking').point(p.trackingAddressSuggestion)
+              ? p.trackingAddressSuggestion
+              : null,
         };
-      }), orders: state.responses.filter((o) => o.kind === 'order').map((o) => {
-        const point = require('./tracking').verifiedAddress(state, o.partnerId, o.address, o.trackingAddress);
-        return { id: o.id, date: o.date, address: o.address, partnerId: o.partnerId,
-          verified: !!point, verifiedPoint: point ? { latitude: point.latitude, longitude: point.longitude } : null };
-      }) });
+      }),
+      orders: state.responses
+        .filter((o) => o.kind === 'order')
+        .map((o) => {
+          const point = require('./tracking').verifiedAddress(
+            state,
+            o.partnerId,
+            o.address,
+            o.trackingAddress,
+          );
+          return {
+            id: o.id,
+            date: o.date,
+            address: o.address,
+            partnerId: o.partnerId,
+            verified: !!point,
+            verifiedPoint: point ? { latitude: point.latitude, longitude: point.longitude } : null,
+          };
+        }),
+    });
   });
   app.get('/partner-admin/api/tracking-fleet', requireSession, staff, async (req, res) => {
-    if (!trackingProvider?.fleet) return res.status(503).json({ error: 'A flottakövetés jelenleg nem érhető el.' });
+    if (!trackingProvider?.fleet)
+      return res.status(503).json({ error: 'A flottakövetés jelenleg nem érhető el.' });
     let positions;
-    try { positions = await trackingProvider.fleet(); }
-    catch { return res.status(503).json({ error: 'A flottakövetés jelenleg nem érhető el.' }); }
+    try {
+      positions = await trackingProvider.fleet();
+    } catch {
+      return res.status(503).json({ error: 'A flottakövetés jelenleg nem érhető el.' });
+    }
     const state = await store.read();
-    const session = state.sessions.find((s) => s.hash === req.portalSession.hash && s.role === 'staff' && s.expires > Date.now());
-    if (!session || !state.users.some((u) => u.id === session.userId && u.role === 'staff' && u.status === 'approved'))
+    const session = state.sessions.find(
+      (s) => s.hash === req.portalSession.hash && s.role === 'staff' && s.expires > Date.now(),
+    );
+    if (
+      !session ||
+      !state.users.some(
+        (u) => u.id === session.userId && u.role === 'staff' && u.status === 'approved',
+      )
+    )
       return res.status(401).json({ error: 'Jelentkezz be újra.' });
-    if (!Array.isArray(positions)) return res.status(503).json({ error: 'A flottakövetés jelenleg nem érhető el.' });
-    const valid = positions.filter((p) => typeof p.deviceId === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(p.deviceId) &&
-      require('./tracking').point(p) && typeof p.timestamp === 'string' && Number.isFinite(Date.parse(p.timestamp)));
-    res.json({ vehicles: valid.map((p) => {
-      const names = (state.trackingVehicles || []).filter((v) => v.deviceId === p.deviceId);
-      const rawPlate = p.licensePlate || (names.length === 1 ? names[0].licensePlate : null);
-      const plate = typeof rawPlate === 'string' && /^[\p{L}\p{N} -]{1,30}$/u.test(rawPlate) ? rawPlate : null;
-      return { id: p.deviceId, label: plate || (names.length === 1 ? names[0].label : 'Eszköz ' + p.deviceId), licensePlate: plate,
-        latitude: p.latitude, longitude: p.longitude, timestamp: p.timestamp };
-    }) });
+    if (!Array.isArray(positions))
+      return res.status(503).json({ error: 'A flottakövetés jelenleg nem érhető el.' });
+    const valid = positions.filter(
+      (p) =>
+        typeof p.deviceId === 'string' &&
+        /^[A-Za-z0-9_-]{1,100}$/.test(p.deviceId) &&
+        require('./tracking').point(p) &&
+        typeof p.timestamp === 'string' &&
+        Number.isFinite(Date.parse(p.timestamp)),
+    );
+    res.json({
+      vehicles: valid.map((p) => {
+        const names = (state.trackingVehicles || []).filter((v) => v.deviceId === p.deviceId);
+        const rawPlate = p.licensePlate || (names.length === 1 ? names[0].licensePlate : null);
+        const plate =
+          typeof rawPlate === 'string' && /^[\p{L}\p{N} -]{1,30}$/u.test(rawPlate)
+            ? rawPlate
+            : null;
+        return {
+          id: p.deviceId,
+          label: plate || (names.length === 1 ? names[0].label : 'Eszköz ' + p.deviceId),
+          licensePlate: plate,
+          latitude: p.latitude,
+          longitude: p.longitude,
+          timestamp: p.timestamp,
+        };
+      }),
+    });
   });
   app.get('/partner-admin/api/tracking-devices', requireSession, staff, async (req, res) => {
-    if (!trackingProvider?.devices) return res.status(503).json({ error: 'A járműlista jelenleg nem érhető el.' });
+    if (!trackingProvider?.devices)
+      return res.status(503).json({ error: 'A járműlista jelenleg nem érhető el.' });
     let devices;
-    try { devices = await trackingProvider.devices(); } catch { return res.status(503).json({ error: 'A járműlista jelenleg nem érhető el.' }); }
+    try {
+      devices = await trackingProvider.devices();
+    } catch {
+      return res.status(503).json({ error: 'A járműlista jelenleg nem érhető el.' });
+    }
     const state = await store.read();
-    const session = state.sessions.find((s) => s.hash === req.portalSession.hash && s.role === 'staff' && s.expires > Date.now());
-    if (!session || !state.users.some((u) => u.id === session.userId && u.role === 'staff' && u.status === 'approved')) return res.sendStatus(401);
-    if (!Array.isArray(devices)) return res.status(503).json({ error: 'A járműlista jelenleg nem érhető el.' });
-    res.json({ devices: devices.filter((d) => typeof d.deviceId === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(d.deviceId)).map((d) => {
-      const entries = (state.trackingVehicles || []).filter((v) => v.deviceId === d.deviceId);
-      const raw = d.licensePlate || (entries.length === 1 ? entries[0].licensePlate : null);
-      const plate = typeof raw === 'string' && /^[\p{L}\p{N} -]{1,30}$/u.test(raw) ? raw : null;
-      return { id:d.deviceId, label:plate || (entries.length === 1 ? entries[0].label : 'Eszköz ' + d.deviceId) };
-    }) });
+    const session = state.sessions.find(
+      (s) => s.hash === req.portalSession.hash && s.role === 'staff' && s.expires > Date.now(),
+    );
+    if (
+      !session ||
+      !state.users.some(
+        (u) => u.id === session.userId && u.role === 'staff' && u.status === 'approved',
+      )
+    )
+      return res.sendStatus(401);
+    if (!Array.isArray(devices))
+      return res.status(503).json({ error: 'A járműlista jelenleg nem érhető el.' });
+    res.json({
+      devices: devices
+        .filter((d) => typeof d.deviceId === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(d.deviceId))
+        .map((d) => {
+          const entries = (state.trackingVehicles || []).filter((v) => v.deviceId === d.deviceId);
+          const raw = d.licensePlate || (entries.length === 1 ? entries[0].licensePlate : null);
+          const plate = typeof raw === 'string' && /^[\p{L}\p{N} -]{1,30}$/u.test(raw) ? raw : null;
+          return {
+            id: d.deviceId,
+            label: plate || (entries.length === 1 ? entries[0].label : 'Eszköz ' + d.deviceId),
+          };
+        }),
+    });
   });
   app.post('/partner-admin/api/tracking/assign-device', requireSession, staff, async (req, res) => {
-    domain.assert((trackingProvider?.devices || trackingProvider?.fleet) && typeof req.body.deviceId === 'string', 'A flottalista nem érhető el.', 503);
+    domain.assert(
+      (trackingProvider?.devices || trackingProvider?.fleet) &&
+        typeof req.body.deviceId === 'string',
+      'A flottalista nem érhető el.',
+      503,
+    );
     let fleet;
     try {
       if (trackingProvider.devices) {
-        try { fleet = await trackingProvider.devices(); }
-        catch { if (!trackingProvider.fleet) throw new Error('unavailable'); fleet = await trackingProvider.fleet(); }
+        try {
+          fleet = await trackingProvider.devices();
+        } catch {
+          if (!trackingProvider.fleet) throw new Error('unavailable');
+          fleet = await trackingProvider.fleet();
+        }
       } else fleet = await trackingProvider.fleet();
-    } catch { throw new domain.InputError('A flottalista nem érhető el.', 503); }
-    const matches = Array.isArray(fleet) ? fleet.filter((v) => v.deviceId === req.body.deviceId) : [];
+    } catch {
+      throw new domain.InputError('A flottalista nem érhető el.', 503);
+    }
+    const matches = Array.isArray(fleet)
+      ? fleet.filter((v) => v.deviceId === req.body.deviceId)
+      : [];
     domain.assert(matches.length === 1, 'A jármű nem található a flottában.', 409);
     await store.change((state) => {
-      domain.assert(state.sessions.some((s) => s.hash === req.portalSession.hash && s.role === 'staff' && s.expires > Date.now()), 'A munkamenet lejárt.', 401);
+      domain.assert(
+        state.sessions.some(
+          (s) => s.hash === req.portalSession.hash && s.role === 'staff' && s.expires > Date.now(),
+        ),
+        'A munkamenet lejárt.',
+        401,
+      );
       const tracking = require('./tracking');
-      const existing = (state.trackingVehicles || []).filter((v) => v.deviceId === req.body.deviceId);
+      const existing = (state.trackingVehicles || []).filter(
+        (v) => v.deviceId === req.body.deviceId,
+      );
       domain.assert(existing.length <= 1, 'Az eszköz többször szerepel a katalógusban.', 409);
       if (!existing.length) {
         const plate = matches[0].licensePlate;
-        const safePlate = typeof plate === 'string' && /^[\p{L}\p{N} -]{1,30}$/u.test(plate) ? plate : '';
-        tracking.saveVehicle(state, { label: safePlate || 'Eszköz ' + req.body.deviceId, deviceId: req.body.deviceId, licensePlate: safePlate });
+        const safePlate =
+          typeof plate === 'string' && /^[\p{L}\p{N} -]{1,30}$/u.test(plate) ? plate : '';
+        tracking.saveVehicle(state, {
+          label: safePlate || 'Eszköz ' + req.body.deviceId,
+          deviceId: req.body.deviceId,
+          licensePlate: safePlate,
+        });
       }
       const vehicle = state.trackingVehicles.find((v) => v.deviceId === req.body.deviceId);
-      tracking.assign(state, { date: req.body.date, routeId: req.body.routeId, vehicleId: vehicle.id });
+      tracking.assign(state, {
+        date: req.body.date,
+        routeId: req.body.routeId,
+        vehicleId: vehicle.id,
+      });
     });
     res.json({ ok: true });
   });
   app.post('/partner-admin/api/tracking/:operation', requireSession, staff, async (req, res) => {
-    const operations = { vehicle: 'saveVehicle', assignment: 'assign', address: 'verifyAddress', 'partner-address': 'verifyPartnerAddress', 'delivery-address': 'updatePartnerDeliveryAddress' };
+    const operations = {
+      vehicle: 'saveVehicle',
+      assignment: 'assign',
+      address: 'verifyAddress',
+      'partner-address': 'verifyPartnerAddress',
+      'delivery-address': 'updatePartnerDeliveryAddress',
+    };
     const operation = operations[req.params.operation];
     if (!operation) return res.sendStatus(404);
     await store.change((state) => require('./tracking')[operation](state, req.body));
@@ -418,22 +566,36 @@ function createPortalApp({
   });
   const authLimit = rateLimit({ windowMs: 60000, limit: testRateLimits?.auth || 15 });
   const registrationAddressResults = new Map();
-  if (registrationSearchDemo || geoapifyKey) app.post('/partner/api/registration-address-search', authLimit, async (req, res) => {
-    const query = typeof req.body.query === 'string' ? req.body.query.trim().toLocaleLowerCase('hu') : '';
-    const examples = ['budapest, deák ferenc tér', 'budapest, kossuth lajos tér', 'budapest, clark ádám tér'];
-    if (!geoapifyKey && !examples.includes(query)) return res.status(400).json({ error: 'A helyi próbában csak a megadott nyilvános mintacímek kereshetők.' });
-    try {
-      const results = await (registrationSearchFn || searchAddress)(query);
-      const nowMs = Date.now();
-      for (const [key, value] of registrationAddressResults) if (value.expires < nowMs) registrationAddressResults.delete(key);
-      const safe = results.filter((r) => r.label.length <= 250).map((r) => {
-        const token = crypto.randomBytes(24).toString('hex');
-        registrationAddressResults.set(token, { ...r, expires: nowMs + 30 * 60 * 1000 });
-        return { label: r.label, token };
-      });
-      res.set('Cache-Control', 'no-store').json({ results: safe });
-    } catch { res.status(503).json({ error: 'A címkereső most nem érhető el. Próbáld újra később.' }); }
-  });
+  if (registrationSearchDemo || geoapifyKey)
+    app.post('/partner/api/registration-address-search', authLimit, async (req, res) => {
+      const query =
+        typeof req.body.query === 'string' ? req.body.query.trim().toLocaleLowerCase('hu') : '';
+      const examples = [
+        'budapest, deák ferenc tér',
+        'budapest, kossuth lajos tér',
+        'budapest, clark ádám tér',
+      ];
+      if (!geoapifyKey && !examples.includes(query))
+        return res
+          .status(400)
+          .json({ error: 'A helyi próbában csak a megadott nyilvános mintacímek kereshetők.' });
+      try {
+        const results = await (registrationSearchFn || searchAddress)(query);
+        const nowMs = Date.now();
+        for (const [key, value] of registrationAddressResults)
+          if (value.expires < nowMs) registrationAddressResults.delete(key);
+        const safe = results
+          .filter((r) => r.label.length <= 250)
+          .map((r) => {
+            const token = crypto.randomBytes(24).toString('hex');
+            registrationAddressResults.set(token, { ...r, expires: nowMs + 30 * 60 * 1000 });
+            return { label: r.label, token };
+          });
+        res.set('Cache-Control', 'no-store').json({ results: safe });
+      } catch {
+        res.status(503).json({ error: 'A címkereső most nem érhető el. Próbáld újra később.' });
+      }
+    });
   app.get(['/partner/reset-password', '/partner-admin/reset-password'], (req, res) =>
     res.render('reset', { base: req.base }),
   );
@@ -468,7 +630,13 @@ function createPortalApp({
     let selectedPoint;
     if (registrationSearchDemo || geoapifyKey) {
       selectedPoint = registrationAddressResults.get(req.body.addressSelection);
-      domain.assert(selectedPoint && selectedPoint.expires > Date.now() && selectedPoint.label === req.body.address, 'Válaszd ki újra a szállítási címet a találatok közül.', 400);
+      domain.assert(
+        selectedPoint &&
+          selectedPoint.expires > Date.now() &&
+          selectedPoint.label === req.body.address,
+        'Válaszd ki újra a szállítási címet a találatok közül.',
+        400,
+      );
     }
     const account = await auth.register(store, req.body, acceptance, selectedPoint);
     if (selectedPoint) registrationAddressResults.delete(req.body.addressSelection);
@@ -479,12 +647,29 @@ function createPortalApp({
         if (results.length) {
           const result = results[0];
           await store.change((state) => {
-            const user = state.users.find((u) => u.username === account.username && u.role === 'partner');
+            const user = state.users.find(
+              (u) => u.username === account.username && u.role === 'partner',
+            );
             if (!user || user.address !== account.address) return;
-            const partner = state.partners.find((p) => p.id === user.partnerId && p.address === account.address);
+            const partner = state.partners.find(
+              (p) => p.id === user.partnerId && p.address === account.address,
+            );
             const target = partner || (user.status === 'pending' ? user : null);
-            if (!target || target.trackingAddressSuggestion || target.trackingAddresses?.some((p) => p.address === account.address && p.verified)) return;
-            target.trackingAddressSuggestion = { id: crypto.randomUUID(), address: account.address, latitude: result.latitude, longitude: result.longitude, submittedAt: now().toISOString(), source: 'address-search', resultLabel: result.label };
+            if (
+              !target ||
+              target.trackingAddressSuggestion ||
+              target.trackingAddresses?.some((p) => p.address === account.address && p.verified)
+            )
+              return;
+            target.trackingAddressSuggestion = {
+              id: crypto.randomUUID(),
+              address: account.address,
+              latitude: result.latitude,
+              longitude: result.longitude,
+              submittedAt: now().toISOString(),
+              source: 'address-search',
+              resultLabel: result.label,
+            };
           });
         }
       } catch {
@@ -727,6 +912,76 @@ function createPortalApp({
     });
     res.json({ ok: true });
   });
+  app.post('/partner/api/subscription-status', requireSession, partner, async (req, res) => {
+    const state = await store.read();
+    res.json({
+      registered:
+        typeof req.body.endpoint === 'string' &&
+        state.subscriptions.some(
+          (s) => s.partnerId === req.portalSession.partnerId && s.endpoint === req.body.endpoint,
+        ),
+    });
+  });
+  app.post(
+    '/partner/api/push-test',
+    requireSession,
+    partner,
+    rateLimit({ windowMs: 60000, limit: 3 }),
+    async (req, res) => {
+      const state = await store.read();
+      const subscription = state.subscriptions.find(
+        (s) => s.partnerId === req.portalSession.partnerId && s.endpoint === req.body.endpoint,
+      );
+      domain.assert(
+        subscription,
+        'Ez az eszköz nincs feliratkozva. Kapcsold be az értesítéseket.',
+        400,
+      );
+      const env = require('./config').loadPortalConfig();
+      domain.assert(
+        state.pushMode === 'live' && /^(mailto:|https:\/\/)/.test(env.PORTAL_VAPID_SUBJECT || ''),
+        'A távoli küldés jelenleg nem érhető el.',
+        400,
+      );
+      try {
+        await require('web-push').sendNotification(
+          { endpoint: subscription.endpoint, keys: subscription.keys },
+          JSON.stringify({
+            id: crypto.randomUUID(),
+            title: 'Kebpro · Távoli próba',
+            body: 'Ez a szerverről küldött próbaértesítés.',
+            url: '/partner/',
+          }),
+          {
+            TTL: 60,
+            timeout: 15000,
+            vapidDetails: {
+              subject: env.PORTAL_VAPID_SUBJECT,
+              publicKey: state.vapid.publicKey,
+              privateKey: state.vapid.privateKey,
+            },
+          },
+        );
+      } catch (error) {
+        if (error.statusCode === 404 || error.statusCode === 410) {
+          await store.change((s) => {
+            s.subscriptions = s.subscriptions.filter(
+              (item) => item.endpoint !== subscription.endpoint,
+            );
+          });
+          return res
+            .status(400)
+            .json({ error: 'A telefon feliratkozása lejárt. Kapcsold be újra az értesítéseket.' });
+        }
+        return res
+          .status(400)
+          .json({
+            error: 'A próbát nem sikerült átadni a pushszolgáltatónak. Próbáld újra később.',
+          });
+      }
+      res.json({ ok: true });
+    },
+  );
   app.post('/partner-admin/api/subscription', requireSession, staff, async (req, res) => {
     const subscription = domain.validateSubscription(req.body);
     await store.change((state) => {

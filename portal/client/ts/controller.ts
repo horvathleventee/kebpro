@@ -797,6 +797,28 @@ export function startPortalController(screens: PortalScreens) {
           await load();
         },
         onEnable: enablePartnerPush,
+        onStatus: async () => {
+          if (
+            !('Notification' in window) ||
+            !('PushManager' in window) ||
+            !('serviceWorker' in navigator)
+          )
+            return 'unsupported';
+          if (Notification.permission === 'denied') return 'denied';
+          const reg = await navigator.serviceWorker.getRegistration('/partner/');
+          const subscription = await reg?.pushManager.getSubscription();
+          if (!subscription || Notification.permission !== 'granted') return 'off';
+          const result = await api<{ registered: boolean }>('subscription-status', {
+            endpoint: subscription.endpoint,
+          });
+          return result.registered ? 'on' : 'off';
+        },
+        onRemoteTest: async () => {
+          const reg = await registration();
+          const subscription = await reg.pushManager.getSubscription();
+          if (!subscription) throw Error('Előbb kapcsold be az értesítéseket ezen az eszközön.');
+          await api('push-test', { endpoint: subscription.endpoint });
+        },
         onDisable: async () => {
           const reg = await registration(),
             subscription = await reg.pushManager.getSubscription();
@@ -998,7 +1020,13 @@ export function startPortalController(screens: PortalScreens) {
         note: appState.state.note,
       };
     if (title === 'Túra törlése')
-      return { type: 'text', paragraphs: ['Törlöd ezt a túrát: ' + (context.name || '') + '?', 'A korábbi rendelések megmaradnak. Partnerhez rendelt, illetve mai vagy jövőbeli rendelést vagy járműbeosztást tartalmazó túra nem törölhető.'] };
+      return {
+        type: 'text',
+        paragraphs: [
+          'Törlöd ezt a túrát: ' + (context.name || '') + '?',
+          'A korábbi rendelések megmaradnak. Partnerhez rendelt, illetve mai vagy jövőbeli rendelést vagy járműbeosztást tartalmazó túra nem törölhető.',
+        ],
+      };
     if (title === 'Akció levétele')
       return { type: 'promotion', product: context.product || '', unit: context.unit || '' };
     if (title === 'Céges munkatárs meghívása')
