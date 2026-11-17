@@ -248,6 +248,7 @@ export function StaffTracking({ fleet }: { fleet: { id: string; label: string }[
   const selectedPartner = data?.partners.find((p) => p.id === partnerId);
   const selectable = devices.length ? devices : fleet;
   const assignment = data?.assignments.find((a) => a.routeId === routeId && a.date === date);
+  const assignmentsForDate = data?.assignments.filter((a) => a.date === date) || [];
   const assignedVehicle = assignment && data?.vehicles.find((v) => v.id === assignment.vehicleId);
   const routesForDate =
     data?.routes.filter(
@@ -376,13 +377,13 @@ export function StaffTracking({ fleet }: { fleet: { id: string; label: string }[
           )}
           <div className="tracking-assignments">
             <div className="tracking-list-title">
-              Rögzített beosztások <span>{data?.assignments.length ?? 0}</span>
+              A kiválasztott nap beosztásai <span>{assignmentsForDate.length}</span>
             </div>
-            {data && data.assignments.length === 0 && (
-              <p className="tracking-list-empty">Még nincs rögzített beosztás.</p>
+            {data && assignmentsForDate.length === 0 && (
+              <p className="tracking-list-empty">Erre a napra még nincs rögzített beosztás.</p>
             )}
             <ul>
-              {data?.assignments.map((a) => (
+              {data && assignmentsForDate.map((a) => (
                 <li key={a.id}>
                   {a.date} · {a.routeName || data.routes.find((r) => r.id === a.routeId)?.name} ·{' '}
                   {data.vehicles.find((v) => v.id === a.vehicleId)?.label}
