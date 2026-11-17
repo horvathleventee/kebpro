@@ -48,3 +48,15 @@ A 100-as PostgreSQL-kör teljes üzleti folyamatának ideje 5,50 másodperc, leg
 Mindkét adatbázison összesen 140 egyedi, archivált rendelés, 0 terhelési teszthiba, 0 duplikált rendelés. A PostgreSQL-tesztszerver a végén leállt. A teszt során nem történt tényleges e-mail- vagy push-küldés. A SQLite eredménye alapján nagy párhuzamos terhelésre a helyi tároló nem megfelelő; a PostgreSQL-es irány indokolt. A teljes állapotot olvasó írási réteg és a teljes adminlista későbbi skálázási korlát marad.
 
 Géppel olvasható jelentések: `output/load-sqlite-disk.json`, `output/load-postgres.json`; teljes tesztkimenet: `output/postgres-local-validation.txt`.
+
+## Böngészős end-to-end tesztek
+
+A Playwright-teszt a nyilvános oldalak és az ajánlatkérés, valamint a partneri rendelés és adminisztrátori archiválás folyamatát ellenőrzi Chromiumban. A szerverek véletlen szabad localhost portokat, a nyilvános oldal memória-adatbázist, a partnerportál külön memória-adatbázist használ. Az e-mail küldés ki van kapcsolva, illetve helyettesítve van; a teszt nem használja a meglévő partneradatokat.
+
+```sh
+npm ci
+npx playwright install chromium
+npm run test:e2e
+```
+
+CI-ben ugyanezek a parancsok futtathatók; Linuxon a böngésző rendszerfüggőségeihez szükség esetén `npx playwright install --with-deps chromium` használható. Hibás tesztnél a nyomkövetés az `output/playwright/` könyvtárba kerül, és a `npx playwright show-trace <trace.zip>` paranccsal nyitható meg. Meglévő Chromium-alapú böngésző külön telepítés nélkül az `E2E_CHROMIUM_PATH` környezeti változóval is megadható; alapértelmezésben a Playwright saját Chromiumját használja.
