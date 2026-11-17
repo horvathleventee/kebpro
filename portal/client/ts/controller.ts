@@ -663,7 +663,7 @@ export function startPortalController(screens: PortalScreens) {
             );
         },
         onArchive: async (order, archived) => {
-          try {
+          const updateArchive = async () => {
             await api('archive', { id: order.id, archived, revision: order.revision || 1 });
             await load();
             toast(
@@ -671,8 +671,15 @@ export function startPortalController(screens: PortalScreens) {
                 ? 'Rendelés archiválva. Az Archívumból visszaállítható.'
                 : 'Rendelés visszaállítva az újak közé.',
             );
-          } catch (error) {
-            toast(error instanceof Error ? error.message : 'A művelet nem sikerült.');
+          };
+          if (archived) {
+            confirm('Archiválod ezt a rendelést?', updateArchive);
+          } else {
+            try {
+              await updateArchive();
+            } catch (error) {
+              toast(error instanceof Error ? error.message : 'A művelet nem sikerült.');
+            }
           }
         },
       });
@@ -1017,6 +1024,7 @@ export function startPortalController(screens: PortalScreens) {
     context: { email?: string; name?: string; product?: string; unit?: string } = {},
   ): React.ComponentProps<typeof import('../../react/Confirmation').Confirmation>['model'] {
     const staticText: Record<string, string> = {
+      'Archiválod ezt a rendelést?': 'A rendelést később visszaállíthatod az archívumból.',
       'Rendelés módosítása': 'A jelenlegi kosár helyére a kiválasztott rendelés kerül.',
       'Másik kiszállítás kiválasztása': 'A kosár nem mentett változtatásai elvesznek. Folytatod?',
       'Kosár cseréje': 'A kosár helyére a mentett lista kerül.',

@@ -95,15 +95,15 @@ function Dashboard({
   return (
     <>
       <section className="section-gap dashboard-overview">
-        <h2>Napi áttekintés</h2>
-        <p className="muted">Ma: {t.date ? dateLabel(t.date) : ''}</p>
+        <h2>Áttekintés</h2>
         <div className="todo-grid">
           <button className="card todo-card" data-action="todo-new" onClick={() => onView('new')}>
             <span className="todo-icon" aria-hidden="true">
               ▤
             </span>
             <span>
-              <strong>{data.orderCounts?.new || 0}</strong>Feldolgozatlan rendelés
+              <span className="todo-label">Feldolgozatlan rendelések</span>
+              <strong>{data.orderCounts?.new || 0}</strong>
             </span>
           </button>
           <button
@@ -118,8 +118,8 @@ function Dashboard({
               ☎
             </span>
             <span>
-              <strong>{t.missing || 0}</strong>Még nem érkezett válasz a ma 14:00-kor záruló
-              rendelésre
+              <span className="todo-label">Ma válaszra várunk</span>
+              <strong>{t.missing || 0}</strong>
             </span>
           </button>
           <a className="card todo-card" href="#applications">
@@ -127,7 +127,8 @@ function Dashboard({
               ♙
             </span>
             <span>
-              <strong>{t.pending || 0}</strong>Jóváhagyásra váró regisztráció
+              <span className="todo-label">Jóváhagyásra váró regisztrációk</span>
+              <strong>{t.pending || 0}</strong>
             </span>
           </a>
           <a className="card todo-card" href="#complaints">
@@ -135,7 +136,8 @@ function Dashboard({
               !
             </span>
             <span>
-              <strong>{open}</strong>Nyitott bejelentés
+              <span className="todo-label">Nyitott bejelentések</span>
+              <strong>{open}</strong>
             </span>
           </a>
         </div>
@@ -146,11 +148,7 @@ function Dashboard({
           <a href="#complaints">Nézd át és szükség esetén töltsd le →</a>
         </p>
       )}
-      <Heading
-        eyebrow="RENDELÉSEK"
-        title="Rendelések"
-        description="Az új rendeléseket a pipával helyezheted az archívumba."
-      />
+      <Heading eyebrow="RENDELÉSEK" title="Rendelések" description="" />
       <div className="order-tabs two-tabs" aria-label="Rendelési kategóriák">
         {(
           [
@@ -249,28 +247,9 @@ function Dashboard({
                 Ennek a partnernek ezen a napon {r.sameDayOrderCount} külön rendelése van.
               </p>
             )}
-            <div className="dashboard-order-details">
-              <div>
-                <h3>Kiszállítás</h3>
-                <p>
-                  <strong>{dateLabel(r.date)}</strong>
-                  <br />
-                  {r.routeName || data.routes.find((route) => route.id === r.routeId)?.name}
-                </p>
-              </div>
-              <div>
-                <h3>Kapcsolat</h3>
-                <p>
-                  {r.address}
-                  <br />
-                  {r.contactPhone ? (
-                    <a href={'tel:' + r.contactPhone.replace(/[^+0-9]/g, '')}>{r.contactPhone}</a>
-                  ) : (
-                    'Nincs megadva telefonszám'
-                  )}
-                </p>
-              </div>
-            </div>
+            <p className="dashboard-delivery-date">
+              <strong>Kiszállítás: {dateLabel(r.date)}</strong>
+            </p>
             {r.followUp && r.followUp !== 'ok' && (
               <p className="notice warning">
                 <strong>Telefonos egyeztetés szükséges lehet:</strong>{' '}
@@ -279,21 +258,6 @@ function Dashboard({
                   : 'a mennyiség ellenőrzést igényel'}
               </p>
             )}
-            <p className="order-meta">
-              Rendelés: {timeLabel(r.createdAt)}
-              {r.modifiedAt && (
-                <>
-                  <br />
-                  Módosítva: {timeLabel(r.modifiedAt)}
-                </>
-              )}
-              {archived && (
-                <>
-                  <br />
-                  Archiválás: {timeLabel(r.archivedAt!)}
-                </>
-              )}
-            </p>
             <ul className="order-lines">
               {r.items.map((i, index) => (
                 <li key={index}>
@@ -304,27 +268,73 @@ function Dashboard({
                       : ''}
                   </span>
                   <strong>
-                    {quantity(i.quantity)} {i.spitWeight ? 'nyárs' : i.unit} ·{' '}
-                    {i.unitPrice === null || i.unitPrice === void 0
-                      ? '\xC1r egyeztetend\u0151'
-                      : money(i.unitPrice) +
-                        ' / ' +
-                        (i.spitWeight ? 'nyárs' : i.unit) +
-                        ' \xB7 ' +
-                        money(i.lineTotal)}
+                    {quantity(i.quantity)} {i.spitWeight ? 'nyárs' : i.unit}
                   </strong>
                 </li>
               ))}
             </ul>
-            <p className="dashboard-order-total">
-              <strong>Összesen: {money(r.total)}</strong>
-            </p>
-            {r.note && (
-              <div className="order-note">
-                <strong>Megjegyzés</strong>
-                <p>{r.note}</p>
+            <details className="dashboard-order-more">
+              <summary>Rendelés részletei{r.note ? ' · Megjegyzés van' : ''}</summary>
+              <div className="dashboard-order-details">
+                <div>
+                  <h3>Kiszállítás</h3>
+                  <p>{r.routeName || data.routes.find((route) => route.id === r.routeId)?.name}</p>
+                </div>
+                <div>
+                  <h3>Kapcsolat</h3>
+                  <p>
+                    {r.address}
+                    <br />
+                    {r.contactPhone ? (
+                      <a href={'tel:' + r.contactPhone.replace(/[^+0-9]/g, '')}>{r.contactPhone}</a>
+                    ) : (
+                      'Nincs megadva telefonszám'
+                    )}
+                  </p>
+                </div>
               </div>
-            )}
+              <p className="order-meta">
+                Rendelés: {timeLabel(r.createdAt)}
+                {r.modifiedAt && (
+                  <>
+                    <br />
+                    Módosítva: {timeLabel(r.modifiedAt)}
+                  </>
+                )}
+                {archived && (
+                  <>
+                    <br />
+                    Archiválás: {timeLabel(r.archivedAt!)}
+                  </>
+                )}
+              </p>
+              <h3>Árak</h3>
+              <ul className="order-lines">
+                {r.items.map((i, index) => (
+                  <li key={index}>
+                    <span>{i.name}</span>
+                    <strong>
+                      {i.unitPrice === null || i.unitPrice === undefined
+                        ? 'Ár egyeztetendő'
+                        : money(i.unitPrice) +
+                          ' / ' +
+                          (i.spitWeight ? 'nyárs' : i.unit) +
+                          ' · ' +
+                          money(i.lineTotal)}
+                    </strong>
+                  </li>
+                ))}
+              </ul>
+              <p className="dashboard-order-total">
+                <strong>Összesen: {money(r.total)}</strong>
+              </p>
+              {r.note && (
+                <div className="order-note">
+                  <strong>Megjegyzés</strong>
+                  <p>{r.note}</p>
+                </div>
+              )}
+            </details>
             <button
               className={
                 'button ' +

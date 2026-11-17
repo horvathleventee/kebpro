@@ -98,14 +98,15 @@ export function createOrderActions(ctx: OrderContext) {
       update({ note: value, requestId: newRequest() });
       ctx.saveDraft();
     },
-    selectDelivery(date: string, element: HTMLSelectElement) {
+    selectDelivery(date: string, element?: HTMLSelectElement) {
+      if (date === state().orderDate) return;
       const change = () => {
         update({ orderDate: date, cart: [], note: '', editing: null, requestId: newRequest() });
         ctx.render();
       };
       const { cart, note, editing, orderDate } = state();
       if (cart.length || note || editing) {
-        element.value = orderDate;
+        if (element) element.value = orderDate;
         ctx.confirm('Másik kiszállítás kiválasztása', change);
       } else change();
     },

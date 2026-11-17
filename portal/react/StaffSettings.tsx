@@ -201,37 +201,40 @@ function StaffSettings({
         title="Túrák és partnerek"
         description="Kezeld a kiszállítási túrákat, a partnerek napjait és a céges hozzáféréseket egy helyen."
       />
-      <div className="settings-overview" aria-label="Áttekintés">
-        <div>
-          <span className="settings-overview-icon" aria-hidden="true">
-            ▦
-          </span>
-          <span>
-            <strong>{data.routes.length}</strong>Túra
-          </span>
+      <details className="settings-reference">
+        <summary>Túrák, partnerek és határidők áttekintése</summary>
+        <div className="settings-overview" aria-label="Áttekintés">
+          <div>
+            <span className="settings-overview-icon" aria-hidden="true">
+              ▦
+            </span>
+            <span>
+              <strong>{data.routes.length}</strong>Túra
+            </span>
+          </div>
+          <div>
+            <span className="settings-overview-icon" aria-hidden="true">
+              ♙
+            </span>
+            <span>
+              <strong>{data.allPartners.length}</strong>Partner
+            </span>
+          </div>
+          <div>
+            <span className="settings-overview-icon" aria-hidden="true">
+              ◷
+            </span>
+            <span>
+              <strong>14:00</strong>Rendelési határidő
+            </span>
+          </div>
         </div>
-        <div>
-          <span className="settings-overview-icon" aria-hidden="true">
-            ♙
-          </span>
-          <span>
-            <strong>{data.allPartners.length}</strong>Partner
-          </span>
-        </div>
-        <div>
-          <span className="settings-overview-icon" aria-hidden="true">
-            ◷
-          </span>
-          <span>
-            <strong>14:00</strong>Rendelési határidő
-          </span>
-        </div>
-      </div>
-      <p className="settings-deadline">
-        A határidő általában a kiszállítás előtti nap 14:00; a szokásos hétfői kiszállításnál
-        péntek. Az egyszeri áthelyezés határideje az új kiszállítás előtti nap 14:00. Emlékeztetők a
-        határidő előtti este 17:00-kor és a határidő napján 10:00-kor.
-      </p>
+        <p className="settings-deadline">
+          A határidő általában a kiszállítás előtti nap 14:00; a szokásos hétfői kiszállításnál
+          péntek. Az egyszeri áthelyezés határideje az új kiszállítás előtti nap 14:00. Emlékeztetők
+          a határidő előtti este 17:00-kor és a határidő napján 10:00-kor.
+        </p>
+      </details>
       <div className="settings-jump" role="navigation" aria-label="Oldal szakaszai">
         <button type="button" onClick={() => jumpTo('route-settings')}>
           Túrák

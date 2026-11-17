@@ -126,10 +126,10 @@ export function Confirmation({
           disabled={busy}
           onClick={() => dialog.close()}
         >
-          Vissza
+          {title === 'Archiválod ezt a rendelést?' ? 'Mégsem' : 'Vissza'}
         </button>
         <button className="button primary" id="submit-confirm" disabled={busy} onClick={submit}>
-          Véglegesítés
+          {title === 'Archiválod ezt a rendelést?' ? 'Archiválás' : 'Véglegesítés'}
         </button>
       </div>
       <p id="confirm-error" role="alert">

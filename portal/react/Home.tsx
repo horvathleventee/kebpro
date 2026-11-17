@@ -42,7 +42,6 @@ function Home({
   return (
     <>
       <PartnerDeliveryPoint requiredOnly />
-      <PartnerTracking />
       <Heading
         eyebrow="ÜDVÖZLÜNK A PARTNERFELÜLETEN"
         title="Jó újra itt látni!"
@@ -83,69 +82,30 @@ function Home({
               >
                 <span aria-hidden="true">✓</span> Most nem kérek szállítást
               </button>
-              <p>Ha most nem rendelsz, jelezd itt, és nem kell telefonon keresnünk.</p>
             </div>
           ) : (
             <p>A rendelési határidő lejárt. Egyeztess a Kebpro munkatársaival.</p>
           )}
         </section>
-        <section className="card">
-          <div className="card-header">
-            <h2>Gyors áttekintés</h2>
-          </div>
-          <div className="fact-list">
-            <div className="fact">
-              <span className="fact-icon" aria-hidden="true">
-                ↺
-              </span>
-              <div>
-                <strong>Rendelj a korábbi listádból</strong>
-                <p>
-                  {latest
-                    ? 'A legut\xF3bbi rendel\xE9sed ' +
-                      latest.items.length +
-                      ' t\xE9telt tartalmaz.'
-                    : 'Az els\u0151 rendel\xE9sed ut\xE1n itt is gyors\xEDthatod a k\xF6vetkez\u0151t.'}
-                </p>
-                {latest && (
-                  <button
-                    className="button text-button"
-                    data-action="repeat"
-                    data-id={latest.id}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onRepeat(latest.id);
-                    }}
-                  >
-                    Legutóbbi rendelés betöltése →
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className="fact">
-              <span className="fact-icon" aria-hidden="true">
-                ◉
-              </span>
-              <div>
-                <strong>Szólunk a rendelési határidő előtt</strong>
-                <p>
-                  A rendelési nap előtti este és a határidő napján emlékeztetünk, ha még nem
-                  válaszoltál.
-                </p>
-              </div>
-            </div>
-            <div className="fact">
-              <span className="fact-icon" aria-hidden="true">
-                ✓
-              </span>
-              <div>
-                <strong>Most nem kérsz szállítást?</strong>
-                <p>Egy gombnyomással ezt is jelezheted.</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        {latest && (
+          <section className="card">
+            <h2>Korábbi rendelés</h2>
+            <p>{latest.items.length} tétel a legutóbbi rendelésedben.</p>
+            <button
+              className="button secondary section-gap"
+              data-action="repeat"
+              data-id={latest.id}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRepeat(latest.id);
+              }}
+            >
+              Legutóbbi rendelés betöltése →
+            </button>
+          </section>
+        )}
       </div>
+      <PartnerTracking />
       {latest && (
         <section className="card section-gap">
           <h2>Legutóbbi rendelésed állapota</h2>

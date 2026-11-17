@@ -45,7 +45,7 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
   const [noteValue, setNoteValue] = React.useState(note);
   const [, setCartVersion] = React.useState(0);
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
-  React.useEffect(() => setNoteValue(note), [note]);
+  React.useEffect(() => setNoteValue(note), [note, next.date]);
   const unavailable = cart.filter((i) => !data.products.some((p) => p.id === i.productId));
   const price = (item: Item) => getUnitPrice(data.products, item);
   const line = (item: Item) => getLinePrice(data.products, item);
@@ -53,61 +53,48 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
   const warning = cart.length ? assessmentMessage(assessOrder(cart)) : '';
   return (
     <>
-      <label className="card delivery-picker">
-        Melyik kiszállításra rendelsz?
-        <select
-          key={next.date}
-          id="order-delivery"
-          defaultValue={next.date}
-          onChange={(event) => {
-            event.stopPropagation();
-            actions.selectDelivery(event.target.value, event.target);
-          }}
-        >
-          {!data.deliveryOptions.some((d) => d.date === next.date) && (
-            <option value={next.date}>{dateLabel(next.date)} · Lejárt / nem elérhető</option>
-          )}
-          {data.deliveryOptions.map((d) => (
-            <option key={d.date} value={d.date}>
-              {dateLabel(d.date)} · {d.route}
-              {d.open ? '' : ' \xB7 Lez\xE1rt'}
-            </option>
-          ))}
-        </select>
-      </label>
-      <details className="card section-gap">
-        <summary>★ Mentett rendelési listáim ({data.templates.length})</summary>
-        <p className="muted">A betöltés csak a kosarat tölti ki, rendelést nem küld be.</p>
-        {data.templates.map((t) => (
-          <div className="saved-list" key={t.id}>
-            <strong>{t.name}</strong>
-            <span>{t.items.length} tétel</span>
-            <button
-              className="button secondary"
-              data-action="load-template"
-              data-id={t.id}
-              onClick={(event) => {
-                event.stopPropagation();
-                actions.loadTemplate(t.id);
-              }}
-            >
-              Betöltés
-            </button>
-            <button
-              className="button text-button"
-              data-action="delete-template"
-              data-id={t.id}
-              onClick={(event) => {
-                event.stopPropagation();
-                actions.deleteTemplate(t.id);
-              }}
-            >
-              Törlés
-            </button>
+      <section className="card delivery-picker" aria-labelledby="delivery-picker-title">
+        <h2 id="delivery-picker-title">Kiszállítás időpontja</h2>
+        <div className="delivery-selected">
+          <div>
+            <span>Kiválasztott időpont</span>
+            <strong>{dateLabel(next.date)}</strong>
+            <span>
+              {next.route}
+              {next.open ? '' : ' · Lezárt / nem elérhető'}
+            </span>
           </div>
-        ))}
-        {!data.templates.length && <p>Ments el egy összeállított kosarat szokásos rendelésként.</p>}
-      </details>
+          <span className="delivery-selected-check" aria-hidden="true">
+            ✓
+          </span>
+        </div>
+        {data.deliveryOptions.some((delivery) => delivery.date !== next.date) && (
+          <details className="delivery-choices">
+            <summary>Másik időpont választása</summary>
+            <div className="delivery-choice-list" aria-label="Választható kiszállítások">
+              {data.deliveryOptions
+                .filter((delivery) => delivery.date !== next.date)
+                .map((delivery) => (
+                  <button
+                    key={delivery.date}
+                    type="button"
+                    className="delivery-choice"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      actions.selectDelivery(delivery.date);
+                    }}
+                  >
+                    <strong>{dateLabel(delivery.date)}</strong>
+                    <span>
+                      {delivery.route}
+                      {delivery.open ? '' : ' · Lezárt'}
+                    </span>
+                  </button>
+                ))}
+            </div>
+          </details>
+        )}
+      </section>
       <Heading
         eyebrow="RENDELÉS"
         title="Mit készítsünk össze?"
@@ -249,6 +236,41 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
                 Hozzáadom
               </button>
             </form>
+            <details className="saved-orders section-gap">
+              <summary>★ Mentett rendelési listáim ({data.templates.length})</summary>
+              <p className="muted">A betöltés csak a kosarat tölti ki, rendelést nem küld be.</p>
+              {data.templates.map((t) => (
+                <div className="saved-list" key={t.id}>
+                  <strong>{t.name}</strong>
+                  <span>{t.items.length} tétel</span>
+                  <button
+                    className="button secondary"
+                    data-action="load-template"
+                    data-id={t.id}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      actions.loadTemplate(t.id);
+                    }}
+                  >
+                    Betöltés
+                  </button>
+                  <button
+                    className="button text-button"
+                    data-action="delete-template"
+                    data-id={t.id}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      actions.deleteTemplate(t.id);
+                    }}
+                  >
+                    Törlés
+                  </button>
+                </div>
+              ))}
+              {!data.templates.length && (
+                <p>Ments el egy összeállított kosarat szokásos rendelésként.</p>
+              )}
+            </details>
             {unavailable.length > 0 && (
               <p className="notice warning" role="alert">
                 <strong>Most nem rendelhető:</strong> {unavailable.map((i) => i.name).join(', ')}.
@@ -358,11 +380,7 @@ function Order({ data, next, response, cart, note, editing, actions, cartRevisio
               </button>
             </div>
           </div>
-          <div className="skip-delivery-panel section-gap">
-            <div>
-              <strong>Most nincs szükséged szállításra?</strong>
-              <p>Jelezd itt, és a Kebpro munkatársai látják a válaszodat.</p>
-            </div>
+          <div className="section-gap">
             <button
               className="button skip-delivery"
               data-action="skip"

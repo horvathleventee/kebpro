@@ -75,13 +75,14 @@ function createOrderActions(ctx) {
       ctx.saveDraft();
     },
     selectDelivery(date, element) {
+      if (date === state().orderDate) return;
       const change = () => {
         update({ orderDate: date, cart: [], note: "", editing: null, requestId: newRequest() });
         ctx.render();
       };
       const { cart, note, editing, orderDate } = state();
       if (cart.length || note || editing) {
-        element.value = orderDate;
+        if (element) element.value = orderDate;
         ctx.confirm("M\xE1sik kisz\xE1ll\xEDt\xE1s kiv\xE1laszt\xE1sa", change);
       } else change();
     },
