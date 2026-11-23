@@ -34,6 +34,13 @@ function eligible(state, message, now) {
     );
   }
   if (message.category === 'news') return partner.preferences.news;
+  if (message.category === 'test-push')
+    return (
+      (partner.preferences.news || partner.preferences.reminders) &&
+      state.users.some(
+        (u) => u.partnerId === partner.id && u.role === 'partner' && u.status === 'approved',
+      )
+    );
   if (message.category === 'reminder') {
     const match = /^reminder:(\d{4}-\d{2}-\d{2})(?::(evening|morning))?$/.exec(message.key);
     if (!match) return false;

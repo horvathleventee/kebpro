@@ -549,16 +549,17 @@ function createPortalApp({
     await store.change((state) => require('./tracking')[operation](state, req.body));
     res.json({ ok: true });
   });
-  app.get(['/partner/login', '/partner-admin/login'], (req, res) =>
-    res.render('login', {
+  app.get(['/partner/login', '/partner-admin/login'], (req, res) => {
+    if (req.portalSession) return res.redirect(req.base + '/');
+    return res.render('login', {
       admin: req.adminArea,
       base: req.base,
       terms: legal.snapshot('terms'),
       privacy: legal.snapshot('privacy'),
       registrationSearchDemo,
       geoapifySearch: !!geoapifyKey,
-    }),
-  );
+    });
+  });
   app.get('/partner/legal/:kind/:version', (req, res) => {
     const doc = legal.resolve(req.params.kind, req.params.version);
     if (!doc) return res.status(404).send('A dokumentum nem található.');
@@ -728,7 +729,7 @@ function createPortalApp({
     res.cookie(req.cookieName, token, {
       httpOnly: true,
       secure: req.secure,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: req.base,
       maxAge: sessionDuration,
     });
@@ -756,7 +757,7 @@ function createPortalApp({
         path: req.base,
         httpOnly: true,
         secure: req.secure,
-        sameSite: 'strict',
+        sameSite: 'lax',
       });
       res.json({ next: req.base + '/login' });
     },
@@ -1073,6 +1074,70 @@ function createPortalApp({
   app.post('/partner-admin/api/reminders', requireSession, staff, async (req, res) => {
     const created = await store.change((state) => domain.runReminders(state, now()));
     res.json({ created });
+  });
+  app.post('/partner-admin/api/test-push', requireSession, staff, async (req, res) => {
+    const partnerId = req.body.partnerId;
+    domain.assert(typeof partnerId === 'string', 'Válassz partnert vagy minden partnert.', 400);
+    const result = await store.change((state) => {
+      domain.assert(state.pushMode === 'live', 'A távoli push küldés nincs bekapcsolva.', 400);
+      const clock = now();
+      const recent = state.outbox.some(
+        (m) => m.category === 'test-push' && clock.getTime() - Date.parse(m.createdAt) < 60000,
+      );
+      domain.assert(!recent, 'Új teszt küldése előtt várj egy percet.', 429);
+      const eligible = state.partners.filter(
+        (p) =>
+          (partnerId === 'all' || p.id === partnerId) &&
+          (p.preferences?.news || p.preferences?.reminders) &&
+          state.users.some(
+            (u) => u.partnerId === p.id && u.role === 'partner' && u.status === 'approved',
+          ) &&
+          state.subscriptions.some((s) => s.partnerId === p.id),
+      );
+      domain.assert(
+        eligible.length > 0,
+        'Nincs értesítést kérő partner regisztrált eszközzel.',
+        400,
+      );
+      const batch = crypto.randomUUID();
+      for (const p of eligible)
+        state.outbox.push({
+          id: crypto.randomUUID(),
+          partnerId: p.id,
+          key: 'test-push:' + batch,
+          category: 'test-push',
+          title: 'Kebpro tesztértesítés',
+          body: 'Ez egy tesztértesítés, nincs teendőd.',
+          url: '/partner/',
+          createdAt: clock.toISOString(),
+          status: 'pending',
+          attempts: 0,
+        });
+      return { partners: eligible.length };
+    });
+    res.json(result);
+  });
+  app.get('/partner-admin/api/test-push', requireSession, staff, async (req, res) => {
+    const state = await store.read();
+    const latest = [...state.outbox].reverse().find((m) => m.category === 'test-push');
+    if (!latest) return res.json({ batch: null });
+    const messages = state.outbox.filter((m) => m.category === 'test-push' && m.key === latest.key);
+    const counts = { pending: 0, sent: 0, failed: 0, expired: 0, cancelled: 0, noDevices: 0 };
+    for (const m of messages) {
+      const deliveries = Object.values(m.deliveries || {});
+      if (m.status === 'no_devices') counts.noDevices++;
+      else if (m.status === 'cancelled') counts.cancelled++;
+      else if (!deliveries.length) counts.pending++;
+      else
+        for (const d of deliveries) {
+          if (d.status === 'sent') counts.sent++;
+          else if (d.status === 'failed') counts.failed++;
+          else if (d.status === 'expired') counts.expired++;
+          else if (d.status === 'cancelled') counts.cancelled++;
+          else counts.pending++;
+        }
+    }
+    res.json({ batch: { createdAt: latest.createdAt, partners: messages.length, ...counts } });
   });
   app.post('/partner-admin/api/applications', requireSession, staff, async (req, res) => {
     const account = await store.change((s) => auth.review(s, req.body, now()));

@@ -31,16 +31,30 @@ interface NotificationProps {
   audit: AuditEvent[];
   openGroups: string[];
   onReminder(): void;
+  onTestPush(partnerId: string): Promise<{ partners: number }>;
+  onTestStatus(): Promise<{ batch: TestBatch | null }>;
   onEnable(): Promise<unknown>;
   onDisable(): Promise<unknown>;
   onStatus(): Promise<'on' | 'off' | 'denied' | 'unsupported'>;
   onGroup(group: string, open: boolean): void;
+}
+interface TestBatch {
+  createdAt: string;
+  partners: number;
+  pending: number;
+  sent: number;
+  failed: number;
+  expired: number;
+  cancelled: number;
+  noDevices: number;
 }
 function Notifications({
   data,
   audit,
   openGroups,
   onReminder,
+  onTestPush,
+  onTestStatus,
   onEnable,
   onDisable,
   onStatus,
@@ -51,6 +65,19 @@ function Notifications({
   >('checking');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [testPartner, setTestPartner] = useState('');
+  const [testBusy, setTestBusy] = useState(false);
+  const [testMessage, setTestMessage] = useState('');
+  const [batch, setBatch] = useState<TestBatch | null>(null);
+  const testStatusRef = useRef(onTestStatus);
+  testStatusRef.current = onTestStatus;
+  async function refreshTest() {
+    try {
+      setBatch((await testStatusRef.current()).batch);
+    } catch {
+      setTestMessage('A teszt állapotát nem sikerült lekérni.');
+    }
+  }
   const statusRef = useRef(onStatus);
   statusRef.current = onStatus;
   async function refreshStatus() {
@@ -63,6 +90,7 @@ function Notifications({
   }
   useEffect(() => {
     void refreshStatus();
+    void refreshTest();
     const visible = () => {
       if (!document.hidden) void refreshStatus();
     };
@@ -97,6 +125,70 @@ function Notifications({
           Emlékeztetők ellenőrzése
         </button>
       </div>
+      <section className="card section-gap">
+        <h2>Tesztértesítés partnereknek</h2>
+        <p>
+          A teszt valódi push üzenetet küld az értesítést kérő partnerek regisztrált eszközeire.
+        </p>
+        <label>
+          {' '}
+          Címzett
+          <select value={testPartner} onChange={(event) => setTestPartner(event.target.value)}>
+            <option value="">Válassz címzettet</option>
+            <option value="all">Minden jogosult partner</option>
+            {data.allPartners.map((p) => (
+              <option value={p.id} key={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="settings-actions">
+          <button
+            className="button primary"
+            disabled={!testPartner || testBusy}
+            onClick={async () => {
+              if (
+                !window.confirm(
+                  testPartner === 'all'
+                    ? 'Tesztértesítés küldése minden jogosult partnernek?'
+                    : 'Tesztértesítés küldése a kiválasztott partnernek?',
+                )
+              )
+                return;
+              setTestBusy(true);
+              setTestMessage('');
+              try {
+                const result = await onTestPush(testPartner);
+                setTestMessage(`${result.partners} partner tesztértesítése vár küldésre.`);
+                await refreshTest();
+              } catch (e) {
+                setTestMessage(e instanceof Error ? e.message : 'A küldés nem sikerült.');
+              } finally {
+                setTestBusy(false);
+              }
+            }}
+          >
+            Tesztértesítés küldése
+          </button>
+          <button className="button secondary" onClick={() => void refreshTest()}>
+            Állapot frissítése
+          </button>
+        </div>
+        {testMessage && <p role="status">{testMessage}</p>}
+        {batch && (
+          <p>
+            Legutóbbi teszt: {operationTime(batch.createdAt)} · Partnerek: {batch.partners} ·
+            Várakozik: {batch.pending} · Push szolgáltató elfogadta: {batch.sent} · Sikertelen:{' '}
+            {batch.failed} · Lejárt eszköz: {batch.expired} · Megszakítva: {batch.cancelled} · Nincs
+            eszköz: {batch.noDevices}
+          </p>
+        )}
+        <p className="small muted">
+          Az elfogadás nem igazolja, hogy a telefon megjelenítette az értesítést. A háttérfolyamat
+          dolgozza fel a sort.
+        </p>
+      </section>
       <section className="card section-gap">
         <h2>Admin értesítések ezen az eszközön</h2>
         <p>

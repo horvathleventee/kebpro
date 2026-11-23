@@ -215,7 +215,14 @@ test('HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
       body: JSON.stringify(body),
     });
     assert.equal(r.status, 200);
+    assert.match(r.headers.get('set-cookie'), /SameSite=Lax/i);
     const cookie = r.headers.get('set-cookie').split(';')[0];
+    const loginAgain = await fetch(base + area + '/login', {
+      headers: { Cookie: cookie },
+      redirect: 'manual',
+    });
+    assert.equal(loginAgain.status, 302);
+    assert.equal(loginAgain.headers.get('location'), area + '/');
     const page = await fetch(base + area + '/', { headers: { Cookie: cookie } });
     const html = await page.text();
     const csrf = html.match(/name="csrf-token" content="([^"]+)"/)[1];
@@ -244,6 +251,37 @@ test('HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
     const one = await login({ role: 'partner', partnerId: 'partner-1' });
     const two = await login({ role: 'partner', partnerId: 'partner-2' });
     const admin = await login({ role: 'staff' });
+    await store.change((s) => {
+      s.pushMode = 'live';
+      s.partners[0].preferences.reminders = true;
+      s.subscriptions.push({
+        partnerId: 'partner-1',
+        endpoint: 'https://fcm.googleapis.com/fcm/send/test',
+        keys: { auth: 'a'.repeat(22), p256dh: 'b'.repeat(87) },
+        createdAt: '2020-01-01T00:00:00Z',
+      });
+    });
+    assert.equal((await call('test-push', one, { partnerId: 'all' })).status, 404);
+    assert.equal((await call('test-push', admin, { partnerId: 'all' }, base, 'bad')).status, 403);
+    const queuedTest = await call('test-push', admin, { partnerId: 'all' });
+    assert.equal(queuedTest.status, 200);
+    assert.equal((await queuedTest.json()).partners, 1);
+    assert.equal((await call('test-push', admin, { partnerId: 'all' })).status, 429);
+    const beforeTest = await (await call('test-push', admin)).json();
+    assert.equal(beforeTest.batch.pending, 1);
+    await require('../portal/notifications').dispatchNotifications(store, {
+      dryRun: false,
+      subject: 'mailto:test@example.com',
+      now: () => morning,
+      send: async () => {},
+    });
+    const afterTest = await (await call('test-push', admin)).json();
+    assert.equal(afterTest.batch.sent, 1);
+    await store.change((s) => {
+      s.pushMode = 'simulation';
+      s.subscriptions = [];
+      s.outbox = [];
+    });
     const testEndpoint = 'https://push.example.com/device';
     await store.change((s) =>
       s.subscriptions.push({

@@ -780,6 +780,8 @@ export function startPortalController(screens: PortalScreens) {
             toast(error instanceof Error ? error.message : 'A művelet nem sikerült.');
           }
         },
+        onTestPush: (partnerId) => api<{ partners: number }>('test-push', { partnerId }),
+        onTestStatus: () => api('test-push'),
         onStatus: async () => {
           const status = await deviceStatus();
           return status === 'missing' ? 'off' : status;
