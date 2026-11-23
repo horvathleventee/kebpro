@@ -265,3 +265,13 @@ A dokumentumok: portal/legal.js, /partner/legal/terms/draft-2026-10-28 és /part
 - B2B szolgáltatási és kereskedelmi feltételek: partner képviseleti jogosultsága, megrendelés és visszaigazolás joghatása, nettó/bruttó, akciók, árváltozás, elérhetőség, reklamáció, felelősség, változtatás és kapcsolat. A DSA és egyéb előírások alkalmazhatósága konkrét működés és szerep alapján vizsgálandó, nem feltételezhető általánosan.
 
 Elsődleges források: GDPR 13. és 28. cikk https://eur-lex.europa.eu/eli/reg/2016/679/oj ; Európai Bizottság tájékoztatása https://commission.europa.eu/law/law-topic/data-protection/information-individuals_en ; EDPB szerződés és külön hozzájárulás https://www.edpb.europa.eu/system/files/2026-03/edpb-summary-guidelines2-2019-contractual-necessity-online-services_en.pdf ; NAIH https://www.naih.hu/adatkezeles-erintettjekent-fordulok-a-hatosaghoz/adatvedelmi-hatosagi-eljaras-gdpr . Ez műszaki előkészítés és nem végleges jogi vélemény.
+# Developer monitoring (initial read-only view)
+
+Set `PORTAL_DEVELOPER_USERNAME` to the login name of an approved staff user (or set
+`PORTAL_DEVELOPER_USER_ID` to that user's immutable ID) to enable
+`/partner-admin/developer-monitor`. Sign in to the staff portal as that user first.
+Without this setting the page and API are inaccessible. The initial view shows database
+read availability, worker and backup timestamps, and recent push delivery records; it
+does not yet provide browser telemetry, retention, test pushes, or the planned alert rules.
+Push-service acceptance does not establish that a notification was displayed.
+

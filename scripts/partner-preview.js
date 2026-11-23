@@ -6,6 +6,8 @@ const mailer = require('../portal/mailer').createPortalMailer();
 console.log('Password reset email: ' + (mailer.configured ? 'SMTP configured' : 'SMTP missing'));
 const { app, store, ready, tick } = createPortalApp({
   monitorToken: portalEnv.PORTAL_MONITOR_TOKEN,
+  developerUserId: portalEnv.PORTAL_DEVELOPER_USER_ID,
+  developerUsername: portalEnv.PORTAL_DEVELOPER_USERNAME,
   databaseUrl: portalEnv.PORTAL_DATABASE_URL,
   filename: portalEnv.PORTAL_DB_PATH,
   sendEmail: mailer.send,

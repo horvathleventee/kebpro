@@ -14,6 +14,8 @@ function createPortalApp({
   storage,
   alerts,
   monitorToken,
+  developerUserId,
+  developerUsername,
   filename,
   adminCredentials,
   sendEmail = async () => {
@@ -277,6 +279,33 @@ function createPortalApp({
     if (req.portalSession?.role === 'staff') return next();
     return res.status(403).json({ error: 'Csak a céges munkatársak számára elérhető.' });
   }
+  async function developer(req, res, next) {
+    if (
+      developerUserId &&
+      req.portalSession?.role === 'staff' &&
+      req.portalSession.userId === developerUserId
+    )
+      return next();
+    if (developerUsername && req.portalSession?.role === 'staff') {
+      const actor = store.lookupUser
+        ? await store.lookupUser(req.portalSession.userId)
+        : (await store.read()).users.find((u) => u.id === req.portalSession.userId);
+      if (
+        actor?.status === 'approved' &&
+        actor.role === 'staff' &&
+        actor.username === developerUsername.trim().toLowerCase()
+      )
+        return next();
+    }
+    return res.sendStatus(404);
+  }
+  app.get('/partner-admin/developer-monitor', requireSession, developer, (req, res) =>
+    res.render('developer-monitor'),
+  );
+  app.get('/partner-admin/api/developer-monitor', requireSession, developer, async (req, res) => {
+    const state = await store.read();
+    res.json(require('./developer-monitor').snapshot(state, now()));
+  });
   function partner(req, res, next) {
     if (req.portalSession?.role === 'partner') return next();
     return res.status(403).json({ error: 'Ehhez partnerként kell belépned.' });

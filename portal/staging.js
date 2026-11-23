@@ -66,6 +66,8 @@ function stagingConfig(env = process.env) {
     staging: { username, password, gateDisabled },
     adminCredentials,
     monitorToken: env.PORTAL_MONITOR_TOKEN,
+    developerUserId: env.PORTAL_DEVELOPER_USER_ID,
+    developerUsername: env.PORTAL_DEVELOPER_USERNAME,
     trackingProvider: require('./holazauto').fromConfig(env),
     geoapifyKey: env.PORTAL_GEOAPIFY_API_KEY || '',
   };

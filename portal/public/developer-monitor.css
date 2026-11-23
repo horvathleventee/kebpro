@@ -1,0 +1,56 @@
+body {
+  font:
+    16px system-ui,
+    sans-serif;
+  background: #f3f5f8;
+  color: #14243b;
+  margin: 0;
+}
+main {
+  max-width: 1100px;
+  margin: auto;
+  padding: 24px;
+}
+section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+.card,
+details {
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 16px;
+}
+.card {
+  flex: 1;
+  min-width: 180px;
+}
+details {
+  margin: 8px 0;
+}
+summary {
+  cursor: pointer;
+}
+button,
+input {
+  font: inherit;
+  padding: 8px;
+}
+#error {
+  color: #9b1c1c;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 12px;
+}
+td,
+th {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  overflow-wrap: anywhere;
+}
