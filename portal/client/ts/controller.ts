@@ -1142,9 +1142,21 @@ export function startPortalController(screens: PortalScreens) {
       document.getElementById('install-app')!.hidden = true;
     }
   });
+  async function clearPartnerNotifications() {
+    if (role !== 'partner' || document.hidden || !('serviceWorker' in navigator)) return;
+    try {
+      const registration = await navigator.serviceWorker.getRegistration('/partner/');
+      const notifications = await registration?.getNotifications();
+      notifications?.forEach((notification) => notification.close());
+      if ('clearAppBadge' in navigator) await navigator.clearAppBadge();
+    } catch {
+      // Notification cleanup must not prevent the app from opening.
+    }
+  }
   if ('serviceWorker' in navigator)
     navigator.serviceWorker
       .register(base + '/sw.js', { scope: base + '/' })
+      .then(() => clearPartnerNotifications())
       .catch(() => toast('A telepíthető mód nem indult el; az oldal böngészőből használható.'));
   load().catch((err) => {
     const host = document.createElement('div');
@@ -1172,7 +1184,10 @@ export function startPortalController(screens: PortalScreens) {
 
   setInterval(() => load(true), 5000);
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) load(true);
+    if (!document.hidden) {
+      void clearPartnerNotifications();
+      load(true);
+    }
   });
   window.addEventListener('online', () => load(true));
 
