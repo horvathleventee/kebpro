@@ -5,6 +5,20 @@ const terminal = new Set(['sent', 'expired', 'failed', 'cancelled']);
 const MAX_ATTEMPTS = 5;
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const endpointKey = (endpoint) => crypto.createHash('sha256').update(endpoint).digest('hex');
+function pushProvider(endpoint) {
+  try {
+    const host = new URL(endpoint).hostname;
+    return host === 'fcm.googleapis.com'
+      ? 'google'
+      : host === 'web.push.apple.com'
+        ? 'apple'
+        : host === 'updates.push.services.mozilla.com'
+          ? 'mozilla'
+          : 'other';
+  } catch {
+    return 'other';
+  }
+}
 const staffCategory = (message) =>
   ['staff-order', 'staff-complaint', 'staff-registration'].includes(message.category);
 
@@ -112,6 +126,10 @@ async function dispatchNotifications(
           status: 'pending',
           attempts: 0,
         };
+        if (message.category === 'test-push')
+          message.deliveries[endpointKey(subscription.endpoint)].provider = pushProvider(
+            subscription.endpoint,
+          );
       }
       for (const subscription of subscriptions) {
         if (tasks.length >= 20) break;
@@ -275,4 +293,4 @@ async function dispatchNotifications(
   }
   return { mode: 'live', attempted: claims.length, sent };
 }
-module.exports = { dispatchNotifications };
+module.exports = { dispatchNotifications, pushProvider, endpointKey };

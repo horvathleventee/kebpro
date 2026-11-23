@@ -47,6 +47,10 @@ interface TestBatch {
   expired: number;
   cancelled: number;
   noDevices: number;
+  providers?: Record<
+    string,
+    { pending: number; sent: number; failed: number; expired: number; cancelled: number }
+  >;
 }
 function Notifications({
   data,
@@ -184,6 +188,21 @@ function Notifications({
             eszköz: {batch.noDevices}
           </p>
         )}
+        {batch?.providers &&
+          Object.entries(batch.providers).map(([provider, count]) => (
+            <p key={provider}>
+              {(
+                {
+                  google: 'Google / Chrome',
+                  apple: 'Apple',
+                  mozilla: 'Mozilla',
+                  other: 'Egyéb vagy ismeretlen',
+                } as Record<string, string>
+              )[provider] || provider}
+              : elfogadta {count.sent} · várakozik {count.pending} · sikertelen {count.failed} ·
+              lejárt {count.expired} · megszakítva {count.cancelled}
+            </p>
+          ))}
         <p className="small muted">
           Az elfogadás nem igazolja, hogy a telefon megjelenítette az értesítést. A háttérfolyamat
           dolgozza fel a sort.

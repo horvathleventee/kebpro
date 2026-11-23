@@ -260,6 +260,12 @@ test('HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
         keys: { auth: 'a'.repeat(22), p256dh: 'b'.repeat(87) },
         createdAt: '2020-01-01T00:00:00Z',
       });
+      s.subscriptions.push({
+        partnerId: 'partner-1',
+        endpoint: 'https://web.push.apple.com/test',
+        keys: { auth: 'a'.repeat(22), p256dh: 'b'.repeat(87) },
+        createdAt: '2020-01-01T00:00:00Z',
+      });
     });
     assert.equal((await call('test-push', one, { partnerId: 'all' })).status, 404);
     assert.equal((await call('test-push', admin, { partnerId: 'all' }, base, 'bad')).status, 403);
@@ -273,10 +279,16 @@ test('HTTP authorization, CSRF, partner isolation, order->admin flow and news pu
       dryRun: false,
       subject: 'mailto:test@example.com',
       now: () => morning,
-      send: async () => {},
+      send: async (subscription) => {
+        if (subscription.endpoint.includes('apple.com'))
+          throw Object.assign(new Error('gone'), { statusCode: 410 });
+      },
     });
     const afterTest = await (await call('test-push', admin)).json();
     assert.equal(afterTest.batch.sent, 1);
+    assert.equal(afterTest.batch.providers.google.sent, 1);
+    assert.equal(afterTest.batch.providers.apple.expired, 1);
+    assert.equal(JSON.stringify(afterTest).includes('web.push.apple.com'), false);
     await store.change((s) => {
       s.pushMode = 'simulation';
       s.subscriptions = [];

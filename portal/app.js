@@ -1152,13 +1152,32 @@ function createPortalApp({
     if (!latest) return res.json({ batch: null });
     const messages = state.outbox.filter((m) => m.category === 'test-push' && m.key === latest.key);
     const counts = { pending: 0, sent: 0, failed: 0, expired: 0, cancelled: 0, noDevices: 0 };
+    const providers = {};
+    const { endpointKey, pushProvider } = require('./notifications');
+    const knownProviders = new Map(
+      state.subscriptions.map((s) => [endpointKey(s.endpoint), pushProvider(s.endpoint)]),
+    );
     for (const m of messages) {
-      const deliveries = Object.values(m.deliveries || {});
+      const deliveries = Object.entries(m.deliveries || {});
       if (m.status === 'no_devices') counts.noDevices++;
       else if (m.status === 'cancelled') counts.cancelled++;
       else if (!deliveries.length) counts.pending++;
       else
-        for (const d of deliveries) {
+        for (const [key, d] of deliveries) {
+          const provider = ['google', 'apple', 'mozilla', 'other'].includes(d.provider)
+            ? d.provider
+            : knownProviders.get(key) || 'other';
+          const group = (providers[provider] ||= {
+            pending: 0,
+            sent: 0,
+            failed: 0,
+            expired: 0,
+            cancelled: 0,
+          });
+          const status = ['sent', 'failed', 'expired', 'cancelled'].includes(d.status)
+            ? d.status
+            : 'pending';
+          group[status]++;
           if (d.status === 'sent') counts.sent++;
           else if (d.status === 'failed') counts.failed++;
           else if (d.status === 'expired') counts.expired++;
@@ -1166,7 +1185,9 @@ function createPortalApp({
           else counts.pending++;
         }
     }
-    res.json({ batch: { createdAt: latest.createdAt, partners: messages.length, ...counts } });
+    res.json({
+      batch: { createdAt: latest.createdAt, partners: messages.length, ...counts, providers },
+    });
   });
   app.post('/partner-admin/api/applications', requireSession, staff, async (req, res) => {
     const account = await store.change((s) => auth.review(s, req.body, now()));
