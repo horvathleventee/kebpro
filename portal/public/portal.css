@@ -206,6 +206,32 @@ main#content {
   margin: auto;
   min-height: 70vh;
 }
+.portal-loading {
+  min-height: 55vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+.portal-loading img {
+  width: 130px;
+  height: auto;
+}
+.portal-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #dce5eb;
+  border-top-color: #10243f;
+  border-radius: 50%;
+  animation: portal-loading-spin 0.8s linear infinite;
+}
+@keyframes portal-loading-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-loading-spinner { animation: none; }
+}
 .app-footer {
   text-align: center;
   color: #8a96a4;
