@@ -26,6 +26,8 @@ function currentTab(role, location) {
   const allowed = role === "staff" ? [
     "dashboard",
     "tracking",
+    "delivery-planning",
+    "delivery-locations",
     "packing",
     "complaints",
     "news",

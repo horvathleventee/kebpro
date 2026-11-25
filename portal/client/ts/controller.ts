@@ -603,8 +603,11 @@ export function startPortalController(screens: PortalScreens) {
       root.id = 'react-app-root';
       content.replaceChildren(root);
     }
-    if (role === 'staff' && tab === 'tracking') {
-      screens.renderScreen('Fleet', document.getElementById('react-app-root')!, { active: true });
+    if (role === 'staff' && ['tracking', 'delivery-planning', 'delivery-locations'].includes(tab)) {
+      screens.renderScreen('Fleet', document.getElementById('react-app-root')!, {
+        active: true,
+        view: tab,
+      });
       return;
     }
     if (role === 'staff' && tab === 'dashboard') {

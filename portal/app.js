@@ -416,6 +416,7 @@ function createPortalApp({
           return {
             id: o.id,
             date: o.date,
+            routeId: o.routeId,
             address: o.address,
             partnerId: o.partnerId,
             verified: !!point,

@@ -6,6 +6,8 @@ export function currentTab(role: PortalRole, location: { hash: string }): string
       ? [
           'dashboard',
           'tracking',
+          'delivery-planning',
+          'delivery-locations',
           'packing',
           'complaints',
           'news',

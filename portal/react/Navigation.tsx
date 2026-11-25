@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 const staffLinks = [
   ['dashboard', '▦', 'Túrák és rendelések'],
   ['tracking', '◉', 'Járműkövetés'],
+  ['delivery-planning', '▦', 'Kiszállítások tervezése'],
+  ['delivery-locations', '⌖', 'Szállítási helyek'],
   ['packing', '☷', 'Összekészítés'],
   ['complaints', '✉', 'Bejelentések'],
   ['products', '▤', 'Termékek'],
@@ -69,11 +71,25 @@ export function MobileNavigation({
   complaints: number;
   applications: number;
 }) {
+  const [group, setGroup] = React.useState('');
+  const groups = [
+    {
+      name: 'Kiszállítások',
+      ids: ['tracking', 'delivery-planning', 'delivery-locations'],
+      count: 0,
+    },
+    { name: 'Termékek és hírek', ids: ['products', 'news'], count: 0 },
+    {
+      name: 'Ügyintézés',
+      ids: ['complaints', 'settings', 'applications', 'notifications'],
+      count: complaints + applications,
+    },
+  ];
   const more = useRef<HTMLDetailsElement>(null),
     total = complaints + applications;
   useEffect(() => {
     const closeOutside = (event: MouseEvent) => {
-      if (more.current?.open && !more.current.contains(event.target as Node))
+      if (more.current?.open && !event.composedPath().includes(more.current))
         more.current.open = false;
     };
     const key = (event: KeyboardEvent) => {
@@ -102,6 +118,9 @@ export function MobileNavigation({
       <details
         id="mobile-more"
         ref={more}
+        onToggle={(e) => {
+          if (!e.currentTarget.open) setGroup('');
+        }}
         onClick={(event) => {
           if ((event.target as Element).closest('a') && more.current) more.current.open = false;
         }}
@@ -124,21 +143,53 @@ export function MobileNavigation({
           <Count id="mobile-more-count" className="mobile-count" count={total} />
         </summary>
         <div className="mobile-more-panel" aria-label="További menüpontok">
-          <Link id="tracking" icon="◉" label="Járműkövetés" active={active} />
-          <Link id="complaints" icon="✉" label="Bejelentések" active={active}>
-            <Count id="mobile-complaints-count" className="mobile-item-count" count={complaints} />
-          </Link>
-          <Link id="products" icon="▤" label="Termékek és árak" active={active} />
-          <Link id="news" icon="▤" label="Hírek és akciók" active={active} />
-          <Link id="settings" icon="⚙" label="Túrák és partnerek" active={active} />
-          <Link id="applications" icon="✓" label="Regisztrációk" active={active}>
-            <Count
-              id="mobile-applications-count"
-              className="mobile-item-count"
-              count={applications}
-            />
-          </Link>
-          <Link id="notifications" icon="◉" label="Értesítési napló" active={active} />
+          {group ? (
+            <button type="button" className="mobile-menu-group" onClick={() => setGroup('')}>
+              ‹ Vissza
+            </button>
+          ) : (
+            groups.map((item) => (
+              <button
+                type="button"
+                className="mobile-menu-group"
+                key={item.name}
+                onClick={() => setGroup(item.name)}
+              >
+                {item.name}
+                {item.count > 0 && <span className="mobile-item-count">{item.count}</span>}
+                <span aria-hidden="true">›</span>
+              </button>
+            ))
+          )}
+          {groups
+            .find((item) => item.name === group)
+            ?.ids.map((id) => {
+              const [, icon, label] = staffLinks.find((link) => link[0] === id)!;
+              return (
+                <Link
+                  key={id}
+                  id={id}
+                  icon={icon}
+                  label={id === 'products' ? 'Termékek és árak' : label}
+                  active={active}
+                >
+                  {id === 'complaints' && (
+                    <Count
+                      id="mobile-complaints-count"
+                      className="mobile-item-count"
+                      count={complaints}
+                    />
+                  )}
+                  {id === 'applications' && (
+                    <Count
+                      id="mobile-applications-count"
+                      className="mobile-item-count"
+                      count={applications}
+                    />
+                  )}
+                </Link>
+              );
+            })}
         </div>
       </details>
     </>

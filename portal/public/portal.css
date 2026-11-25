@@ -4707,3 +4707,33 @@ body[data-role='staff'] .settings-reference {
     min-height: 72px;
   }
 }
+
+.tracking-tour, .location-group, .tour-editor {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #d8e6dd;
+}
+.location-group button {
+  display: block;
+  margin: .5rem 0;
+  text-align: left;
+}
+.location-group button[aria-pressed="true"], .tracking-assignment button[aria-pressed="true"] {
+  outline: 2px solid #33805a;
+}
+
+.staff-mobile-nav .mobile-menu-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 0;
+  background: white;
+  color: #10243f;
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+}
+.mobile-menu-group span[aria-hidden] { margin-left: auto; }

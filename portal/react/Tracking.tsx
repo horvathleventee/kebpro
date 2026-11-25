@@ -140,6 +140,7 @@ type AdminData = {
     } | null;
   }[];
   orders: {
+    routeId: string;
     id: string;
     date: string;
     address: string;
@@ -148,7 +149,7 @@ type AdminData = {
     verifiedPoint: { latitude: number; longitude: number } | null;
   }[];
 };
-function tomorrowBudapest() {
+function budapestDate(offset = 1) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Budapest',
     year: 'numeric',
@@ -157,7 +158,7 @@ function tomorrowBudapest() {
   }).formatToParts(new Date());
   const get = (name: string) => parts.find((p) => p.type === name)?.value;
   const today = `${get('year')}-${get('month')}-${get('day')}`;
-  return new Date(Date.parse(today + 'T12:00:00Z') + 86400000).toISOString().slice(0, 10);
+  return new Date(Date.parse(today + 'T12:00:00Z') + offset * 86400000).toISOString().slice(0, 10);
 }
 function routeOnDate(route: AdminData['routes'][number], date: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
@@ -168,12 +169,18 @@ function routeOnDate(route: AdminData['routes'][number], date: string) {
   if (changes.some((change) => change.to === date)) return true;
   return route.days.includes(day.getUTCDay());
 }
-export function StaffTracking({ fleet }: { fleet: { id: string; label: string }[] }) {
+export function StaffTracking({
+  fleet,
+  view,
+}: {
+  view: string;
+  fleet: { id: string; label: string }[];
+}) {
   const [data, setData] = React.useState<AdminData | null>(null);
   const [devices, setDevices] = React.useState<{ id: string; label: string }[]>([]);
   const [devicesUnavailable, setDevicesUnavailable] = React.useState(false);
   const [error, setError] = React.useState('');
-  const [date, setDate] = React.useState(tomorrowBudapest);
+  const [date, setDate] = React.useState(() => budapestDate());
   const [routeId, setRoute] = React.useState('');
   const [vehicleId, setVehicle] = React.useState('');
   const [label, setLabel] = React.useState('');
@@ -257,433 +264,503 @@ export function StaffTracking({ fleet }: { fleet: { id: string; label: string }[
     ) || [];
   const selectedRoute = data?.routes.find((r) => r.id === routeId);
   const routeActive = !!selectedRoute && routeOnDate(selectedRoute, date);
+  const planning = view === 'delivery-planning';
+  const [search, setSearch] = React.useState('');
+  const [reviewStop, setReviewStop] = React.useState(false);
+  React.useEffect(() => {
+    setReviewStop(false);
+    setMessage('');
+  }, [view]);
+  function chooseDate(value: string) {
+    setDate(value);
+    setRoute('');
+    setVehicle('');
+    setReviewStop(false);
+    setMessage('');
+    setError('');
+  }
   return (
-    <details className="card section-gap tracking-settings">
-      <summary>
-        <div>
-          <h2>Kiszállítások beállítása</h2>
-          <p>Túrák, járművek és szállítási pontok kezelése</p>
-        </div>
-      </summary>
+    <div className="fleet-page tracking-settings">
+      <header className="fleet-heading">
+        <h1>{planning ? 'Kiszállítások tervezése' : 'Szállítási helyek'}</h1>
+      </header>
+      {!data && !error && <p role="status">Betöltés…</p>}
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
       <div className="tracking-settings-content">
-        <section className="tracking-panel tracking-assignment">
-          <div className="tracking-panel-heading">
-            <span className="tracking-panel-icon" aria-hidden="true">
-              ↗
-            </span>
-            <div>
-              <span className="tracking-panel-kicker">NAPI BEOSZTÁS</span>
-              <h3>Túrához rendelés</h3>
+        {planning && !reviewStop && (
+          <section className="tracking-panel tracking-assignment">
+            <div className="tracking-panel-heading">
+              <span className="tracking-panel-icon" aria-hidden="true">
+                ↗
+              </span>
+              <div>
+                <span className="tracking-panel-kicker">NAPI BEOSZTÁS</span>
+                <h3>Kiszállítás napja</h3>
+              </div>
             </div>
-          </div>
-          <p>
-            Válaszd ki a kiszállítás napját, a túrát és a hozzá tartozó járművet. A beosztás csak
-            erre a napra érvényes.
-          </p>
-          <div className="tracking-form-grid">
+            <p>
+              Válaszd ki a kiszállítás napját, a túrát és a hozzá tartozó járművet. A beosztás csak
+              erre a napra érvényes.
+            </p>
+            <div className="tracking-form-grid">
+              <label>
+                Nap <input type="date" value={date} onChange={(e) => chooseDate(e.target.value)} />
+              </label>
+              <div className="settings-actions">
+                {['Ma', 'Holnap'].map((name, index) => (
+                  <button
+                    key={name}
+                    type="button"
+                    aria-pressed={date === budapestDate(index)}
+                    onClick={() => chooseDate(budapestDate(index))}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {routesForDate.map((route) => {
+              const assigned = assignmentsForDate.find((a) => a.routeId === route.id);
+              const vehicle = data?.vehicles.find((v) => v.id === assigned?.vehicleId);
+              const stops =
+                data?.orders.filter((o) => o.routeId === route.id && o.date === date) || [];
+              const pending = stops.filter((o) => !o.verified).length;
+              return (
+                <article className="tracking-tour" key={route.id}>
+                  <h3>{route.name}</h3>
+                  <p>
+                    {vehicle?.label || (assigned ? 'Ismeretlen jármű' : 'Nincs hozzárendelt jármű')}{' '}
+                    · {stops.length} megálló
+                    {pending > 0 && ' · ' + pending + ' ellenőrizendő szállítási hely'}
+                  </p>
+                  {stops.length > 0 && (
+                    <ul>
+                      {stops.map((stop) => (
+                        <li key={stop.id}>
+                          {data?.partners.find((p) => p.id === stop.partnerId)?.name} ·{' '}
+                          {stop.address}{' '}
+                          {!stop.verified && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRoute(route.id);
+                                setOrder(stop.id);
+                                setConfirmed(false);
+                                setLatitude('');
+                                setLongitude('');
+                                setReviewStop(true);
+                              }}
+                            >
+                              Hely ellenőrzése
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRoute(route.id);
+                      setVehicle('');
+                    }}
+                  >
+                    {assigned ? 'Jármű módosítása' : 'Jármű hozzárendelése'}
+                  </button>
+                  {routeId === route.id && (
+                    <div className="tour-editor">
+                      <label>
+                        Jármű{' '}
+                        <select value={vehicleId} onChange={(e) => setVehicle(e.target.value)}>
+                          <option value="">Válassz járművet</option>
+                          {assignment && <option value="remove">Hozzárendelés eltávolítása</option>}
+                          {routeActive &&
+                            selectable.map((v) => (
+                              <option key={'fleet:' + v.id} value={'fleet:' + v.id}>
+                                {v.label}
+                              </option>
+                            ))}
+                          {routeActive &&
+                            data?.vehicles
+                              .filter((v) => !selectable.some((f) => f.id === v.deviceId))
+                              .map((v) => (
+                                <option key={v.id} value={'saved:' + v.id}>
+                                  {v.label}
+                                </option>
+                              ))}
+                        </select>
+                      </label>{' '}
+                      {selectedRoute && !routeActive && (
+                        <p className="small muted">
+                          Ezt a túrát áthelyezték; a korábbi beosztás itt eltávolítható.
+                        </p>
+                      )}
+                      <button
+                        className="tracking-primary"
+                        type="button"
+                        disabled={busy || !date || !routeId || !vehicleId}
+                        onClick={() =>
+                          void (vehicleId.startsWith('fleet:')
+                            ? save('assign-device', { date, routeId, deviceId: vehicleId.slice(6) })
+                            : save('assignment', {
+                                date,
+                                routeId,
+                                vehicleId: vehicleId.startsWith('saved:')
+                                  ? vehicleId.slice(6)
+                                  : null,
+                              }))
+                        }
+                      >
+                        Hozzárendelés mentése
+                      </button>
+                      {routeId && date && (
+                        <p className="small muted">
+                          Jelenleg:{' '}
+                          {assignment
+                            ? assignedVehicle?.licensePlate ||
+                              assignedVehicle?.label ||
+                              'ismeretlen jármű'
+                            : 'nincs hozzárendelt jármű'}
+                        </p>
+                      )}
+                      {devicesUnavailable && (
+                        <p className="small muted">
+                          A teljes járműlista most nem érhető el; a térképen vagy a helyi
+                          katalógusban szereplő járművek választhatók.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+            {data && !routesForDate.length && <p>Erre a napra nincs tervezett túra.</p>}
+          </section>
+        )}
+        {!planning && (
+          <section className="tracking-panel">
+            <div className="tracking-panel-heading">
+              <span className="tracking-panel-icon" aria-hidden="true">
+                ⌖
+              </span>
+              <div>
+                <span className="tracking-panel-kicker">PARTNEREK</span>
+                <h3>Partner szállítási pontja</h3>
+              </div>
+            </div>
+            <p>
+              Az ellenőrzött pont a partner azonos szállítási című későbbi rendeléseinél is
+              használható.
+            </p>
             <label>
-              Nap{' '}
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => {
-                  setDate(e.target.value);
-                  setRoute('');
-                  setVehicle('');
-                  setError('');
-                  setMessage('');
-                }}
-              />
-            </label>{' '}
+              Partner vagy cím keresése
+              <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </label>
+            {[false, true].map((approved) => {
+              const matches =
+                data?.partners.filter(
+                  (p) =>
+                    Boolean(p.verified && !p.suggestion) === approved &&
+                    (p.name + ' ' + p.address)
+                      .toLocaleLowerCase('hu')
+                      .includes(search.trim().toLocaleLowerCase('hu')),
+                ) || [];
+              return (
+                <section key={String(approved)} className="location-group">
+                  <h3>
+                    {approved ? 'Jóváhagyott helyek' : 'Ellenőrzésre vár'} · {matches.length}
+                  </h3>
+                  {matches.map((p) => (
+                    <button
+                      type="button"
+                      key={p.id}
+                      aria-pressed={partnerId === p.id}
+                      onClick={() => {
+                        setPartner(p.id);
+                        setAddressDraft(p.address);
+                        setPartnerPoint(p.suggestion || null);
+                        setSuggestionId(p.suggestion?.id || '');
+                        setPartnerConfirmed(false);
+                        requestAnimationFrame(() =>
+                          document.getElementById('location-editor')?.focus(),
+                        );
+                      }}
+                    >
+                      <strong>{p.name}</strong> · {p.address}
+                    </button>
+                  ))}
+                </section>
+              );
+            })}
+            {selectedPartner && (
+              <>
+                <h3 id="location-editor" tabIndex={-1}>
+                  {selectedPartner.name}
+                </h3>
+                <label>
+                  Nyilvántartott szállítási cím{' '}
+                  <input
+                    value={addressDraft}
+                    maxLength={250}
+                    onChange={(e) => setAddressDraft(e.target.value)}
+                  />
+                </label>{' '}
+                <button
+                  type="button"
+                  disabled={
+                    busy || !addressDraft.trim() || addressDraft.trim() === selectedPartner.address
+                  }
+                  onClick={() =>
+                    void save('delivery-address', {
+                      partnerId,
+                      expectedAddress: selectedPartner.address,
+                      address: addressDraft,
+                    })
+                  }
+                >
+                  Cím módosítása
+                </button>
+                <p className="small muted">
+                  A módosítás a következő rendeléseknél érvényes; a korábban leadott rendelések
+                  címét nem írja át.
+                </p>
+                <p>
+                  <strong>{selectedPartner.address}</strong>
+                  {selectedPartner.suggestion ? ' · Ellenőrzésre váró javaslat' : ''}
+                </p>
+                {selectedPartner.suggestion?.source === 'address-search' && (
+                  <p className="small muted">
+                    Automatikus találat: {selectedPartner.suggestion.resultLabel}. Ellenőrizd, hogy
+                    valóban a szállítási helyet mutatja.
+                  </p>
+                )}
+                {selectedPartner.suggestion && selectedPartner.verifiedPoint ? (
+                  <p className="small muted">
+                    Narancs: új javaslat. Kék: jelenleg jóváhagyott pont, amely a követéshez
+                    érvényes.
+                  </p>
+                ) : selectedPartner.verifiedPoint ? (
+                  <p className="small muted">
+                    A térképen a jelenleg jóváhagyott szállítási pont látható. A módosításhoz jelölj
+                    ki új pontot, és hagyd jóvá.
+                  </p>
+                ) : null}
+                <AddressPicker
+                  key={
+                    selectedPartner.id +
+                    ':' +
+                    selectedPartner.address +
+                    ':' +
+                    (selectedPartner.suggestion?.id || '') +
+                    ':' +
+                    JSON.stringify(selectedPartner.verifiedPoint)
+                  }
+                  initialPoint={
+                    selectedPartner.suggestion || selectedPartner.verifiedPoint || undefined
+                  }
+                  referencePoint={
+                    selectedPartner.suggestion
+                      ? selectedPartner.verifiedPoint || undefined
+                      : undefined
+                  }
+                  onSelect={(latitude, longitude) => {
+                    setPartnerPoint({ latitude, longitude });
+                    setSuggestionId('');
+                    setPartnerConfirmed(false);
+                  }}
+                />
+                <label className="tracking-confirm">
+                  <input
+                    type="checkbox"
+                    checked={partnerConfirmed}
+                    onChange={(e) => setPartnerConfirmed(e.target.checked)}
+                    disabled={!partnerPoint || busy}
+                  />{' '}
+                  Ellenőriztem, hogy a pont ehhez a címhez tartozik.
+                </label>{' '}
+                <button
+                  type="button"
+                  disabled={!partnerPoint || !partnerConfirmed || busy}
+                  onClick={() =>
+                    void save('partner-address', {
+                      partnerId,
+                      address: selectedPartner.address,
+                      ...partnerPoint,
+                      ...(suggestionId ? { suggestionId } : {}),
+                    })
+                  }
+                >
+                  Szállítási pont jóváhagyása
+                </button>
+              </>
+            )}
+          </section>
+        )}
+        {planning && reviewStop && (
+          <button type="button" onClick={() => setReviewStop(false)}>
+            ← Vissza a túrához · {selectedRoute?.name}
+          </button>
+        )}
+        {(!planning || reviewStop) && (
+          <details
+            key={planning ? orderId : 'locations'}
+            open={planning || undefined}
+            className="tracking-panel tracking-order-panel"
+          >
+            <summary>
+              <span className="tracking-panel-icon" aria-hidden="true">
+                ⌖
+              </span>
+              <span>
+                <span className="tracking-panel-kicker">ELTÉRŐ CÍM ESETÉN</span>
+                <strong>Rendelés szállítási pontja</strong>
+                <small>Ha egy rendelés címe eltér a partner szokásos címétől</small>
+              </span>
+            </summary>
+            <h3>Szállítási cím koordinátáinak ellenőrzése</h3>
+            <p>
+              Válaszd ki a rendelést, majd jelöld a térképen a szállítás pontos helyét. A helyet
+              elég egyszer ellenőrizni.
+            </p>
             <label>
-              Túra{' '}
+              Rendelés{' '}
               <select
-                value={routeId}
+                value={orderId}
                 onChange={(e) => {
-                  setRoute(e.target.value);
-                  setVehicle('');
+                  setOrder(e.target.value);
+                  setConfirmed(false);
+                  setLatitude('');
+                  setLongitude('');
                 }}
               >
                 <option value="">Válassz</option>
-                {routesForDate.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                    {routeOnDate(r, date) ? '' : ' · áthelyezve, csak eltávolítás'}
+                {data?.orders.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.date} · {o.address} {o.verified ? '✓' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>{' '}
+            {order && (
+              <>
+                {order.verifiedPoint && (
+                  <p className="small muted">
+                    A térképen a rendelés címéhez jelenleg használt ellenőrzött pont látható.
+                  </p>
+                )}
+                <AddressPicker
+                  key={order.id + ':' + JSON.stringify(order.verifiedPoint)}
+                  initialPoint={order.verifiedPoint || undefined}
+                  onSelect={(lat, lon) => {
+                    setLatitude(lat.toFixed(6));
+                    setLongitude(lon.toFixed(6));
+                    setConfirmed(false);
+                  }}
+                />
+                <div className="tracking-coordinate-grid">
+                  <label>
+                    Szélesség{' '}
+                    <input
+                      type="number"
+                      step="any"
+                      value={latitude}
+                      onChange={(e) => {
+                        setLatitude(e.target.value);
+                        setConfirmed(false);
+                      }}
+                    />
+                  </label>{' '}
+                  <label>
+                    Hosszúság{' '}
+                    <input
+                      type="number"
+                      step="any"
+                      value={longitude}
+                      onChange={(e) => {
+                        setLongitude(e.target.value);
+                        setConfirmed(false);
+                      }}
+                    />
+                  </label>{' '}
+                </div>
+                <label className="tracking-confirm">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    onChange={(e) => setConfirmed(e.target.checked)}
+                  />{' '}
+                  Ellenőriztem, hogy a kijelölt pont a rendelés szállítási címe.
+                </label>{' '}
+                <button
+                  type="button"
+                  disabled={!order || !latitude || !longitude || !confirmed}
+                  onClick={() =>
+                    void save('address', {
+                      orderId,
+                      address: order?.address,
+                      latitude: Number(latitude),
+                      longitude: Number(longitude),
+                    })
+                  }
+                >
+                  Cím ellenőrzése
+                </button>
+              </>
+            )}
+          </details>
+        )}
+        {planning && !reviewStop && (
+          <details className="tracking-advanced">
+            <summary>Jármű adatainak kézi kezelése</summary>
+            <h3>Jármű felvétele vagy módosítása</h3>
+            <label>
+              Meglévő jármű{' '}
+              <select
+                value={editingVehicle}
+                onChange={(e) => {
+                  const id = e.target.value,
+                    vehicle = data?.vehicles.find((v) => v.id === id);
+                  setEditingVehicle(id);
+                  setLabel(vehicle?.label || '');
+                  setDevice(vehicle?.deviceId || '');
+                  setRegistration(vehicle?.licensePlate || '');
+                }}
+              >
+                <option value="">Új jármű</option>
+                {data?.vehicles.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.label}
                   </option>
                 ))}
               </select>
             </label>{' '}
             <label>
-              Jármű{' '}
-              <select value={vehicleId} onChange={(e) => setVehicle(e.target.value)}>
-                <option value="">Válassz járművet</option>
-                {assignment && <option value="remove">Hozzárendelés eltávolítása</option>}
-                {routeActive &&
-                  selectable.map((v) => (
-                    <option key={'fleet:' + v.id} value={'fleet:' + v.id}>
-                      {v.label}
-                    </option>
-                  ))}
-                {routeActive &&
-                  data?.vehicles
-                    .filter((v) => !selectable.some((f) => f.id === v.deviceId))
-                    .map((v) => (
-                      <option key={v.id} value={'saved:' + v.id}>
-                        {v.label}
-                      </option>
-                    ))}
-              </select>
+              Jármű neve <input value={label} onChange={(e) => setLabel(e.target.value)} />
             </label>{' '}
-          </div>
-          {date && data && !routesForDate.length && (
-            <p className="small muted">Erre a napra nincs tervezett túra.</p>
-          )}
-          {selectedRoute && !routeActive && (
-            <p className="small muted">
-              Ezt a túrát áthelyezték; a korábbi beosztás itt eltávolítható.
-            </p>
-          )}
-          <button
-            className="tracking-primary"
-            type="button"
-            disabled={busy || !date || !routeId || !vehicleId}
-            onClick={() =>
-              void (vehicleId.startsWith('fleet:')
-                ? save('assign-device', { date, routeId, deviceId: vehicleId.slice(6) })
-                : save('assignment', {
-                    date,
-                    routeId,
-                    vehicleId: vehicleId.startsWith('saved:') ? vehicleId.slice(6) : null,
-                  }))
-            }
-          >
-            Hozzárendelés mentése
-          </button>
-          {routeId && date && (
-            <p className="small muted">
-              Jelenleg:{' '}
-              {assignment
-                ? assignedVehicle?.licensePlate || assignedVehicle?.label || 'ismeretlen jármű'
-                : 'nincs hozzárendelt jármű'}
-            </p>
-          )}
-          {devicesUnavailable && (
-            <p className="small muted">
-              A teljes járműlista most nem érhető el; a térképen vagy a helyi katalógusban szereplő
-              járművek választhatók.
-            </p>
-          )}
-          <div className="tracking-assignments">
-            <div className="tracking-list-title">
-              A kiválasztott nap beosztásai <span>{assignmentsForDate.length}</span>
-            </div>
-            {data && assignmentsForDate.length === 0 && (
-              <p className="tracking-list-empty">Erre a napra még nincs rögzített beosztás.</p>
-            )}
-            <ul>
-              {data && assignmentsForDate.map((a) => (
-                <li key={a.id}>
-                  {a.date} · {a.routeName || data.routes.find((r) => r.id === a.routeId)?.name} ·{' '}
-                  {data.vehicles.find((v) => v.id === a.vehicleId)?.label}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-        <section className="tracking-panel">
-          <div className="tracking-panel-heading">
-            <span className="tracking-panel-icon" aria-hidden="true">
-              ⌖
-            </span>
-            <div>
-              <span className="tracking-panel-kicker">PARTNEREK</span>
-              <h3>Partner szállítási pontja</h3>
-            </div>
-          </div>
-          <p>
-            Az ellenőrzött pont a partner azonos szállítási című későbbi rendeléseinél is
-            használható.
-          </p>
-          <label>
-            Partner{' '}
-            <select
-              value={partnerId}
-              onChange={(e) => {
-                const id = e.target.value,
-                  selected = data?.partners.find((p) => p.id === id),
-                  suggestion = selected?.suggestion;
-                setPartner(id);
-                setAddressDraft(selected?.address || '');
-                setPartnerPoint(
-                  suggestion
-                    ? { latitude: suggestion.latitude, longitude: suggestion.longitude }
-                    : null,
-                );
-                setSuggestionId(suggestion?.id || '');
-                setPartnerConfirmed(false);
-              }}
+            <label>
+              Eszközazonosító <input value={deviceId} onChange={(e) => setDevice(e.target.value)} />
+            </label>{' '}
+            <label>
+              Rendszám (ha az API-ban hiányzik){' '}
+              <input value={registration} onChange={(e) => setRegistration(e.target.value)} />
+            </label>{' '}
+            <button
+              type="button"
+              onClick={() =>
+                void save('vehicle', {
+                  ...(editingVehicle ? { id: editingVehicle } : {}),
+                  label,
+                  deviceId,
+                  licensePlate: registration,
+                })
+              }
             >
-              <option value="">Válassz</option>
-              {data?.partners.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} · {p.address}{' '}
-                  {p.suggestion ? '· ellenőrzésre vár' : p.verified ? '· ellenőrzött' : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-          {selectedPartner && (
-            <>
-              <label>
-                Nyilvántartott szállítási cím{' '}
-                <input
-                  value={addressDraft}
-                  maxLength={250}
-                  onChange={(e) => setAddressDraft(e.target.value)}
-                />
-              </label>{' '}
-              <button
-                type="button"
-                disabled={
-                  busy || !addressDraft.trim() || addressDraft.trim() === selectedPartner.address
-                }
-                onClick={() =>
-                  void save('delivery-address', {
-                    partnerId,
-                    expectedAddress: selectedPartner.address,
-                    address: addressDraft,
-                  })
-                }
-              >
-                Cím módosítása
-              </button>
-              <p className="small muted">
-                A módosítás a következő rendeléseknél érvényes; a korábban leadott rendelések címét
-                nem írja át.
-              </p>
-              <p>
-                <strong>{selectedPartner.address}</strong>
-                {selectedPartner.suggestion ? ' · Ellenőrzésre váró javaslat' : ''}
-              </p>
-              {selectedPartner.suggestion?.source === 'address-search' && (
-                <p className="small muted">
-                  Automatikus találat: {selectedPartner.suggestion.resultLabel}. Ellenőrizd, hogy
-                  valóban a szállítási helyet mutatja.
-                </p>
-              )}
-              {selectedPartner.suggestion && selectedPartner.verifiedPoint ? (
-                <p className="small muted">
-                  Narancs: új javaslat. Kék: jelenleg jóváhagyott pont, amely a követéshez érvényes.
-                </p>
-              ) : selectedPartner.verifiedPoint ? (
-                <p className="small muted">
-                  A térképen a jelenleg jóváhagyott szállítási pont látható. A módosításhoz jelölj
-                  ki új pontot, és hagyd jóvá.
-                </p>
-              ) : null}
-              <AddressPicker
-                key={
-                  selectedPartner.id +
-                  ':' +
-                  selectedPartner.address +
-                  ':' +
-                  (selectedPartner.suggestion?.id || '') +
-                  ':' +
-                  JSON.stringify(selectedPartner.verifiedPoint)
-                }
-                initialPoint={
-                  selectedPartner.suggestion || selectedPartner.verifiedPoint || undefined
-                }
-                referencePoint={
-                  selectedPartner.suggestion
-                    ? selectedPartner.verifiedPoint || undefined
-                    : undefined
-                }
-                onSelect={(latitude, longitude) => {
-                  setPartnerPoint({ latitude, longitude });
-                  setSuggestionId('');
-                  setPartnerConfirmed(false);
-                }}
-              />
-              <label className="tracking-confirm">
-                <input
-                  type="checkbox"
-                  checked={partnerConfirmed}
-                  onChange={(e) => setPartnerConfirmed(e.target.checked)}
-                  disabled={!partnerPoint || busy}
-                />{' '}
-                Ellenőriztem, hogy a pont ehhez a címhez tartozik.
-              </label>{' '}
-              <button
-                type="button"
-                disabled={!partnerPoint || !partnerConfirmed || busy}
-                onClick={() =>
-                  void save('partner-address', {
-                    partnerId,
-                    address: selectedPartner.address,
-                    ...partnerPoint,
-                    ...(suggestionId ? { suggestionId } : {}),
-                  })
-                }
-              >
-                Szállítási pont jóváhagyása
-              </button>
-            </>
-          )}
-        </section>
-        <details className="tracking-panel tracking-order-panel">
-          <summary>
-            <span className="tracking-panel-icon" aria-hidden="true">
-              ⌖
-            </span>
-            <span>
-              <span className="tracking-panel-kicker">ELTÉRŐ CÍM ESETÉN</span>
-              <strong>Rendelés szállítási pontja</strong>
-              <small>Ha egy rendelés címe eltér a partner szokásos címétől</small>
-            </span>
-          </summary>
-          <h3>Szállítási cím koordinátáinak ellenőrzése</h3>
-          <p>
-            Válaszd ki a rendelést, majd jelöld a térképen a szállítás pontos helyét. A helyet elég
-            egyszer ellenőrizni.
-          </p>
-          <label>
-            Rendelés{' '}
-            <select
-              value={orderId}
-              onChange={(e) => {
-                setOrder(e.target.value);
-                setConfirmed(false);
-                setLatitude('');
-                setLongitude('');
-              }}
-            >
-              <option value="">Válassz</option>
-              {data?.orders.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.date} · {o.address} {o.verified ? '✓' : ''}
-                </option>
-              ))}
-            </select>
-          </label>{' '}
-          {order && (
-            <>
-              {order.verifiedPoint && (
-                <p className="small muted">
-                  A térképen a rendelés címéhez jelenleg használt ellenőrzött pont látható.
-                </p>
-              )}
-              <AddressPicker
-                key={order.id + ':' + JSON.stringify(order.verifiedPoint)}
-                initialPoint={order.verifiedPoint || undefined}
-                onSelect={(lat, lon) => {
-                  setLatitude(lat.toFixed(6));
-                  setLongitude(lon.toFixed(6));
-                  setConfirmed(false);
-                }}
-              />
-              <div className="tracking-coordinate-grid">
-                <label>
-                  Szélesség{' '}
-                  <input
-                    type="number"
-                    step="any"
-                    value={latitude}
-                    onChange={(e) => {
-                      setLatitude(e.target.value);
-                      setConfirmed(false);
-                    }}
-                  />
-                </label>{' '}
-                <label>
-                  Hosszúság{' '}
-                  <input
-                    type="number"
-                    step="any"
-                    value={longitude}
-                    onChange={(e) => {
-                      setLongitude(e.target.value);
-                      setConfirmed(false);
-                    }}
-                  />
-                </label>{' '}
-              </div>
-              <label className="tracking-confirm">
-                <input
-                  type="checkbox"
-                  checked={confirmed}
-                  onChange={(e) => setConfirmed(e.target.checked)}
-                />{' '}
-                Ellenőriztem, hogy a kijelölt pont a rendelés szállítási címe.
-              </label>{' '}
-              <button
-                type="button"
-                disabled={!order || !latitude || !longitude || !confirmed}
-                onClick={() =>
-                  void save('address', {
-                    orderId,
-                    address: order?.address,
-                    latitude: Number(latitude),
-                    longitude: Number(longitude),
-                  })
-                }
-              >
-                Cím ellenőrzése
-              </button>
-            </>
-          )}
-        </details>
-        <details className="tracking-advanced">
-          <summary>Jármű adatainak kézi kezelése</summary>
-          <h3>Jármű felvétele vagy módosítása</h3>
-          <label>
-            Meglévő jármű{' '}
-            <select
-              value={editingVehicle}
-              onChange={(e) => {
-                const id = e.target.value,
-                  vehicle = data?.vehicles.find((v) => v.id === id);
-                setEditingVehicle(id);
-                setLabel(vehicle?.label || '');
-                setDevice(vehicle?.deviceId || '');
-                setRegistration(vehicle?.licensePlate || '');
-              }}
-            >
-              <option value="">Új jármű</option>
-              {data?.vehicles.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
-          </label>{' '}
-          <label>
-            Jármű neve <input value={label} onChange={(e) => setLabel(e.target.value)} />
-          </label>{' '}
-          <label>
-            Eszközazonosító <input value={deviceId} onChange={(e) => setDevice(e.target.value)} />
-          </label>{' '}
-          <label>
-            Rendszám (ha az API-ban hiányzik){' '}
-            <input value={registration} onChange={(e) => setRegistration(e.target.value)} />
-          </label>{' '}
-          <button
-            type="button"
-            onClick={() =>
-              void save('vehicle', {
-                ...(editingVehicle ? { id: editingVehicle } : {}),
-                label,
-                deviceId,
-                licensePlate: registration,
-              })
-            }
-          >
-            Jármű mentése
-          </button>
-        </details>
+              Jármű mentése
+            </button>
+          </details>
+        )}
       </div>
-    </details>
+    </div>
   );
 }

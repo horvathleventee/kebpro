@@ -10,7 +10,7 @@ type Vehicle = {
   timestamp: string;
 };
 
-export function Fleet(_props: { active: boolean }) {
+export function Fleet({ view }: { active: boolean; view: string }) {
   const [vehicles, setVehicles] = React.useState<Vehicle[]>([]);
   const [selected, setSelected] = React.useState('');
   const [error, setError] = React.useState('');
@@ -71,13 +71,14 @@ export function Fleet(_props: { active: boolean }) {
           day: 'numeric',
         });
   };
+  if (view !== 'tracking') return <StaffTracking fleet={vehicles} view={view} />;
   return (
     <div className="fleet-page">
       <header className="fleet-heading">
         <div>
           <span className="eyebrow">LOGISZTIKA / JÁRMŰKÖVETÉS</span>
           <h1>Flotta áttekintése</h1>
-          <p>A járművek helyzete és a kiszállítások beállításai egy helyen.</p>
+          <p>A járművek legutóbbi ismert helyzete.</p>
         </div>
         <span className="fleet-badge">
           <span aria-hidden="true" /> MUNKATÁRSI NÉZET
@@ -185,7 +186,6 @@ export function Fleet(_props: { active: boolean }) {
           </div>
         )}
       </section>
-      <StaffTracking fleet={vehicles} />
     </div>
   );
 }
