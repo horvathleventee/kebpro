@@ -20,6 +20,15 @@ portal.ready
     await portal.store.change((s) => {
       const date = localTime(new Date()).date;
       const weekday = new Date(date + 'T12:00:00Z').getUTCDay();
+      const allDays = [0, 1, 2, 3, 4, 5, 6];
+      for (const [id, name] of [
+        ['tracking-demo-north', 'Észak-pesti túra'],
+        ['tracking-demo-south', 'Dél-pesti túra'],
+      ]) {
+        if (!s.routes.some((route) => route.id === id)) {
+          s.routes.push({ id, name, days: allDays });
+        }
+      }
       const route = s.routes.find((r) => r.days.includes(weekday));
       const partner = s.partners[0];
       if (!route || !partner) throw Error('Preview seed is missing');
